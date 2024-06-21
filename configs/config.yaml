@@ -1,0 +1,9 @@
+azure:
+  resource_group: "rg-test"
+
+app_insights:
+  instrumentation_key: "your_application_insights_instrumentation_key"
+
+policies:
+  policy_file: "policies/policies.yaml"
+  schema_file: "src/schema.json"
