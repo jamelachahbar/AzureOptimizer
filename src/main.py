@@ -443,9 +443,18 @@ def update_storage_account_sku(storage_account, new_sku):
         return 'Failed', f'Failed to update storage account SKU: {e}'
 
 def scale_sql_database(database, tiers, status_log, dry_run=True):
+    current_time = datetime.now().time()
     for tier in tiers:
         if tier['name'] in database.sku.name:
-            new_dtu = tier['off_peak_dtu'] if dry_run else tier['peak_dtu']
+            off_peak_start = datetime.strptime(tier['off_peak_start'], "%H:%M").time()
+            off_peak_end = datetime.strptime(tier['off_peak_end'], "%H:%M").time()
+
+            if off_peak_start < off_peak_end:
+                is_off_peak = off_peak_start <= current_time < off_peak_end
+            else:  # Over midnight
+                is_off_peak = not (off_peak_end <= current_time < off_peak_start)
+
+            new_dtu = tier['off_peak_dtu'] if is_off_peak else tier['peak_dtu']
             logging.info(f"Database: {database.name}, Current DTU: {database.current_service_objective_name}")
             message = (f'Dry run mode, no action taken. Would scale DTU to {new_dtu}' 
                        if dry_run else f'Scaled DTU to {new_dtu}')
@@ -606,7 +615,7 @@ def apply_policies(policies, dry_run):
             wrapped_actions = wrap_text(resource['Actions'])
             table.add_row([wrapped_policy, wrapped_resource, wrapped_actions])
         print(colored("Impacted Resources:", "cyan", attrs=["bold"]))
-        print(colored(table.get_string(), "cyan"))
+        print(colored(table.get_string(), "green"))
         tc.track_event("ImpactedResources", {"Resources": impacted_resources})
 
     # Log non-impacted resources
@@ -628,10 +637,10 @@ def apply_policies(policies, dry_run):
             wrapped_resource = wrap_text(log['Resource'])
             wrapped_action = wrap_text(log['Action'])
             wrapped_message = wrap_text(log['Message'])
-            color = "green" if log['Status'] == "Success" else "red"
+            color = "black" if log['Status'] == "Success" else "red"
             table_status.add_row([wrapped_resource, wrapped_action, colored(log['Status'], color), wrapped_message])
         print(colored("Operation Status:", "cyan", attrs=["bold"]))
-        print(colored(table_status.get_string(), "cyan"))
+        print(colored(table_status.get_string()))
         tc.track_event("OperationStatus", {"Status": status_log})
     else:
         logging.info("No operations performed.")
