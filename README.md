@@ -71,6 +71,8 @@ Execute the main script to apply your policies:
 
 ![Description of Image](./acorun1.png)
 ![Description of Image](./acorun2.png)
+![Description of Image](./acorun3.png)
+
 ### Project Files
 - src/main.py: The main script to enforce policies defined in policies.yaml.
 - src/schema.json: The JSON schema defining the structure of the policies.
