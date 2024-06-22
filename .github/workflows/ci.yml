@@ -1,40 +1,50 @@
-# Check if environment variables are already set, if not, load from .env file
-if not os.getenv('AZURE_CLIENT_ID'):
-    load_dotenv()
+name: Azure Cost Optimization
 
-# Load configuration from config.yaml
-config_file = os.getenv('CONFIG_FILE')
-if not config_file:
-    raise Exception("CONFIG_FILE environment variable not set.")
-with open(config_file, 'r') as file:
-    config = yaml.safe_load(file)
+on: [push]
 
-# Log environment variables for debugging
-logging.basicConfig(level=logging.INFO)
-logging.info(f"CONFIG_FILE: {config_file}")
-logging.info(f"AZURE_SUBSCRIPTION_ID: {os.getenv('AZURE_SUBSCRIPTION_ID')}")
-logging.info(f"AZURE_CLIENT_ID: {os.getenv('AZURE_CLIENT_ID')}")
-logging.info(f"AZURE_TENANT_ID: {os.getenv('AZURE_TENANT_ID')}")
-logging.info(f"AZURE_CLIENT_SECRET: {os.getenv('AZURE_CLIENT_SECRET')}")
-logging.info(f"APPINSIGHTS_INSTRUMENTATIONKEY: {os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY')}")
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-# Initialize Application Insights Telemetry Client
-instrumentation_key = os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY')
-if not instrumentation_key:
-    raise Exception("Instrumentation key was required but not provided")
-tc = TelemetryClient(instrumentation_key)
+    steps:
+      - uses: actions/checkout@v2
 
-# Authentication
-credential = ClientSecretCredential(
-    tenant_id=os.getenv('AZURE_TENANT_ID'),
-    client_id=os.getenv('AZURE_CLIENT_ID'),
-    client_secret=os.getenv('AZURE_CLIENT_SECRET')
-)
-subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
 
-# Verify that the necessary environment variables are set
-required_env_vars = ['AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_CLIENT_SECRET', 'AZURE_SUBSCRIPTION_ID']
-for var in required_env_vars:
-    if not os.getenv(var):
-        logging.error(f"Environment variable {var} is not set.")
-        sys.exit(1)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set environment variables
+        run: |
+          echo "CONFIG_FILE=configs/config.yaml" >> $GITHUB_ENV
+          echo "AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          echo "AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
+          echo "AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "APPINSIGHTS_INSTRUMENTATIONKEY=${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}" >> $GITHUB_ENV
+
+      - name: Verify environment variables
+        run: |
+          echo "CONFIG_FILE=$CONFIG_FILE"
+          echo "AZURE_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID"
+          echo "AZURE_CLIENT_ID=$AZURE_CLIENT_ID"
+          echo "AZURE_TENANT_ID=$AZURE_TENANT_ID"
+          echo "AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET"
+          echo "APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY"
+
+      - name: Run Azure Cost Optimizer
+        env:
+          CONFIG_FILE: configs/config.yaml
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
+        run: |
+          echo "Running Python script with mode dry-run"
+          python src/main.py --mode dry-run
