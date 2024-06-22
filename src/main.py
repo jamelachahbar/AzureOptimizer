@@ -37,13 +37,13 @@ with open(config_file, 'r') as file:
     config = yaml.safe_load(file)
 
 # Log environment variables for debugging
-logging.basicConfig(level=logging.INFO)
-logging.info(f"CONFIG_FILE: {config_file}")
-logging.info(f"AZURE_SUBSCRIPTION_ID: {os.getenv('AZURE_SUBSCRIPTION_ID')}")
-logging.info(f"AZURE_CLIENT_ID: {os.getenv('AZURE_CLIENT_ID')}")
-logging.info(f"AZURE_TENANT_ID: {os.getenv('AZURE_TENANT_ID')}")
-logging.info(f"AZURE_CLIENT_SECRET: {os.getenv('AZURE_CLIENT_SECRET')}")
-logging.info(f"APPINSIGHTS_INSTRUMENTATIONKEY: {os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY')}")
+# logging.basicConfig(level=logging.INFO)
+# logging.info(f"CONFIG_FILE: {config_file}")
+# logging.info(f"AZURE_SUBSCRIPTION_ID: {os.getenv('AZURE_SUBSCRIPTION_ID')}")
+# logging.info(f"AZURE_CLIENT_ID: {os.getenv('AZURE_CLIENT_ID')}")
+# logging.info(f"AZURE_TENANT_ID: {os.getenv('AZURE_TENANT_ID')}")
+# logging.info(f"AZURE_CLIENT_SECRET: {os.getenv('AZURE_CLIENT_SECRET')}")
+# logging.info(f"APPINSIGHTS_INSTRUMENTATIONKEY: {os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY')}")
 
 # Initialize Application Insights Telemetry Client
 instrumentation_key = os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY')
