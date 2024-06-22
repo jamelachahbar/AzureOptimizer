@@ -239,7 +239,6 @@ def generate_summary_report(df):
     table.add_row(["Maximum Daily Cost", f"€{max_cost:.2f}"])
     table.add_row(["Minimum Daily Cost", f"€{min_cost:.2f}"])
     print(colored(table, "cyan"))
-    
 
 def evaluate_filters(resource, filters):
     """Evaluate if a resource meets the defined filters."""
@@ -455,7 +454,14 @@ def scale_sql_database(database, tiers, status_log, dry_run=True):
                 is_off_peak = not (off_peak_end <= current_time < off_peak_start)
 
             new_dtu = tier['off_peak_dtu'] if is_off_peak else tier['peak_dtu']
-            logging.info(f"Database: {database.name}, Current DTU: {database.current_service_objective_name}")
+
+            if new_dtu == database.sku.capacity:
+                message = 'Current DTU is already optimal. No scaling required.'
+                logging.info(f"Database: {database.name}, {message}")
+                status_log.append({'Resource': database.name, 'Action': 'scale', 'Status': 'No Change', 'Message': message})
+                return 'No Change', message
+
+            logging.info(f"Database: {database.name}, Current DTU: {database.sku.capacity}, New DTU: {new_dtu}")
             message = (f'Dry run mode, no action taken. Would scale DTU to {new_dtu}' 
                        if dry_run else f'Scaled DTU to {new_dtu}')
             logging.info(f"Scale status for {database.name}: {message}")
@@ -586,10 +592,11 @@ def apply_policies(policies, dry_run):
                 resource_group_name = server.id.split('/')[4]
                 databases = sql_client.databases.list_by_server(resource_group_name, server.name)
                 for db in databases:
-                    logging.info(f"Database: {db.name}, Current DTU: {db.current_service_objective_name}")
+                    logging.info(f"Database: {db.name}, Current DTU: {db.sku.capacity}")
                     status, message = scale_sql_database(db, policy['actions'][0]['tiers'], status_log, dry_run)
-                    impacted_resources.append({'Policy': policy['name'], 'Resource': db.name, 'Actions': 'scale', 'Status': status, 'Message': message})
-                    resources_impacted = True
+                    if status != 'No Change':
+                        impacted_resources.append({'Policy': policy['name'], 'Resource': db.name, 'Actions': 'scale', 'Status': status, 'Message': message})
+                        resources_impacted = True
             if not resources_impacted:
                 non_impacted_resources.append({'Policy': policy['name'], 'ResourceType': 'SQL Database'})
 
@@ -615,7 +622,7 @@ def apply_policies(policies, dry_run):
             wrapped_actions = wrap_text(resource['Actions'])
             table.add_row([wrapped_policy, wrapped_resource, wrapped_actions])
         print(colored("Impacted Resources:", "cyan", attrs=["bold"]))
-        print(colored(table.get_string(), "green"))
+        print(colored(table.get_string(), "cyan"))
         tc.track_event("ImpactedResources", {"Resources": impacted_resources})
 
     # Log non-impacted resources
