@@ -66,7 +66,11 @@ Execute the main script to apply your policies:
 
 ```python src/main.py```
 
+**Dry run mode** can be used to see if any action will be taken before actually applying actions:
+```python src/main.py --mode dry-run```
 
+![Description of Image](./acorun1.png)
+![Description of Image](./acorun2.png)
 ### Project Files
 - src/main.py: The main script to enforce policies defined in policies.yaml.
 - src/schema.json: The JSON schema defining the structure of the policies.

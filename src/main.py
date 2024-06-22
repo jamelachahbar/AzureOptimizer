@@ -637,8 +637,8 @@ def apply_policies(policies, dry_run):
             wrapped_resource = wrap_text(log['Resource'])
             wrapped_action = wrap_text(log['Action'])
             wrapped_message = wrap_text(log['Message'])
-            color = "black" if log['Status'] == "Success" else "red"
-            table_status.add_row([wrapped_resource, wrapped_action, colored(log['Status'], color), wrapped_message])
+            color = "green" if log['Status'] == "Success" else "red"
+            table_status.add_row([wrapped_resource, wrapped_action, colored(log['Status'], color, attrs=["bold"]), wrapped_message])
         print(colored("Operation Status:", "cyan", attrs=["bold"]))
         print(colored(table_status.get_string()))
         tc.track_event("OperationStatus", {"Status": status_log})
