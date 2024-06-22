@@ -25,24 +25,38 @@ from sklearn.ensemble import IsolationForest
 import textwrap
 
 
-# Load environment variables from .env file
 # Check if environment variables are already set, if not, load from .env file
 if not os.getenv('AZURE_CLIENT_ID'):
     load_dotenv()
 
 # Load configuration from config.yaml
-config_file = os.getenv('CONFIG_FILE', 'configs/config.yaml')
-with open(config_file, 'r') as file:
-    config = yaml.safe_load(file)
+config_file = os.getenv('CONFIG_FILE')
 if not config_file:
     raise Exception("CONFIG_FILE environment variable not set.")
+with open(config_file, 'r') as file:
+    config = yaml.safe_load(file)
+
+# Log environment variables for debugging
+logging.basicConfig(level=logging.INFO)
+logging.info(f"CONFIG_FILE: {config_file}")
+logging.info(f"AZURE_SUBSCRIPTION_ID: {os.getenv('AZURE_SUBSCRIPTION_ID')}")
+logging.info(f"AZURE_CLIENT_ID: {os.getenv('AZURE_CLIENT_ID')}")
+logging.info(f"AZURE_TENANT_ID: {os.getenv('AZURE_TENANT_ID')}")
+logging.info(f"AZURE_CLIENT_SECRET: {os.getenv('AZURE_CLIENT_SECRET')}")
+logging.info(f"APPINSIGHTS_INSTRUMENTATIONKEY: {os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY')}")
 
 # Initialize Application Insights Telemetry Client
-instrumentation_key = os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY', config['app_insights']['instrumentation_key'])
+instrumentation_key = os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY')
+if not instrumentation_key:
+    raise Exception("Instrumentation key was required but not provided")
 tc = TelemetryClient(instrumentation_key)
 
 # Authentication
-credential = DefaultAzureCredential()
+credential = ClientSecretCredential(
+    tenant_id=os.getenv('AZURE_TENANT_ID'),
+    client_id=os.getenv('AZURE_CLIENT_ID'),
+    client_secret=os.getenv('AZURE_CLIENT_SECRET')
+)
 subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
 
 # Verify that the necessary environment variables are set
@@ -51,7 +65,6 @@ for var in required_env_vars:
     if not os.getenv(var):
         logging.error(f"Environment variable {var} is not set.")
         sys.exit(1)
-
 
 # Clients
 resource_client = ResourceManagementClient(credential, subscription_id)
