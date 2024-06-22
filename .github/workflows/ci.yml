@@ -1,53 +1,41 @@
-name: CI
+name: Azure Cost Optimization
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-  # schedule:
-    # - cron: '0 0 * * *'  # Runs daily at midnight UTC
+on: [push]
 
 jobs:
   build:
     runs-on: windows-latest
-    env:
-      CONFIG_FILE: configs/config.yaml
-      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-      APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        
-    - name: Verify environment variables
-      shell: pwsh
-      run: |
-          echo "AZURE_CLIENT_ID=$env:AZURE_CLIENT_ID"
-          echo "AZURE_TENANT_ID=$env:AZURE_TENANT_ID"
-          echo "AZURE_CLIENT_SECRET=$env:AZURE_CLIENT_SECRET"
-    - name: Run Cost Optimizer in Dry Run Mode
-      run: |
-        python src/main.py --mode dry-run
-      env:
-        CONFIG_FILE: "configs/config.yaml"
-        APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
-        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Set environment variables
+        run: |
+          echo "CONFIG_FILE=configs/config.yaml" >> $GITHUB_ENV
+          echo "AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          echo "AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
+          echo "AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "APPINSIGHTS_INSTRUMENTATIONKEY=${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}" >> $GITHUB_ENV
+
+      - name: Verify environment variables
+        run: |
+          echo "CONFIG_FILE=$CONFIG_FILE"
+          echo "AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}"
+          echo "AZURE_CLIENT_ID=${AZURE_CLIENT_ID}"
+          echo "AZURE_TENANT_ID=${AZURE_TENANT_ID}"
+          echo "AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}"
+          echo "APPINSIGHTS_INSTRUMENTATIONKEY=${APPINSIGHTS_INSTRUMENTATIONKEY}"
+
+      - name: Run Azure Cost Optimizer
+        run: python src/main.py --mode dry-run
