@@ -24,8 +24,10 @@ from termcolor import colored
 from sklearn.ensemble import IsolationForest
 import textwrap
 
-# Load environment variables from .env file
-load_dotenv()
+
+# Check if environment variables are already set, if not, load from .env file
+if not os.getenv('AZURE_CLIENT_ID'):
+    load_dotenv()
 
 # Load configuration from config.yaml
 config_file = os.getenv('CONFIG_FILE', 'configs/config.yaml')
@@ -33,12 +35,19 @@ with open(config_file, 'r') as file:
     config = yaml.safe_load(file)
 
 # Initialize Application Insights Telemetry Client
-instrumentation_key = "fd6a4fe8-3952-4b5d-8d55-68b736ab7dfc;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/;ApplicationId=a371bc09-fd29-48a2-958f-36f0bd811fc0"
+instrumentation_key = os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY', 'default-key')
 tc = TelemetryClient(instrumentation_key)
 
 # Authentication
 credential = DefaultAzureCredential()
 subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
+
+# Verify that the necessary environment variables are set
+required_env_vars = ['AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_CLIENT_SECRET', 'AZURE_SUBSCRIPTION_ID']
+for var in required_env_vars:
+    if not os.getenv(var):
+        logging.error(f"Environment variable {var} is not set.")
+        sys.exit(1)
 
 # Clients
 resource_client = ResourceManagementClient(credential, subscription_id)
