@@ -38,7 +38,6 @@ jobs:
           echo "APPINSIGHTS_INSTRUMENTATIONKEY=$env:APPINSIGHTS_INSTRUMENTATIONKEY"
 
       - name: Run Azure Cost Optimizer
-        run: python src/main.py --mode dry-run
         env:
           CONFIG_FILE: configs/config.yaml
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -46,3 +45,6 @@ jobs:
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
+        run: |
+          echo "Running Python script with mode dry-run"
+          python src/main.py --mode dry-run
