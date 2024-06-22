@@ -199,11 +199,8 @@ def detect_anomalies_isolation_forest(df):
     anomalies = df[df['anomaly'] == -1]
     
     if not anomalies.empty:
-        # logging.warning("Anomalies detected in cost data using Isolation Forest.")
         for _, row in anomalies.iterrows():
-            # logging.warning(f"Anomaly detected on {row.name.date()}: Cost = {row['cost']}")
             tc.track_event("AnomalyDetectedIsolationForest", {"Date": row.name.date().isoformat(), "Cost": row['cost']})
-            # Display as table in console
             table = PrettyTable()
             table.field_names = ["Anomaly Detected","Date", "Cost"]
             table.add_row(["Isolation Forest Algorithm", row.name.date().isoformat(), f"€{row['cost']:.2f}"])
@@ -214,19 +211,16 @@ def detect_anomalies_isolation_forest(df):
 
 def generate_summary_report(df):
     """Generate a summary report of the cost data."""
-    #print summary
     total_cost = df['cost'].sum()
     avg_cost = df['cost'].mean()
     max_cost = df['cost'].max()
     min_cost = df['cost'].min()
     
-    # Log summary
     logging.info(f"Total Cost: {total_cost}")
     logging.info(f"Average Daily Cost: {avg_cost}")
     logging.info(f"Maximum Daily Cost: {max_cost}")
     logging.info(f"Minimum Daily Cost: {min_cost}")
     
-    # Track summary
     summary = {
         "TotalCost": total_cost,
         "AverageDailyCost": avg_cost,
@@ -283,7 +277,21 @@ def unattached_filter(resource):
     """Check if a resource is unattached."""
     logging.info(f"Checking if resource {resource.name} is unattached.")
     if isinstance(resource, network_client.public_ip_addresses.models.PublicIPAddress):
-        return resource.ip_configuration is None
+        if resource.ip_configuration is None:
+            # Check for associations with Load Balancers and NAT Gateways
+            associated_lb = network_client.load_balancers.list_all()
+            for lb in associated_lb:
+                for frontend_ip in lb.frontend_ip_configurations:
+                    if frontend_ip.public_ip_address and frontend_ip.public_ip_address.id == resource.id:
+                        return False
+            associated_nat_gateways = network_client.nat_gateways.list_all()
+            for nat_gateway in associated_nat_gateways:
+                for public_ip in nat_gateway.public_ip_addresses:
+                    if public_ip.id == resource.id:
+                        return False
+            return True
+        else:
+            return False
     return resource.managed_by is None
 
 def tag_filter(resource, key, value):
@@ -439,11 +447,13 @@ def scale_sql_database(database, tiers, status_log, dry_run=True):
         if tier['name'] in database.sku.name:
             new_dtu = tier['off_peak_dtu'] if dry_run else tier['peak_dtu']
             logging.info(f"Database: {database.name}, Current DTU: {database.current_service_objective_name}")
-            logging.info(f"Scale status for {database.name}: {dry_run} - Dry run mode, no action taken. Would scale DTU to {new_dtu}.")
-            status_log.append({'Resource': database.name, 'Action': 'scale', 'Status': 'Dry Run' if dry_run else 'Success', 'Message': f'Dry run mode, no action taken. Would scale DTU to {new_dtu}'})
+            message = (f'Dry run mode, no action taken. Would scale DTU to {new_dtu}' 
+                       if dry_run else f'Scaled DTU to {new_dtu}')
+            logging.info(f"Scale status for {database.name}: {message}")
+            status_log.append({'Resource': database.name, 'Action': 'scale', 'Status': 'Dry Run' if dry_run else 'Success', 'Message': message})
             if not dry_run:
                 simple_scale_sql_database(sql_client, database, new_dtu, tier['min_dtu'], tier['max_dtu'], dry_run)
-            return 'Success', f'Scaled DTU to {new_dtu}'
+            return 'Success', message
     return 'No Change', 'Current DTU is already optimal.'
 
 def wrap_text(text, width=30):
@@ -456,11 +466,7 @@ def review_application_gateways(policies, status_log, dry_run=True):
         if policy['resource'] == 'azure.applicationgateway':
             logging.info("Reviewing application gateways for policy: {}".format(policy['name']))
             gateways = network_client.application_gateways.list_all()
-            # gateways_found = False
             for gateway in gateways:
-                # gateways_found = True
-                # logging.info(f"Found Application Gateway: {gateway.name}")
-                # print(colored(f"Application Gateway: {gateway.name}", "cyan"))
                 if not gateway.backend_address_pools or any(not pool.backend_addresses for pool in gateway.backend_address_pools):
                     if evaluate_filters(gateway, policy['filters']):
                         try:
@@ -475,10 +481,8 @@ def review_application_gateways(policies, status_log, dry_run=True):
                                 })
                         except Exception as e:
                             logging.error(f"Failed to apply actions: {e}")
-            # if not gateways_found:
-            #     logging.info(f"No application gateways impacted by policy: {policy['name']}")
-            #     print(colored(f"No application gateways impacted by policy: {policy['name']}", "yellow"))
     return impacted_resources
+
 def apply_app_gateway_actions(network_client, gateway, actions, status_log, dry_run=True):
     status = 'No Change'
     message = 'No applicable actions found'
@@ -493,6 +497,7 @@ def apply_app_gateway_actions(network_client, gateway, actions, status_log, dry_
             except Exception as e:
                 logging.error(f"Failed to delete application gateway: {e}")
     return status, message
+
 def log_empty_backend_pool(gateway, dry_run=True):
     logging.info(f"Empty backend pool found in Application Gateway: {gateway.name}")
     if dry_run:
@@ -652,15 +657,6 @@ def main(mode):
         tc.flush()
 
 if __name__ == "__main__":
-    # Add cool retro letters with name Azure Cost Optimizer in ASCII but it has to read ACO
-#     print(colored(r"""
-#  █████╗ ███████╗██╗   ██╗██████╗ ███████╗     ██████╗ ██████╗ ███████╗████████╗     ██████╗ ██████╗ ████████╗██╗███╗   ███╗██╗███████╗███████╗██████╗ 
-# ██╔══██╗╚══███╔╝██║   ██║██╔══██╗██╔════╝    ██╔════╝██╔═══██╗██╔════╝╚══██╔══╝    ██╔═══██╗██╔══██╗╚══██╔══╝██║████╗ ████║██║╚══███╔╝██╔════╝██╔══██╗
-# ███████║  ███╔╝ ██║   ██║██████╔╝█████╗      ██║     ██║   ██║███████╗   ██║       ██║   ██║██████╔╝   ██║   ██║██╔████╔██║██║  ███╔╝ █████╗  ██████╔╝
-# ██╔══██║ ███╔╝  ██║   ██║██╔══██╗██╔══╝      ██║     ██║   ██║╚════██║   ██║       ██║   ██║██╔═══╝    ██║   ██║██║╚██╔╝██║██║ ███╔╝  ██╔══╝  ██╔══██╗
-# ██║  ██║███████╗╚██████╔╝██║  ██║███████╗    ╚██████╗╚██████╔╝███████║   ██║       ╚██████╔╝██║        ██║   ██║██║ ╚═╝ ██║██║███████╗███████╗██║  ██║
-# ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝     ╚═════╝ ╚═════╝ ╚══════╝   ╚═╝        ╚═════╝ ╚═╝        ╚═╝   ╚═╝╚═╝     ╚═╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝                                                                                                                                  
-#     """, "light_blue"))
     print(colored(r""" _______                            _______                    _______            _       _                   
 (_______)                          (_______)            _     (_______)       _  (_)     (_)                  
  _______ _____ _   _  ____ _____    _       ___   ___ _| |_    _     _ ____ _| |_ _ ____  _ _____ _____  ____ 
@@ -670,22 +666,15 @@ if __name__ == "__main__":
                                                                       |_|                                     
     """, "light_blue"))
 
-    # Print a progress bar in color until it shows full bar same length with the text Running Azure Cost Optimization Tool...
     print(colored("Running Azure Cost Optimizer Tool...", "black"))
     print(colored("Please wait...", "black"))
     for i in range(10):
         time.sleep(0.2)
-        # Print a progress bar in color until it shows full bar same length with the text Running Azure Cost Optimization Tool...
     print(colored("Azure Cost Optimizer Tool is ready!", "green"))
-    # print("\n")
-    # print a nice double separation line
     print(colored("="*110, "black"))
-    # Parse command line arguments
     parser = argparse.ArgumentParser(description="Azure Cost Optimization Tool")
     parser.add_argument('--mode', choices=['dry-run', 'apply'], required=True, help="Mode to run the function (dry-run or apply)")
     args = parser.parse_args()
     main(args.mode)
-    # print end of the program
     print(colored("Azure Cost Optimizer Tool completed!", "green"))
-    # print a nice double separation line
     print(colored("="*110, "black"))

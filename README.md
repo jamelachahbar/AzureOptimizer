@@ -9,7 +9,8 @@ Azure Cost Optimizer is a Python-based tool designed to help manage and optimize
 - **Stop unused virtual machines** based on tags and usage.
 - **Delete unattached disks** based on tags.
 - **Delete all resources** in a resource group based on tags.
-- **Delete unattached Public  IP Addressess**. (WIP)
+- **Delete idle Application Gateway**.
+- **Delete unattached Public  IP Addressess**.
 - **SQL DTU Scaling**: Dynamically scale Azure SQL databases based on defined policies and schedules.
 - Analyze cost data for trends and **anomalies**.
 - Generate **summary reports**.
@@ -65,14 +66,10 @@ Execute the main script to apply your policies:
 
 ```python src/main.py```
 
-### SQL Scaling Module
-The sql_scaling.py script allows for dynamic scaling of Azure SQL databases based on defined tiers and schedules.
-
 
 ### Project Files
 - src/main.py: The main script to enforce policies defined in policies.yaml.
 - src/schema.json: The JSON schema defining the structure of the policies.
-- src/sql_scaling.py: Script to manage scaling of Azure SQL databases based on defined policies.
 - policies/policies.yaml: YAML file where you define your policies for various Azure resources.
 ### Contributing
 Contributions are welcome! Please open an issue or submit a pull request with your changes.
