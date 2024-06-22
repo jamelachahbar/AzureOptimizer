@@ -40,7 +40,7 @@ jobs:
       - name: Run Azure Cost Optimizer
         run: python src/main.py --mode dry-run
         env:
-          CONFIG_FILE: ${{ secrets.CONFIG_FILE }}
+          CONFIG_FILE: configs/config.yaml
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
