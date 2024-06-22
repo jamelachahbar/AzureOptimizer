@@ -13,7 +13,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -39,12 +39,13 @@ jobs:
 
       - name: Run Azure Cost Optimizer
         env:
-          CONFIG_FILE: ${{ secrets.CONFIG_FILE }}
+          CONFIG_FILE: configs/config.yaml
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
         run: |
+          echo "CONFIG_FILE=$CONFIG_FILE"
           echo "Running Python script with mode dry-run"
           python src/main.py --mode dry-run
