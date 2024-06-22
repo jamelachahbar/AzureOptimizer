@@ -2,7 +2,7 @@ azure:
   resource_group: "rg-test"
 
 app_insights:
-  instrumentation_key: APPINSIGHTS_INSTRUMENTATIONKEY
+  instrumentation_key: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
 
 policies:
   policy_file: "policies/policies.yaml"
