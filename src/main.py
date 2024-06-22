@@ -33,7 +33,7 @@ with open(config_file, 'r') as file:
     config = yaml.safe_load(file)
 
 # Initialize Application Insights Telemetry Client
-instrumentation_key = os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY', config['app_insights']['instrumentation_key'])
+instrumentation_key = "fd6a4fe8-3952-4b5d-8d55-68b736ab7dfc;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;LiveEndpoint=https://westeurope.livediagnostics.monitor.azure.com/;ApplicationId=a371bc09-fd29-48a2-958f-36f0bd811fc0"
 tc = TelemetryClient(instrumentation_key)
 
 # Authentication
