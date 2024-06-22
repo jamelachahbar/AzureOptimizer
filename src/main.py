@@ -61,6 +61,7 @@ for var in required_env_vars:
     if not os.getenv(var):
         logging.error(f"Environment variable {var} is not set.")
         sys.exit(1)
+
 # Clients
 resource_client = ResourceManagementClient(credential, subscription_id)
 cost_management_client = CostManagementClient(credential)
