@@ -28,9 +28,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run Cost Optimizer
+    - name: Run Cost Optimizer in Dry Run Mode
       run: |
-        python src/main.py
+        python src/main.py --mode dry-run
       env:
         CONFIG_FILE: "configs/config.yaml"
         APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
