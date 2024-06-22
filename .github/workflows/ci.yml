@@ -1,4 +1,4 @@
-name: Azure Cost Optimization
+name: Azure Cost Optimization Workflow
 
 on: [push]
 
