@@ -30,7 +30,7 @@ if not os.getenv('AZURE_CLIENT_ID'):
     load_dotenv()
 
 # Load configuration from config.yaml
-config_file = os.getenv('CONFIG_FILE')
+config_file = os.getenv('CONFIG_FILE', 'configs/config.yaml')
 if not config_file:
     raise Exception("CONFIG_FILE environment variable not set.")
 with open(config_file, 'r') as file:
@@ -92,8 +92,9 @@ def simple_scale_sql_database(sql_client, database, new_dtu, min_dtu, max_dtu, d
         logging.info(f"Scaling SQL database {database.name} to {new_dtu} DTU.")
 
         valid_dtus = {
-            'Standard': [10, 20, 50, 100, 200, 400, 800, 1200, 1600, 2000, 3000, 4000],
-            'Premium': [125, 250, 500, 1000, 1750, 2000, 3000, 4000]
+            'Basic': [5],
+            'Standard': [10, 20, 50, 100, 200, 400, 800, 1600, 3000],
+            'Premium': [125, 250, 500, 1000, 1750, 4000]
         }
         if new_dtu not in valid_dtus[current_sku.tier]:
             logging.error(f"DTU {new_dtu} is not valid for tier {current_sku.tier}.")
