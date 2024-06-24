@@ -1,6 +1,7 @@
 # Azure Cost Optimizer
 [![Azure Cost Optimization Workflow](https://github.com/jamelachahbar/CostOptTool/actions/workflows/ci.yml/badge.svg)](https://github.com/jamelachahbar/CostOptTool/actions/workflows/ci.yml)
-![Description of Image](./ACOlogo.png)
+
+![Description of Image](./ACOlogonew.png)
 
 Azure Cost Optimizer is a Python-based tool designed to help manage and optimize costs in Azure environments by applying policies defined in YAML or JSON files. It retrieves cost data from Azure, analyzes it for trends and anomalies, and applies cost-saving actions based on defined policies.
 
