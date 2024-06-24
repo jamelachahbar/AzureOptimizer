@@ -4,16 +4,16 @@ policies:
     resource: azure.vm
     filters:
       - type: last_used
-        days: 1
-      # - type: tag
-      #   key: environment
-      #   value: dev
+        days: 2
+      - type: tag
+        key: environment
+        value: dev
     actions:
       - type: stop
-    exclusions:
-      - type: tag
-        key: exclude
-        value: "true"
+    # exclusions:
+    #   - type: tag
+    #     key: exclude
+    #     value: "true"
   - name: delete-unused-disks
     description: Delete disks that are not attached to any VMs
     resource: azure.disk
@@ -61,7 +61,7 @@ policies:
     resource: azure.applicationgateway
     filters:
       - type: tag
-        key: Environment
+        key: environment
         value: dev
     actions:
       - type: delete
@@ -77,9 +77,9 @@ policies:
         tiers:
           - name: Basic
             min_dtu: 5
-            max_dtu: 50
+            max_dtu: 5
             off_peak_dtu: 5
-            peak_dtu: 50
+            peak_dtu: 5
           #   off_peak_start: "20:00"
           #   off_peak_end: "06:00"
           - name: Standard
