@@ -24,7 +24,8 @@ from termcolor import colored
 from sklearn.ensemble import IsolationForest
 import textwrap
 
-
+# Set FORCE_COLOR to 1 to ensure color output
+os.environ['FORCE_COLOR'] = '1'
 # Check if environment variables are already set, if not, load from .env file
 if not os.getenv('AZURE_CLIENT_ID'):
     load_dotenv()
