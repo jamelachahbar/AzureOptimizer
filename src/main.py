@@ -38,15 +38,6 @@ if not config_file:
 with open(config_file, 'r') as file:
     config = yaml.safe_load(file)
 
-# Log environment variables for debugging
-# logging.basicConfig(level=logging.INFO)
-# logging.info(f"CONFIG_FILE: {config_file}")
-# logging.info(f"AZURE_SUBSCRIPTION_ID: {os.getenv('AZURE_SUBSCRIPTION_ID')}")
-# logging.info(f"AZURE_CLIENT_ID: {os.getenv('AZURE_CLIENT_ID')}")
-# logging.info(f"AZURE_TENANT_ID: {os.getenv('AZURE_TENANT_ID')}")
-# logging.info(f"AZURE_CLIENT_SECRET: {os.getenv('AZURE_CLIENT_SECRET')}")
-# logging.info(f"APPINSIGHTS_INSTRUMENTATIONKEY: {os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY')}")
-
 # Initialize Application Insights Telemetry Client
 instrumentation_key = os.getenv('APPINSIGHTS_INSTRUMENTATIONKEY')
 if not instrumentation_key:
@@ -55,7 +46,6 @@ tc = TelemetryClient(instrumentation_key)
 
 # Authentication
 credential = DefaultAzureCredential()
-subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
 
 # Verify that the necessary environment variables are set
 required_env_vars = ['AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'AZURE_CLIENT_SECRET', 'AZURE_SUBSCRIPTION_ID']
@@ -65,12 +55,6 @@ for var in required_env_vars:
         sys.exit(1)
 
 # Clients
-resource_client = ResourceManagementClient(credential, subscription_id)
-cost_management_client = CostManagementClient(credential)
-compute_client = ComputeManagementClient(credential, subscription_id)
-storage_client = StorageManagementClient(credential, subscription_id)
-network_client = NetworkManagementClient(credential, subscription_id)
-sql_client = SqlManagementClient(credential, subscription_id)
 subscription_client = SubscriptionClient(credential)  # Added SubscriptionClient
 
 def simple_scale_sql_database(sql_client, database, new_dtu, min_dtu, max_dtu, dry_run=True):
@@ -167,7 +151,7 @@ def filter_cost_data(cost_data, resource_id):
             filtered_data.append(item)
     return filtered_data
 
-def analyze_cost_data(cost_data, subscription_id):
+def analyze_cost_data(cost_data, subscription_id, summary_reports):
     """Analyze cost data until yesterday, detect trends, anomalies, and generate reports."""
     data = []
     for item in cost_data.rows:
@@ -189,9 +173,9 @@ def analyze_cost_data(cost_data, subscription_id):
         tc.track_metric("DailyCost", row['cost'], properties={"Date": row.name.date().isoformat()})
     
     trend_analysis(df, subscription_id)
-    detect_anomalies_statistical(df, subscription_id)
+    # detect_anomalies_statistical(df, subscription_id)
     detect_anomalies_isolation_forest(df, subscription_id)
-    generate_summary_report(df, subscription_id)
+    generate_summary_report(df, subscription_id, summary_reports)
 
 def trend_analysis(df, subscription_id):
     """Analyze cost trends over time and plot the trend."""
@@ -203,20 +187,24 @@ def trend_analysis(df, subscription_id):
     logging.info(f"Trend analysis plot saved as cost_trend_{subscription_id}.png.")
     tc.track_event("TrendAnalysisCompleted", {"SubscriptionId": subscription_id})
 
-def detect_anomalies_statistical(df, subscription_id):
-    """Detect anomalies in the cost data using statistical methods."""
-    mean = df['cost'].mean()
-    std = df['cost'].std()
-    anomalies = df[(df['cost'] > mean + 2 * std) | (df['cost'] < mean - 2 * std)]
+# One statistical method to detect anomalies is enough so this one has been commented out
+# def detect_anomalies_statistical(df, subscription_id):
+#     """Detect anomalies in the cost data using statistical methods."""
+#     mean = df['cost'].mean()
+#     std = df['cost'].std()
+#     anomalies = df[(df['cost'] > mean + 2 * std) | (df['cost'] < mean - 2 * std)]
     
-    if not anomalies.empty:
-        logging.warning(f"Anomalies detected in cost data for subscription {subscription_id}.")
-        for _, row in anomalies.iterrows():
-            logging.warning(f"Anomaly detected on {row.name.date()}: Cost = {row['cost']}")
-            tc.track_event("AnomalyDetectedStatistical", {"SubscriptionId": subscription_id, "Date": row.name.date().isoformat(), "Cost": row['cost']})
-    else:
-        logging.info(f"No anomalies detected in cost data for subscription {subscription_id}.")
-        tc.track_event("NoAnomaliesDetectedStatistical", {"SubscriptionId": subscription_id})
+#     if not anomalies.empty:
+#         # logging.warning(f"Anomalies detected in cost data for subscription {subscription_id}.")
+#         for _, row in anomalies.iterrows():
+#             tc.track_event("AnomalyDetectedStatistical", {"SubscriptionId": subscription_id, "Date": row.name.date().isoformat(), "Cost": row['cost']})
+#             table = PrettyTable()
+#             table.field_names = ["Subscription ID", "Anomaly Detected", "Date", "Cost"]
+#             table.add_row([subscription_id, "Statistical Method", row.name.date().isoformat(), f"€{row['cost']:.2f}"])
+#             print(colored(table, "red"))
+#     else:
+#         logging.info(f"No anomalies detected in cost data for subscription {subscription_id}.")
+#         tc.track_event("NoAnomaliesDetectedStatistical", {"SubscriptionId": subscription_id})
 
 def detect_anomalies_isolation_forest(df, subscription_id):
     """Detect anomalies in the cost data using Isolation Forest."""
@@ -228,14 +216,14 @@ def detect_anomalies_isolation_forest(df, subscription_id):
         for _, row in anomalies.iterrows():
             tc.track_event("AnomalyDetectedIsolationForest", {"SubscriptionId": subscription_id, "Date": row.name.date().isoformat(), "Cost": row['cost']})
             table = PrettyTable()
-            table.field_names = ["Anomaly Detected", "Date", "Cost"]
-            table.add_row(["Isolation Forest Algorithm", row.name.date().isoformat(), f"€{row['cost']:.2f}"])
+            table.field_names = ["Subscription ID", "Anomaly Detected", "Date", "Cost"]
+            table.add_row([subscription_id, "Isolation Forest Algorithm", row.name.date().isoformat(), f"€{row['cost']:.2f}"])
             print(colored(table, "red"))
     else:
         logging.info(f"No anomalies detected in cost data for subscription {subscription_id} using Isolation Forest.")
         tc.track_event("NoAnomaliesDetectedIsolationForest", {"SubscriptionId": subscription_id})
 
-def generate_summary_report(df, subscription_id):
+def generate_summary_report(df, subscription_id, summary_reports):
     """Generate a summary report of the cost data."""
     total_cost = df['cost'].sum()
     avg_cost = df['cost'].mean()
@@ -247,25 +235,19 @@ def generate_summary_report(df, subscription_id):
     logging.info(f"Maximum Daily Cost for subscription {subscription_id}: {max_cost}")
     logging.info(f"Minimum Daily Cost for subscription {subscription_id}: {min_cost}")
     
-    summary = {
+    summary_reports.append({
+        "SubscriptionId": subscription_id,
         "TotalCost": total_cost,
         "AverageDailyCost": avg_cost,
         "MaximumDailyCost": max_cost,
         "MinimumDailyCost": min_cost
-    }
-    tc.track_event("SummaryReportGenerated", {"SubscriptionId": subscription_id, **summary})
+    })
+
+    tc.track_event("SummaryReportGenerated", {"SubscriptionId": subscription_id, "TotalCost": total_cost, "AverageDailyCost": avg_cost, "MaximumDailyCost": max_cost, "MinimumDailyCost": min_cost})
     tc.track_metric("TotalCost", total_cost, properties={"SubscriptionId": subscription_id})
     tc.track_metric("AverageDailyCost", avg_cost, properties={"SubscriptionId": subscription_id})
     tc.track_metric("MaximumDailyCost", max_cost, properties={"SubscriptionId": subscription_id})
     tc.track_metric("MinimumDailyCost", min_cost, properties={"SubscriptionId": subscription_id})
-    table = PrettyTable()
-    table.field_names = ["Summary Report", "Cost"]
-    table.add_row(["Total Cost", f"€{total_cost:.2f}"])
-    table.add_row(["Average Daily Cost", f"€{avg_cost:.2f}"])
-    table.add_row(["Maximum Daily Cost", f"€{max_cost:.2f}"])
-    table.add_row(["Minimum Daily Cost", f"€{min_cost:.2f}"])
-    print(colored(f"Summary Report for Subscription {subscription_id}", "cyan"))
-    print(colored(table, "cyan"))
 
 def evaluate_filters(resource, filters):
     """Evaluate if a resource meets the defined filters."""
@@ -341,27 +323,27 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
     for action in actions:
         action_type = action['type']
         if dry_run:
-            status_log.append({'Resource': resource.name, 'Action': action_type, 'Status': 'Dry Run', 'Message': 'Dry run mode, no action taken'})
+            status_log.append({'SubscriptionId': subscription_id, 'Resource': resource.name, 'Action': action_type, 'Status': 'Dry Run', 'Message': 'Dry run mode, no action taken'})
         else:
             if action_type == 'stop':
                 status, message = stop_vm(resource)
-                status_log.append({'Resource': resource.name, 'Action': 'stop', 'Status': status, 'Message': message})
+                status_log.append({'SubscriptionId': subscription_id, 'Resource': resource.name, 'Action': 'stop', 'Status': status, 'Message': message})
             elif action_type == 'delete':
                 if isinstance(resource, compute_client.disks.models.Disk):
                     status, message = delete_disk(resource)
-                    status_log.append({'Resource': resource.name, 'Action': 'delete', 'Status': status, 'Message': message})
+                    status_log.append({'SubscriptionId': subscription_id, 'Resource': resource.name, 'Action': 'delete', 'Status': status, 'Message': message})
                 elif isinstance(resource, resource_client.resource_groups.models.ResourceGroup):
                     status, message = delete_resource_group(resource)
-                    status_log.append({'Resource': resource.name, 'Action': 'delete', 'Status': status, 'Message': message})
+                    status_log.append({'SubscriptionId': subscription_id, 'Resource': resource.name, 'Action': 'delete', 'Status': status, 'Message': message})
                 elif isinstance(resource, network_client.public_ip_addresses.models.PublicIPAddress):
                     status, message = delete_public_ip(resource)
-                    status_log.append({'Resource': resource.name, 'Action': 'delete', 'Status': status, 'Message': message})
+                    status_log.append({'SubscriptionId': subscription_id, 'Resource': resource.name, 'Action': 'delete', 'Status': status, 'Message': message})
                 elif isinstance(resource, network_client.application_gateways.models.ApplicationGateway):
                     status, message = delete_application_gateway(network_client, resource, status_log, dry_run)
             elif action_type == 'update_sku':
                 if isinstance(resource, storage_client.storage_accounts.models.StorageAccount):
                     status, message = update_storage_account_sku(resource, action['sku'])
-                    status_log.append({'Resource': resource.name, 'Action': 'update_sku', 'Status': status, 'Message': message})
+                    status_log.append({'SubscriptionId': subscription_id, 'Resource': resource.name, 'Action': 'update_sku', 'Status': status, 'Message': message})
             elif action_type == 'scale_sql_database':
                 status, message = scale_sql_database(resource, action['tiers'], status_log, dry_run, subscription_id)
 
@@ -485,14 +467,14 @@ def scale_sql_database(database, tiers, status_log, dry_run=True, subscription_i
             if new_dtu == database.sku.capacity:
                 message = 'Current DTU is already optimal. No scaling required.'
                 logging.info(f"Database: {database.name}, {message}")
-                status_log.append({'Resource': database.name, 'Action': 'scale', 'Status': 'No Change', 'Message': message})
+                status_log.append({'SubscriptionId': subscription_id, 'Resource': database.name, 'Action': 'scale', 'Status': 'No Change', 'Message': message})
                 return 'No Change', message
 
             logging.info(f"Database: {database.name}, Current DTU: {database.sku.capacity}, New DTU: {new_dtu}")
             message = (f'Dry run mode, no action taken. Would scale DTU to {new_dtu}' 
                        if dry_run else f'Scaled DTU to {new_dtu}')
             logging.info(f"Scale status for {database.name}: {message}")
-            status_log.append({'Resource': database.name, 'Action': 'scale', 'Status': 'Dry Run' if dry_run else 'Success', 'Message': message})
+            status_log.append({'SubscriptionId': subscription_id, 'Resource': database.name, 'Action': 'scale', 'Status': 'Dry Run' if dry_run else 'Success', 'Message': message})
             if not dry_run:
                 simple_scale_sql_database(sql_client, database, new_dtu, tier['min_dtu'], tier['max_dtu'], dry_run)
             return 'Success', message
@@ -547,11 +529,8 @@ def log_empty_backend_pool(gateway, dry_run=True):
     else:
         return 'Success', f'Logged empty backend pool in Application Gateway: {gateway.name}'
 
-def apply_policies(policies, dry_run, subscription_id):
+def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_impacted_resources, status_log):
     """Apply policies to resources."""
-    impacted_resources = []  # List to store impacted resources for logging
-    status_log = []  # List to store status of each operation
-    non_impacted_resources = []  # List to store non-impacted resources for logging
 
     for policy in policies:
         resource_type = policy['resource']
@@ -566,10 +545,10 @@ def apply_policies(policies, dry_run, subscription_id):
             for vm in vms:
                 if not evaluate_exclusions(vm, exclusions) and evaluate_filters(vm, filters):
                     apply_actions(vm, actions, status_log, dry_run, subscription_id)
-                    impacted_resources.append({'Policy': policy['name'], 'Resource': vm.name, 'Actions': ', '.join([action['type'] for action in actions])})
+                    impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'Resource': vm.name, 'Actions': ', '.join([action['type'] for action in actions])})
                     resources_impacted = True
             if not resources_impacted:
-                non_impacted_resources.append({'Policy': policy['name'], 'ResourceType': 'VM'})
+                non_impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'ResourceType': 'VM'})
 
         elif resource_type == 'azure.disk':
             disks = compute_client.disks.list()
@@ -577,41 +556,41 @@ def apply_policies(policies, dry_run, subscription_id):
                 logging.info(f"Evaluating disk {disk.name} for deletion.")
                 if not evaluate_exclusions(disk, exclusions) and evaluate_filters(disk, filters):
                     apply_actions(disk, actions, status_log, dry_run, subscription_id)
-                    impacted_resources.append({'Policy': policy['name'], 'Resource': disk.name, 'Actions': ', '.join([action['type'] for action in actions])})
+                    impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'Resource': disk.name, 'Actions': ', '.join([action['type'] for action in actions])})
                     resources_impacted = True
             if not resources_impacted:
-                non_impacted_resources.append({'Policy': policy['name'], 'ResourceType': 'Disk'})
+                non_impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'ResourceType': 'Disk'})
 
         elif resource_type == 'azure.resourcegroup':
             resource_groups = resource_client.resource_groups.list()
             for resource_group in resource_groups:
                 if not evaluate_exclusions(resource_group, exclusions) and evaluate_filters(resource_group, filters):
                     apply_actions(resource_group, actions, status_log, dry_run, subscription_id)
-                    impacted_resources.append({'Policy': policy['name'], 'Resource': resource_group.name, 'Actions': ', '.join([action['type'] for action in actions])})
+                    impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'Resource': resource_group.name, 'Actions': ', '.join([action['type'] for action in actions])})
                     resources_impacted = True
             if not resources_impacted:
-                non_impacted_resources.append({'Policy': policy['name'], 'ResourceType': 'Resource Group'})
+                non_impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'ResourceType': 'Resource Group'})
 
         elif resource_type == 'azure.storage':
             storage_accounts = storage_client.storage_accounts.list()
             for storage_account in storage_accounts:
                 if not evaluate_exclusions(storage_account, exclusions) and evaluate_filters(storage_account, filters):
                     apply_actions(storage_account, actions, status_log, dry_run, subscription_id)
-                    impacted_resources.append({'Policy': policy['name'], 'Resource': storage_account.name, 'Actions': ', '.join([action['type'] for action in actions])})
+                    impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'Resource': storage_account.name, 'Actions': ', '.join([action['type'] for action in actions])})
                     resources_impacted = True
             if not resources_impacted:
-                non_impacted_resources.append({'Policy': policy['name'], 'ResourceType': 'Storage Account'})
+                non_impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'ResourceType': 'Storage Account'})
 
         elif resource_type == 'azure.publicip':
             public_ips = network_client.public_ip_addresses.list_all()
             for public_ip in public_ips:
                 if not evaluate_exclusions(public_ip, exclusions) and evaluate_filters(public_ip, filters):
                     apply_actions(public_ip, actions, status_log, dry_run, subscription_id)
-                    impacted_resources.append({'Policy': policy['name'], 'Resource': public_ip.name, 'Actions': ', '.join([action['type'] for action in actions])})
+                    impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'Resource': public_ip.name, 'Actions': ', '.join([action['type'] for action in actions])})
                     resources_impacted = True
                     
             if not resources_impacted:
-                non_impacted_resources.append({'Policy': policy['name'], 'ResourceType': 'Public IP'})
+                non_impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'ResourceType': 'Public IP'})
 
         elif resource_type == 'azure.sql':
             servers = sql_client.servers.list()
@@ -622,65 +601,24 @@ def apply_policies(policies, dry_run, subscription_id):
                     logging.info(f"Database: {db.name}, Current DTU: {db.sku.capacity}")
                     status, message = scale_sql_database(db, policy['actions'][0]['tiers'], status_log, dry_run, subscription_id)
                     if status != 'No Change':
-                        impacted_resources.append({'Policy': policy['name'], 'Resource': db.name, 'Actions': 'scale', 'Status': status, 'Message': message})
+                        impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'Resource': db.name, 'Actions': 'scale', 'Status': status, 'Message': message})
                         resources_impacted = True
             if not resources_impacted:
-                non_impacted_resources.append({'Policy': policy['name'], 'ResourceType': 'SQL Database'})
+                non_impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'ResourceType': 'SQL Database'})
 
         elif resource_type == 'azure.applicationgateway':
             policy_results = review_application_gateways([policy], status_log, dry_run=dry_run)
-            impacted_resources.extend(policy_results)
+            impacted_resources.extend([{'SubscriptionId': subscription_id, **res} for res in policy_results])
             if policy_results:
                 resources_impacted = True
             else:
-                non_impacted_resources.append({'Policy': policy['name'], 'ResourceType': 'Application Gateway'})
+                non_impacted_resources.append({'SubscriptionId': subscription_id, 'Policy': policy['name'], 'ResourceType': 'Application Gateway'})
 
-        if not resources_impacted:
-            logging.info(f"No resources impacted by policy: {policy['name']}")
-            print(colored(f"No resources impacted by policy: {policy['name']}", "yellow"))
+        # if not resources_impacted:
+        #     # logging.info(f"No resources impacted by policy: {policy['name']}")
+        #     print(colored(f"No resources impacted by policy: {policy['name']}", "yellow"))
 
-    # Log impacted resources
-    if impacted_resources:
-        table = PrettyTable()
-        table.field_names = ["Policy", "Resource", "Actions"]
-        for resource in impacted_resources:
-            wrapped_policy = wrap_text(resource['Policy'])
-            wrapped_resource = wrap_text(resource['Resource'])
-            wrapped_actions = wrap_text(resource['Actions'])
-            table.add_row([wrapped_policy, wrapped_resource, wrapped_actions])
-        print(colored(f"Impacted Resources for Subscription {subscription_id}:", "cyan", attrs=["bold"]))
-        print(colored(table.get_string(), "cyan"))
-        tc.track_event("ImpactedResources", {"SubscriptionId": subscription_id, "Resources": impacted_resources})
-
-    # Log non-impacted resources
-    if non_impacted_resources:
-        table_non_impacted = PrettyTable()
-        table_non_impacted.field_names = ["Policy", "Resource Type"]
-        for resource in non_impacted_resources:
-            wrapped_policy = wrap_text(resource['Policy'])
-            wrapped_resource_type = wrap_text(resource['ResourceType'])
-            table_non_impacted.add_row([wrapped_policy, wrapped_resource_type])
-        print(colored(f"Non-Impacted Resources for Subscription {subscription_id}:", "cyan", attrs=["bold"]))
-        print(colored(table_non_impacted.get_string(), "cyan"))
-
-    # Log status of operations
-    if status_log:
-        table_status = PrettyTable()
-        table_status.field_names = ["Resource", "Action", "Status", "Message"]
-        for log in status_log:
-            wrapped_resource = wrap_text(log['Resource'])
-            wrapped_action = wrap_text(log['Action'])
-            wrapped_message = wrap_text(log['Message'])
-            color = "green" if log['Status'] == "Success" else "red"
-            table_status.add_row([wrapped_resource, wrapped_action, colored(log['Status'], color, attrs=["bold"]), wrapped_message])
-        print(colored(f"Operation Status for Subscription {subscription_id}:", "cyan", attrs=["bold"]))
-        print(colored(table_status.get_string()))
-        tc.track_event("OperationStatus", {"SubscriptionId": subscription_id, "Status": status_log})
-    else:
-        logging.info(f"No operations performed for subscription {subscription_id}.")
-        print(colored(f"No operations performed for subscription {subscription_id}.", "yellow"))
-
-def process_subscription(subscription, mode):
+def process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log):
     """Process a single subscription for cost optimization."""
     global resource_client, cost_management_client, compute_client, storage_client, network_client, sql_client
     
@@ -701,8 +639,8 @@ def process_subscription(subscription, mode):
         policies = load_policies(policy_file, schema_file)
         cost_data = get_cost_data(f'/subscriptions/{subscription_id}')
         if cost_data:
-            analyze_cost_data(cost_data, subscription_id)
-        apply_policies(policies, mode == 'dry-run', subscription_id=subscription_id)
+            analyze_cost_data(cost_data, subscription_id, summary_reports)
+        apply_policies(policies, mode == 'dry-run', subscription_id=subscription_id, impacted_resources=impacted_resources, non_impacted_resources=non_impacted_resources, status_log=status_log)
         tc.flush()
     except Exception as e:
         logging.error(f"Error in subscription {subscription_id}: {e}")
@@ -714,13 +652,60 @@ def main(mode, all_subscriptions):
     logging.info('Cost Optimizer Function triggered.')
     tc.track_event("FunctionTriggered")
 
+    summary_reports = []
+    impacted_resources = []
+    non_impacted_resources = []
+    status_log = []
+
     if all_subscriptions:
         subscriptions = subscription_client.subscriptions.list()
         for subscription in subscriptions:
-            process_subscription(subscription, mode)
+            process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log)
     else:
+        subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
         subscription = subscription_client.subscriptions.get(subscription_id)
-        process_subscription(subscription, mode)
+        process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log)
+
+    # Display all reports and logs in a consolidated manner
+    if summary_reports:
+        table_summary = PrettyTable()
+        table_summary.field_names = ["Subscription ID", "Summary Report", "Cost"]
+        for summary in summary_reports:
+            table_summary.add_row([summary["SubscriptionId"], "Total Cost", f"€{summary['TotalCost']:.2f}"])
+            table_summary.add_row([summary["SubscriptionId"], "Average Daily Cost", f"€{summary['AverageDailyCost']:.2f}"])
+            table_summary.add_row([summary["SubscriptionId"], "Maximum Daily Cost", f"€{summary['MaximumDailyCost']:.2f}"])
+            table_summary.add_row([summary["SubscriptionId"], "Minimum Daily Cost", f"€{summary['MinimumDailyCost']:.2f}"])
+        print(colored("Cost Summary Reports:", "cyan", attrs=["bold"]))
+        print(colored(table_summary.get_string(), "cyan"))
+        
+    if impacted_resources:
+        table = PrettyTable()
+        table.field_names = ["Subscription ID", "Policy", "Resource", "Actions"]
+        for resource in impacted_resources:
+            table.add_row([resource['SubscriptionId'], wrap_text(resource['Policy']), wrap_text(resource['Resource']), wrap_text(resource['Actions'])])
+        print(colored("Impacted Resources:", "cyan", attrs=["bold"]))
+        print(colored(table.get_string(), "cyan"))
+        tc.track_event("ImpactedResources", {"Resources": impacted_resources})
+
+    if non_impacted_resources:
+        table_non_impacted = PrettyTable()
+        table_non_impacted.field_names = ["Subscription ID", "Policy", "Resource Type"]
+        for resource in non_impacted_resources:
+            table_non_impacted.add_row([resource['SubscriptionId'], wrap_text(resource['Policy']), wrap_text(resource['ResourceType'])])
+        print(colored("Non-Impacted Resources:", "cyan", attrs=["bold"]))
+        print(colored(table_non_impacted.get_string(), "cyan"))
+
+    if status_log:
+        table_status = PrettyTable()
+        table_status.field_names = ["Subscription ID", "Resource", "Action", "Status", "Message"]
+        for log in status_log:
+            color = "green" if log['Status'] == "Success" else "red"
+            table_status.add_row([log['SubscriptionId'], wrap_text(log['Resource']), wrap_text(log['Action']), colored(log['Status'], color, attrs=["bold"]), wrap_text(log['Message'])])
+        print(colored("Operation Status:", "cyan", attrs=["bold"]))
+        print(colored(table_status.get_string(), "black"))
+        tc.track_event("OperationStatus", {"Status": status_log})
+
+
 
 if __name__ == "__main__":
     print(colored(r""" _______                            _______                    _______            _       _                   
