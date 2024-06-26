@@ -48,7 +48,7 @@ jobs:
           APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
         run: |
           echo "Running Python script with mode dry-run"
-          python src/main.py --mode dry-run
+          python src/main.py --mode dry-run --all-subscriptions
       - name: Run Azure Cost Optimizer in Apply Mode
         
         env:
@@ -60,4 +60,4 @@ jobs:
           APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
         run: |
           echo "Running Python script with mode apply"
-          python src/main.py --mode apply
+          python src/main.py --mode apply --all-subscriptions
