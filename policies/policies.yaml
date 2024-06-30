@@ -41,10 +41,10 @@ policies:
         value: dev
     actions:
       - type: delete
-    exclusions:
-      - type: tag
-        key: exclude
-        value: "true"
+    # exclusions:
+    #   - type: tag
+    #     key: exclude
+    #     value: "true"
   - name: update-storage-account-sku
     description: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
     resource: "azure.storage"
