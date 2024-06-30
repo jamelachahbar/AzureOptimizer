@@ -201,7 +201,7 @@ def detect_anomalies_isolation_forest(df, subscription_id):
             tc.track_event("AnomalyDetectedIsolationForest", {"SubscriptionId": subscription_id, "Date": row.name.date().isoformat(), "Cost": row['cost']})
             table = PrettyTable()
             table.field_names = ["Subscription ID", "Anomaly Detected", "Date", "Cost"]
-            table.add_row([subscription_id, "Isolation Forest Algorithm", row.name.date().isoformat(), f"€{row['cost']:.2f}"])
+            table.add_row([subscription_id, "Isolation Forest Algorithm", row.name.date().isoformat(), f"{row['cost']:.2f}"])
             print(colored(table, "red"))
     else:
         logging.info(f"No anomalies detected in cost data for subscription {subscription_id} using Isolation Forest.")
@@ -681,10 +681,10 @@ def main(mode, all_subscriptions):
         table_summary = PrettyTable()
         table_summary.field_names = ["Subscription ID", "Summary Report", "Cost"]
         for summary in summary_reports:
-            table_summary.add_row([summary["SubscriptionId"], "Total Cost", f"€{summary['TotalCost']:.2f}"])
-            table_summary.add_row([summary["SubscriptionId"], "Average Daily Cost", f"€{summary['AverageDailyCost']:.2f}"])
-            table_summary.add_row([summary["SubscriptionId"], "Maximum Daily Cost", f"€{summary['MaximumDailyCost']:.2f}"])
-            table_summary.add_row([summary["SubscriptionId"], "Minimum Daily Cost", f"€{summary['MinimumDailyCost']:.2f}"])
+            table_summary.add_row([summary["SubscriptionId"], "Total Cost", f"{summary['TotalCost']:.2f}"])
+            table_summary.add_row([summary["SubscriptionId"], "Average Daily Cost", f"{summary['AverageDailyCost']:.2f}"])
+            table_summary.add_row([summary["SubscriptionId"], "Maximum Daily Cost", f"{summary['MaximumDailyCost']:.2f}"])
+            table_summary.add_row([summary["SubscriptionId"], "Minimum Daily Cost", f"{summary['MinimumDailyCost']:.2f}"])
         print(colored("Cost Summary Reports:", "cyan", attrs=["bold"]))
         print(colored(table_summary.get_string(), "cyan"))
         
@@ -724,7 +724,7 @@ def main(mode, all_subscriptions):
             resource_id = resource['Resource']
             monthly_cost = sum([cost for res, cost in get_waste_cost_details(resource['SubscriptionId']).items() if res == resource_id])
             yearly_cost = monthly_cost * 12
-            table_waste_cost.add_row([resource['SubscriptionId'], wrap_text(resource_id), f"€{monthly_cost:.2f}", f"€{yearly_cost:.2f}"])
+            table_waste_cost.add_row([resource['SubscriptionId'], wrap_text(resource_id), f"{monthly_cost:.2f}", f"{yearly_cost:.2f}"])
         
         print(colored("Waste Cost Details:", "cyan", attrs=["bold"]))
         print(colored(table_waste_cost.get_string(), "cyan"))
