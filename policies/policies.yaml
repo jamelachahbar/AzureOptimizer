@@ -85,8 +85,8 @@ policies:
           - name: Standard
             min_dtu: 10
             max_dtu: 100
-            off_peak_dtu: 10
-            peak_dtu: 20
+            off_peak_dtu: 20
+            peak_dtu: 50
             off_peak_start: "18:00"
             off_peak_end: "06:00"
           - name: Premium

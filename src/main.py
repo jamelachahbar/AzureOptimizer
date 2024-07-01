@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import yaml
 import jsonschema
@@ -26,6 +26,7 @@ from termcolor import colored
 from sklearn.ensemble import IsolationForest
 import textwrap
 from collections import defaultdict
+import pytz
 
 # Set FORCE_COLOR to 1 to ensure color output
 os.environ['FORCE_COLOR'] = '1'
@@ -125,11 +126,27 @@ def get_cost_data(scope):
     try:
         logging.info(f"Retrieving cost data for scope: {scope}")
         time.sleep(15)  # Delay to avoid rate limiting
+        # last 30 days of cost CET timezone using timedelta
+        cet = pytz.timezone('CET')
+        # Get the current date and time in CET
+        now_cet = datetime.now(cet)
+
+        # Define the start and end dates in CET
+        start_date = (now_cet - timedelta(days=30)).isoformat()
+        end_date = now_cet.isoformat()
+        # start_date = (datetime.now() - timedelta(days=30)).isoformat()
+        # end_date = datetime.now().isoformat()
+
         cost_data = cost_management_client.query.usage(
+
             scope,
             {
                 "type": "Usage",
-                "timeframe": "MonthToDate",
+                "timeframe": "Custom",
+                "timePeriod": {
+                    "from": start_date,
+                    "to": end_date
+                },
                 "dataset": {
                     "granularity": "Daily",
                     "aggregation": {
@@ -141,6 +158,7 @@ def get_cost_data(scope):
                 }
             }
         )
+        
         return cost_data
     except Exception as e:
         logging.error(f"Failed to retrieve cost data for scope {scope}: {e}")
@@ -157,11 +175,17 @@ def filter_cost_data(cost_data, resource_id):
 def analyze_cost_data(cost_data, subscription_id, summary_reports):
     """Analyze cost data until yesterday, detect trends, anomalies, and generate reports."""
     data = []
+    cet = pytz.timezone('CET')
+    now_cet = datetime.now(cet)
+
     for item in cost_data.rows:
         try:
-            date_str = str(item[1])
+            date_str = str(item[1])  # Assuming the date is in the second position (adjust if necessary)
+            # Convert the date string to a datetime object
             date = pd.to_datetime(date_str, format='%Y%m%d')
-            if date.date() < datetime.now().date():
+            date = date.tz_localize('UTC').tz_convert(cet)  # Convert to CET timezone
+
+            if date.date() < now_cet.date():
                 data.append({'date': date, 'cost': item[0]})
         except Exception as e:
             logging.error(f"Error parsing date: {e}, Item: {item}")
@@ -176,7 +200,6 @@ def analyze_cost_data(cost_data, subscription_id, summary_reports):
         tc.track_metric("DailyCost", row['cost'], properties={"Date": row.name.date().isoformat()})
     
     trend_analysis(df, subscription_id)
-    # detect_anomalies_statistical(df, subscription_id)
     detect_anomalies_isolation_forest(df, subscription_id)
     generate_summary_report(df, subscription_id, summary_reports)
 
