@@ -1,7 +1,10 @@
-name: Azure Cost Optimization Workflow
+name: Azure Cost Optimization Workflow Apply Mode
 
-on: [push]
-
+on:
+  workflow_run:
+    workflows: ["Azure Cost Optimization Workflow Dry Run"]  # Name of the first workflow
+    types:
+      - completed
 jobs:
   build:
     runs-on: windows-latest
