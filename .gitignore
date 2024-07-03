@@ -1,3 +1,14 @@
-venv
-.env
+
 __pycache__
+# Python
+*.pyc
+__pycache__/
+
+# Environment
+.env
+venv
+# Logs
+*.log
+
+# Azure Functions
+.local.settings.json

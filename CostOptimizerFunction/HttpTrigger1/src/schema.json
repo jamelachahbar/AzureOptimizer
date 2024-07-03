@@ -13,7 +13,7 @@
           },
           "resource": {
             "type": "string",
-            "enum": ["azure.vm", "azure.disk", "azure.resourcegroup", "azure.storage", "azure.sql", "azure.publicip", "azure.applicationgateway", "azure.nic"]
+            "enum": ["azure.vm", "azure.disk", "azure.resourcegroup", "azure.storage", "azure.sql", "azure.publicip", "azure.applicationgateway"]
           },
           "filters": {
             "type": "array",

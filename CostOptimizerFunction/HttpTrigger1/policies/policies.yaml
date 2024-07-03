@@ -97,10 +97,3 @@ policies:
           #   off_peak_start: "20:00"
           #   off_peak_end: "06:00"
           
-  - name: "Unattached Network Interface Cards"
-    resource: "azure.nic"
-    filters:
-      - type: "unattached"
-    actions:
-      - type: "delete"
-    exclusions: []

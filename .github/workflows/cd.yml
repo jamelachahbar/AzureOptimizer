@@ -37,8 +37,9 @@ jobs:
           echo "AZURE_TENANT_ID=$AZURE_TENANT_ID"
           echo "AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET"
           echo "APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY"
-
-      - name: Run Azure Cost Optimizer in Dry Mode
+          
+      - name: Run Azure Cost Optimizer in Apply Mode
+        
         env:
           CONFIG_FILE: configs/config.yaml
           AZURE_SUBSCRIPTION_ID: 38c26c07-ccce-4839-b504-cddac8e5b09d
@@ -47,5 +48,5 @@ jobs:
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
         run: |
-          echo "Running Python script with mode dry-run"
-          python src/main.py --mode dry-run --all-subscriptions
+          echo "Running Python script with mode apply"
+          python src/main.py --mode apply --all-subscriptions
