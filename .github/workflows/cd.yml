@@ -49,7 +49,11 @@ jobs:
           token: ${{ secrets.GH_PAT }}
         # A list of GitHub users that are allowed to approve the workflow.
           approvers: 'jamelachahbar'
-              
+          minimumApprovals: 1
+          # The title of the issue that will be created.
+          issueTitle: 'Approve Waste Removal Action'
+          # The body of the issue that will be created.
+          issueBody: 'Please Review Dry Mode Run Output and decide to approve or reject'
       - name: Run Azure Cost Optimizer in Apply Mode
         
         env:
