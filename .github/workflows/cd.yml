@@ -43,12 +43,11 @@ jobs:
           echo "APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY"
       - name: Approval Action
         # You may pin to the exact commit or the version.
-        # uses: ekeel/approval-action@d75baa2d1dbfc43d16a5bf6a2e49a8ff2ba85f30
         uses: ekeel/approval-action@v1.0.3
         with:
-            # The GitHub token used to create the issue.
+        # The GitHub token used to create the issue.
           token: ${{ secrets.GH_PAT }}
-            # A list of GitHub users that are allowed to approve the workflow.
+        # A list of GitHub users that are allowed to approve the workflow.
           approvers: 'jamelachahbar'
               
       - name: Run Azure Cost Optimizer in Apply Mode
