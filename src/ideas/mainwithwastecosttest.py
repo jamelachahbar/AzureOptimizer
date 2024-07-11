@@ -1,9 +1,10 @@
 import argparse
+import csv
 import logging
 import os
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import yaml
 import jsonschema
@@ -17,6 +18,7 @@ from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.sql import SqlManagementClient
 from azure.mgmt.sql.models import Sku, Database
 from azure.mgmt.subscription import SubscriptionClient
+from azure.mgmt.consumption import ConsumptionManagementClient
 import pandas as pd
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
@@ -26,11 +28,12 @@ from sklearn.ensemble import IsolationForest
 import textwrap
 from collections import defaultdict
 import pytz
+import requests
 from azure.storage.filedatalake import DataLakeServiceClient
 import io
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+# logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Set FORCE_COLOR to 1 to ensure color output
@@ -160,6 +163,39 @@ def load_policies(policy_file, schema_file):
     jsonschema.validate(instance=policies, schema=schema)
     return policies["policies"]
 
+def get_waste_cost_details_adls(subscription_id, start_date, end_date, use_adls=False):
+    """Get waste cost details from ADLS."""
+    if use_adls:
+        try:
+            logger.info(f"Fetching cost data from ADLS for subscription {subscription_id} from {start_date} to {end_date}")
+            df = fetch_cost_data_from_adls(directory_path)
+            
+            # Filter the data for the last month based on ChargePeriodStart
+            df['ChargePeriodStart'] = pd.to_datetime(df['ChargePeriodStart'])
+            last_month_start = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+            filtered_df = df[df['ChargePeriodStart'] >= last_month_start]
+
+            if filtered_df.empty:
+                logger.warning("No data found for the specified period.")
+                return {"resources": {}, "resource_groups": {}}
+            
+            # Group by resource and resource group, and sum the costs
+            resource_costs = filtered_df.groupby('ResourceId')['BilledCost'].sum().to_dict()
+            resource_group_costs = filtered_df.groupby('x_ResourceGroupName')['BilledCost'].sum().to_dict()
+            
+            logger.info(f"Resource Costs: {resource_costs}")
+            logger.info(f"Resource Group Costs: {resource_group_costs}")
+            
+            return {
+                "resources": {k: float(v) for k, v in resource_costs.items()},
+                "resource_groups": {k: float(v) for k, v in resource_group_costs.items()}
+            }
+        except Exception as e:
+            logger.error(f"Failed to retrieve waste cost details from ADLS for subscription {subscription_id}: {e}")
+            return {"resources": {}, "resource_groups": {}}
+    else:
+        return get_waste_cost_details_old(subscription_id, start_date, end_date)
+
 def get_cost_data(scope):
     """Retrieve cost data from Azure."""
     try:
@@ -260,7 +296,7 @@ def detect_anomalies_isolation_forest(df, subscription_id):
                     subscription_id,
                     "Isolation Forest Algorithm",
                     row.name.date().isoformat(),
-                    f'{row["cost"]:.2f}',
+                    f"{row['cost']:.2f}",
                 ]
             )
             print(colored(table, "red"))
@@ -376,10 +412,6 @@ def unattached_filter(resource):
     
     # Check if the resource is a Network Interface (NIC)
     elif isinstance(resource, network_client.network_interfaces.models.NetworkInterface):
-        # Check if the NIC is attached to a private endpoint
-        if resource.private_endpoint:
-            logger.info(f"NIC {resource.name} is attached to a private endpoint and will not be deleted.")
-            return False
         return not resource.virtual_machine
     
     # Default case: check if the resource is managed by another resource
@@ -406,15 +438,13 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
     for action in actions:
         action_type = action["type"]
         if dry_run:
-            action_description = f"[Dry Run] Action: {action_type} on Resource: {resource.name} in Subscription: {subscription_id}"
-            logger.info(action_description)
             status_log.append(
                 {
                     "SubscriptionId": subscription_id,
                     "Resource": resource.name,
                     "Action": action_type,
                     "Status": "Dry Run",
-                    "Message": action_description,
+                    "Message": "Dry run mode, no action taken",
                 }
             )
         else:
@@ -458,17 +488,6 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                     resource, network_client.public_ip_addresses.models.PublicIPAddress
                 ):
                     status, message = delete_public_ip(resource)
-                    status_log.append(
-                        {
-                            "SubscriptionId": subscription_id,
-                            "Resource": resource.name,
-                            "Action": "delete",
-                            "Status": status,
-                            "Message": message,
-                        }
-                    )
-                elif isinstance(resource, network_client.network_interfaces.models.NetworkInterface):
-                    status, message = delete_network_interface(resource)
                     status_log.append(
                         {
                             "SubscriptionId": subscription_id,
@@ -896,6 +915,128 @@ def log_empty_backend_pool(gateway, dry_run=True):
             f"Logged empty backend pool in Application Gateway: {gateway.name}",
         )
 
+def get_waste_cost_details(subscription_id, start_date, end_date):
+    """Retrieve waste cost details for a subscription within a specific date range using the Cost Management API."""
+    url = f"https://management.azure.com/subscriptions/{subscription_id}/providers/Microsoft.CostManagement/generateCostDetailsReport?api-version=2023-11-01"
+
+    headers = {
+        "Authorization": f"Bearer {credential.get_token('https://management.azure.com/.default').token}",
+        "Content-Type": "application/json"
+    }
+
+    body = {
+        "metric": "ActualCost",
+        "timePeriod": {
+            "start": start_date,
+            "end": end_date
+        }
+    }
+
+    logger.info(f"Sending request to URL: {url}")
+    logger.info(f"Request headers: {headers}")
+    logger.info(f"Request body: {body}")
+
+    response = requests.post(url, headers=headers, json=body)
+    
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        logger.error(f"HTTP error occurred: {err}")
+        logger.error(f"Response: {response.text}")
+        return None
+
+    if not response.content:
+        logger.error("Empty response received.")
+        return None
+
+    try:
+        operation_result = response.json()
+    except json.JSONDecodeError as e:
+        logger.error(f"JSONDecodeError: {e}")
+        logger.error(f"Response content: {response.content}")
+        return None
+
+    try:
+        operation_id = operation_result['name']
+        logger.info(f"Operation ID: {operation_id}")
+    except KeyError as e:
+        logger.error(f"KeyError: {e}")
+        logger.error(f"Response: {operation_result}")
+        return None
+
+    # Poll for the operation result
+    while True:
+        time.sleep(10)  # Delay to avoid rate limiting
+        operation_status_url = f"https://management.azure.com/{operation_result['id']}?api-version=2023-11-01"
+        status_response = requests.get(operation_status_url, headers=headers)
+        try:
+            status_response.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            logger.error(f"HTTP error occurred: {err}")
+            logger.error(f"Response: {status_response.text}")
+            return None
+        
+        if not status_response.content:
+            logger.error("Empty response received during status polling.")
+            return None
+
+        try:
+            status_result = status_response.json()
+        except json.JSONDecodeError as e:
+            logger.error(f"JSONDecodeError: {e}")
+            logger.error(f"Response content: {status_response.content}")
+            return None
+
+        logger.info(f"Operation status: {status_result['status']}")
+        if status_result['status'] == 'Completed':
+            break
+        elif status_result['status'] == 'Failed':
+            logger.error("Failed to generate cost details report")
+            return None
+
+    waste_costs = defaultdict(float)
+    for blob in status_result['manifest']['blobs']:
+        blob_url = blob['blobLink']
+        blob_response = requests.get(blob_url)
+        blob_response.raise_for_status()
+        blob_data = blob_response.content.decode('utf-8')
+        csv_reader = csv.reader(blob_data.splitlines())
+        headers = next(csv_reader)
+        for row in csv_reader:
+            resource_group_name = row[headers.index('ResourceGroup')]
+            resource_id = row[headers.index('ResourceId')]
+            cost = float(row[headers.index('PreTaxCost')])
+            waste_costs[resource_group_name] += cost
+            waste_costs[resource_id] += cost
+
+    return {k: float(v) for k, v in waste_costs.items()}
+
+def get_waste_cost_details_old(subscription_id, start_date, end_date):
+    """Retrieve waste cost details for a subscription within a specific date range using the old method."""
+    consumption_client = ConsumptionManagementClient(credential, subscription_id)
+    scope = f"/subscriptions/{subscription_id}"
+    waste_costs = defaultdict(float)
+
+    try:
+        filter_expression = f"properties/usageStart ge '{start_date}' and properties/usageEnd le '{end_date}'"
+        usage_details = consumption_client.usage_details.list(scope, filter=filter_expression)
+
+        for detail in usage_details:
+            resource_group_name = detail.instance_name.split('/')[4]
+            resource_name = detail.instance_name.split('/')[-1]
+            cost = float(detail.cost_in_usd)  # Ensure conversion to float
+
+            logger.info(f"Resource Group: {resource_group_name}, Resource: {resource_name}, Cost: {cost}")
+
+            waste_costs[resource_group_name] += cost
+            waste_costs[resource_name] += cost
+
+    except Exception as e:
+        logger.error(f"Failed to retrieve waste cost details for subscription {subscription_id}: {e}")
+        return None
+
+    return {k: float(v) for k, v in waste_costs.items()}
+
 def apply_policies(
     policies,
     dry_run,
@@ -1160,12 +1301,26 @@ def process_subscription(subscription, mode, summary_reports, impacted_resources
         apply_policies(policies, mode == 'dry-run', subscription_id=subscription_id, impacted_resources=impacted_resources, non_impacted_resources=non_impacted_resources, status_log=status_log)
         tc.flush()
 
-        return {}
+        # Retrieve waste cost details for the specified date range
+        if use_adls:
+            waste_costs = get_waste_cost_details_adls(subscription_id, start_date, end_date, use_adls)
+        else:
+            # Attempt to retrieve waste cost details using the new method
+            waste_costs = get_waste_cost_details(subscription_id, start_date, end_date)
+            
+            # If the new method fails, use the old method
+            if waste_costs is None:
+                logger.info("Falling back to old method for retrieving waste cost details.")
+                waste_costs = get_waste_cost_details_old(subscription_id, start_date, end_date)
+        
+        logger.info(f"Waste costs retrieved: {waste_costs}")
+        return waste_costs
+
     except Exception as e:
         logger.error(f"Error in subscription {subscription_id}: {e}")
         tc.track_exception()
         tc.flush()
-        return {}
+        return {"resources": {}, "resource_groups": {}}
 
 def main(mode, all_subscriptions, use_adls=False):
     logger.info('Cost Optimizer Function triggered.')
@@ -1182,40 +1337,54 @@ def main(mode, all_subscriptions, use_adls=False):
     start_date = (now_cet - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%SZ')
     end_date = now_cet.strftime('%Y-%m-%dT%H:%M:%SZ')
 
+    aggregated_waste_costs = {"resources": defaultdict(float), "resource_groups": defaultdict(float)}
+
     try:
         if all_subscriptions:
             subscriptions = subscription_client.subscriptions.list()
             for subscription in subscriptions:
                 subscription_id = subscription.subscription_id
-                process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date, end_date, use_adls)
+                waste_costs = process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date, end_date, use_adls)
+                for resource, cost in waste_costs.get("resources", {}).items():
+                    aggregated_waste_costs["resources"][resource] += cost
+                for resource_group, cost in waste_costs.get("resource_groups", {}).items():
+                    aggregated_waste_costs["resource_groups"][resource_group] += cost
         else:
             subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
             subscription = subscription_client.subscriptions.get(subscription_id)
-            process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date, end_date, use_adls)
+            waste_costs = process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date, end_date, use_adls)
+            for resource, cost in waste_costs.get("resources", {}).items():
+                aggregated_waste_costs["resources"][resource] += cost
+            for resource_group, cost in waste_costs.get("resource_groups", {}).items():
+                aggregated_waste_costs["resource_groups"][resource_group] += cost
 
-        if impacted_resources:
-            table_impacted_resources = PrettyTable()
-            table_impacted_resources.field_names = ["Subscription ID", "Policy", "Resource", "Actions"]
-            for resource in impacted_resources:
-                table_impacted_resources.add_row([resource["SubscriptionId"], resource["Policy"], wrap_text(resource["Resource"]), resource["Actions"]])
-            print(colored("Impacted Resources:", "cyan", attrs=["bold"]))
-            print(colored(table_impacted_resources.get_string(), "cyan"))
+        logger.info(f"Aggregated waste costs: {aggregated_waste_costs}")
 
-        if non_impacted_resources:
-            table_non_impacted_resources = PrettyTable()
-            table_non_impacted_resources.field_names = ["Subscription ID", "Policy", "ResourceType"]
-            for resource in non_impacted_resources:
-                table_non_impacted_resources.add_row([resource["SubscriptionId"], resource["Policy"], resource["ResourceType"]])
-            print(colored("Non-Impacted Resources:", "cyan", attrs=["bold"]))
-            print(colored(table_non_impacted_resources.get_string(), "cyan"))
+        # Display waste cost details for individual resources
+        if aggregated_waste_costs["resources"]:
+            table_waste_cost_resources = PrettyTable()
+            table_waste_cost_resources.field_names = ["Subscription ID", "Resource", "Monthly Waste Cost", "Potential Yearly Waste Cost"]
 
-        if status_log:
-            table_status_log = PrettyTable()
-            table_status_log.field_names = ["Subscription ID", "Resource", "Action", "Status", "Message"]
-            for status in status_log:
-                table_status_log.add_row([status["SubscriptionId"], wrap_text(status["Resource"]), status["Action"], status["Status"], wrap_text(status["Message"])])
-            print(colored("Action Status Log:", "cyan", attrs=["bold"]))
-            print(colored(table_status_log.get_string(), "cyan"))
+            for resource_id, monthly_cost in aggregated_waste_costs["resources"].items():
+                yearly_cost = monthly_cost * 12
+                table_waste_cost_resources.add_row([subscription_id, wrap_text(resource_id), f"{monthly_cost:.2f}", f"{yearly_cost:.2f}"])
+
+            print(colored("Waste Cost Details for Individual Resources:", "cyan", attrs=["bold"]))
+            print(colored(table_waste_cost_resources.get_string(), "cyan"))
+
+        # Display waste cost details for resource groups
+        if aggregated_waste_costs["resource_groups"]:
+            table_waste_cost_resource_groups = PrettyTable()
+            table_waste_cost_resource_groups.field_names = ["Subscription ID", "Resource Group", "Monthly Waste Cost", "Potential Yearly Waste Cost"]
+
+            for resource_group, monthly_cost in aggregated_waste_costs["resource_groups"].items():
+                yearly_cost = monthly_cost * 12
+                table_waste_cost_resource_groups.add_row([subscription_id, wrap_text(resource_group), f"{monthly_cost:.2f}", f"{yearly_cost:.2f}"])
+
+            print(colored("Waste Cost Details for Resource Groups:", "cyan", attrs=["bold"]))
+            print(colored(table_waste_cost_resource_groups.get_string(), "cyan"))
+        else:
+            logger.warning("No waste costs found.")
 
     except KeyError as e:
         logger.error(f"KeyError: {e}")

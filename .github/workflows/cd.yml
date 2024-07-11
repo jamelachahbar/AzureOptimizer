@@ -32,6 +32,9 @@ jobs:
           echo "AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
           echo "AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "APPINSIGHTS_INSTRUMENTATIONKEY=${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}" >> $GITHUB_ENV
+          echo "AZURE_STORAGE_ACCOUNT_NAME= ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}" >> $GITHUB_ENV
+          echo "AZURE_STORAGE_FILE_SYSTEM_NAME= ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}" >> $GITHUB_ENV
+          echo "ADLS_DIRECTORY_PATH= ${{ secrets.ADLS_DIRECTORY_PATH  }}" >> $GITHUB_ENV
 
       - name: Verify environment variables
         run: |
@@ -41,6 +44,10 @@ jobs:
           echo "AZURE_TENANT_ID=$AZURE_TENANT_ID"
           echo "AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET"
           echo "APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY"
+          echo "AZURE_STORAGE_ACCOUNT_NAME= $secrets.AZURE_STORAGE_ACCOUNT_NAME"
+          echo "AZURE_STORAGE_FILE_SYSTEM_NAME= $AZURE_STORAGE_FILE_SYSTEM_NAME"
+          echo "ADLS_DIRECTORY_PATH= $ADLS_DIRECTORY_PATH"
+
 
       - name: Run Azure Cost Optimizer in Apply Mode
         
@@ -51,6 +58,9 @@ jobs:
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}
+          AZURE_STORAGE_FILE_SYSTEM_NAME: ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}
+          ADLS_DIRECTORY_PATH: ${{ secrets.ADLS_DIRECTORY_PATH  }}
         run: |
           echo "Running Python script with mode apply"
           python src/main.py --mode apply --all-subscriptions
