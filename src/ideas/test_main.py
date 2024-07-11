@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from unittest.mock import Mock, patch
 from datetime import datetime, time
-from main import scale_sql_database
+from CostOptTool.src.ideas.mainwithwastecosttest import scale_sql_database
 
 class TestScaleSqlDatabase(unittest.TestCase):
     @patch('main.sql_client')

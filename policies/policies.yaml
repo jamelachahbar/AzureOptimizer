@@ -41,10 +41,10 @@ policies:
         value: dev
     actions:
       - type: delete
-    exclusions:
-      - type: tag
-        key: exclude
-        value: "true"
+    # exclusions:
+    #   - type: tag
+    #     key: exclude
+    #     value: "true"
   - name: update-storage-account-sku
     description: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
     resource: "azure.storage"
@@ -85,7 +85,7 @@ policies:
           - name: Standard
             min_dtu: 10
             max_dtu: 100
-            off_peak_dtu: 10
+            off_peak_dtu: 20
             peak_dtu: 50
             off_peak_start: "18:00"
             off_peak_end: "06:00"
