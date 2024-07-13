@@ -5,6 +5,7 @@ azure-common==1.1.28
 azure-core==1.30.1
 azure-functions==1.19.0
 azure-identity==1.16.0
+azure-mgmt-authorization==4.0.0
 azure-mgmt-compute==31.0.0
 azure-mgmt-consumption==10.0.0
 azure-mgmt-core==1.4.0
@@ -15,6 +16,8 @@ azure-mgmt-resource==23.1.1
 azure-mgmt-sql==3.0.1
 azure-mgmt-storage==21.1.0
 azure-mgmt-subscription==3.1.1
+azure-storage-blob==12.20.0
+azure-storage-file-datalake==12.15.0
 blinker==1.8.2
 cachetools==5.3.3
 certifi==2024.2.2
@@ -88,4 +91,3 @@ tzdata==2024.1
 urllib3==2.2.1
 watchdog==4.0.1
 wcwidth==0.2.13
-azure-storage-file-datalake==12.15.0

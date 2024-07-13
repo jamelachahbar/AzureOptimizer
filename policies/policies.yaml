@@ -1,13 +1,14 @@
 policies:
   - name: stop-unused-vms
-    description: Stop VMs that have not been used in the last x days and have a specific tag
+    description: Stop VMs that have not been used in the last x days and have an average CPU below the set threshold, and have a specific tag(optional)
     resource: azure.vm
     filters:
       - type: last_used
-        days: 2
-      - type: tag
-        key: environment
-        value: dev
+        days: 7
+        threshold: 5
+      # - type: tag
+      #   key: environment
+      #   value: dev
     actions:
       - type: stop
     # exclusions:
