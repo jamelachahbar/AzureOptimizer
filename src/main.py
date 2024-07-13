@@ -21,9 +21,9 @@ from azure.mgmt.monitor import MonitorManagementClient
 from azure.mgmt.monitor.models import AggregationType
 import pandas as pd
 import matplotlib.pyplot as plt
+from dotenv import load_dotenv
 from prettytable import PrettyTable
 from termcolor import colored
-from dotenv import load_dotenv
 from sklearn.ensemble import IsolationForest
 import textwrap
 from collections import defaultdict
@@ -37,11 +37,12 @@ from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
 from rich.logging import RichHandler
 from rich.text import Text
 
-# Set up rich console and logging
-console = Console()
-# logging.basicConfig(level="INFO", format="%(message)s", handlers=[RichHandler()])
+# Set up logging
 logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+# Set FORCE_COLOR to 1 to ensure color output
+os.environ["FORCE_COLOR"] = "1"
 # Check if environment variables are already set, if not, load from .env file
 if not os.getenv("AZURE_CLIENT_ID"):
     load_dotenv()
@@ -261,18 +262,17 @@ def detect_anomalies_isolation_forest(df, subscription_id):
                     "Cost": row["cost"],
                 },
             )
-            table = Table(show_header=True, header_style="bold magenta")
-            table.add_column("Subscription ID")
-            table.add_column("Anomaly Detected")
-            table.add_column("Date")
-            table.add_column("Cost")
+            table = PrettyTable()
+            table.field_names = ["Subscription ID", "Anomaly Detected", "Date", "Cost"]
             table.add_row(
-                subscription_id,
-                "Isolation Forest Algorithm",
-                row.name.date().isoformat(),
-                f'{row["cost"]:.2f}',
+                [
+                    subscription_id,
+                    "Isolation Forest Algorithm",
+                    row.name.date().isoformat(),
+                    f'{row["cost"]:.2f}',
+                ]
             )
-            console.print(table)
+            print(colored(table, "red"))
     else:
         logger.info(
             f"No anomalies detected in cost data for subscription {subscription_id} using Isolation Forest."
@@ -368,6 +368,8 @@ def last_used_filter(resource, days, threshold):
         return True
     logger.info(f"Resource {resource.name} was not used within {days} days.")
     return False
+
+
 
 def unattached_filter(resource):
     """Check if a resource is unattached."""
@@ -471,6 +473,7 @@ def get_last_used_date(resource, days, threshold=5):
 
     # If all CPU usage values are below the threshold, return the start_time
     return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+
 def apply_actions(resource, actions, status_log, dry_run, subscription_id):
     """Apply actions to a resource."""
     for action in actions:
@@ -577,31 +580,6 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                 status, message = scale_sql_database(
                     resource, action["tiers"], status_log, dry_run, subscription_id
                 )
-            elif isinstance(resource, network_client.network_interfaces.models.NetworkInterface):
-                status, message = delete_network_interface(resource)
-                status_log.append(
-                        {
-                            "SubscriptionId": subscription_id,
-                            "Resource": resource.name,
-                            "Action": "delete",
-                            "Status": status,
-                            "Message": message,
-                        }
-                    )
-
-def delete_network_interface(nic):
-    """Delete an unattached network interface."""
-    try:
-        logger.info(f"Deleting Network Interface: {nic.name}")
-        resource_group_name = nic.id.split("/")[4]
-        async_delete = network_client.network_interfaces.begin_delete(resource_group_name, nic.name)
-        async_delete.result()  # Wait for the operation to complete
-        tc.track_event("NetworkInterfaceDeleted", {"NetworkInterfaceName": nic.name})
-        return "Success", "Network Interface deleted successfully."
-    except Exception as e:
-        logger.error(f"Failed to delete Network Interface {nic.name}: {e}")
-        tc.track_event("NetworkInterfaceDeletionFailed", {"NetworkInterfaceName": nic.name, "Error": str(e)})
-        return "Failed", f"Failed to delete Network Interface: {e}"
 
 def stop_vm(vm):
     """Stop a VM."""
@@ -609,18 +587,10 @@ def stop_vm(vm):
         logger.info(f"Stopping VM: {vm.name}")
         # Extract resource group name from VM ID
         resource_group_name = vm.id.split("/")[4]
-
-        # Check VM power state
-        instance_view = compute_client.virtual_machines.instance_view(resource_group_name, vm.name)
-        power_state = next(
-            (status.code for status in instance_view.statuses if status.code.startswith("PowerState/")),
-            None
-        )
-
-        if power_state == "PowerState/deallocated":
-            logger.info(f"VM {vm.name} is already deallocated.")
-            return "No Change", "VM is already deallocated."
-
+        vm_state = get_vm_power_state(resource_group_name, vm.name)
+        if vm_state == "deallocated":
+            logger.info(f"VM {vm.name} is already stopped.")
+            return "Success", "VM already stopped."
         async_stop = compute_client.virtual_machines.begin_deallocate(
             resource_group_name, vm.name
         )
@@ -631,6 +601,18 @@ def stop_vm(vm):
         logger.error(f"Failed to stop VM {vm.name}: {e}")
         tc.track_event("VMStopFailed", {"VMName": vm.name, "Error": str(e)})
         return "Failed", f"Failed to stop VM: {e}"
+
+def get_vm_power_state(resource_group_name, vm_name):
+    """Get the power state of a VM."""
+    try:
+        instance_view = compute_client.virtual_machines.instance_view(resource_group_name, vm_name)
+        for status in instance_view.statuses:
+            if status.code.startswith("PowerState/"):
+                return status.code.split("/")[-1]
+        return "unknown"
+    except Exception as e:
+        logger.error(f"Failed to get power state for VM {vm_name}: {e}")
+        return "unknown"
 
 def delete_disk(disk):
     """Delete a disk."""
@@ -1280,52 +1262,28 @@ def main(mode, all_subscriptions, use_adls=False):
             process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date, end_date, use_adls)
 
         if impacted_resources:
-            table_impacted_resources = Table(show_header=True, header_style="bold cyan")
-            table_impacted_resources.add_column("Subscription ID")
-            table_impacted_resources.add_column("Policy")
-            table_impacted_resources.add_column("Resource")
-            table_impacted_resources.add_column("Actions")
+            table_impacted_resources = PrettyTable()
+            table_impacted_resources.field_names = ["Subscription ID", "Policy", "Resource", "Actions"]
             for resource in impacted_resources:
-                table_impacted_resources.add_row(
-                    resource["SubscriptionId"],
-                    resource["Policy"],
-                    wrap_text(resource["Resource"]),
-                    resource["Actions"]
-                )
-            console.print("[bold cyan]Impacted Resources:[/bold cyan]")
-            console.print(table_impacted_resources)
+                table_impacted_resources.add_row([resource["SubscriptionId"], resource["Policy"], wrap_text(resource["Resource"]), resource["Actions"]])
+            print(colored("Impacted Resources:", "cyan", attrs=["bold"]))
+            print(colored(table_impacted_resources.get_string(), "cyan"))
 
         if non_impacted_resources:
-            table_non_impacted_resources = Table(show_header=True, header_style="bold cyan")
-            table_non_impacted_resources.add_column("Subscription ID")
-            table_non_impacted_resources.add_column("Policy")
-            table_non_impacted_resources.add_column("ResourceType")
+            table_non_impacted_resources = PrettyTable()
+            table_non_impacted_resources.field_names = ["Subscription ID", "Policy", "ResourceType"]
             for resource in non_impacted_resources:
-                table_non_impacted_resources.add_row(
-                    resource["SubscriptionId"],
-                    resource["Policy"],
-                    resource["ResourceType"]
-                )
-            console.print("[bold cyan]Non-Impacted Resources:[/bold cyan]")
-            console.print(table_non_impacted_resources)
+                table_non_impacted_resources.add_row([resource["SubscriptionId"], resource["Policy"], resource["ResourceType"]])
+            print(colored("Non-Impacted Resources:", "cyan", attrs=["bold"]))
+            print(colored(table_non_impacted_resources.get_string(), "cyan"))
 
         if status_log:
-            table_status_log = Table(show_header=True, header_style="bold cyan")
-            table_status_log.add_column("Subscription ID")
-            table_status_log.add_column("Resource")
-            table_status_log.add_column("Action")
-            table_status_log.add_column("Status")
-            table_status_log.add_column("Message")
+            table_status_log = PrettyTable()
+            table_status_log.field_names = ["Subscription ID", "Resource", "Action", "Status", "Message"]
             for status in status_log:
-                table_status_log.add_row(
-                    status["SubscriptionId"],
-                    wrap_text(status["Resource"]),
-                    status["Action"],
-                    status["Status"],
-                    wrap_text(status["Message"])
-                )
-            console.print("[bold cyan]Action Status Log:[/bold cyan]")
-            console.print(table_status_log)
+                table_status_log.add_row([status["SubscriptionId"], wrap_text(status["Resource"]), status["Action"], status["Status"], wrap_text(status["Message"])])
+            print(colored("Action Status Log:", "cyan", attrs=["bold"]))
+            print(colored(table_status_log.get_string(), "cyan"))
 
     except KeyError as e:
         logger.error(f"KeyError: {e}")
@@ -1336,7 +1294,7 @@ def main(mode, all_subscriptions, use_adls=False):
 
 if __name__ == "__main__":
     print(
-        Text(
+        colored(
             r""" _______                            _______                    _______            _       _                   
 (_______)                          (_______)            _     (_______)       _  (_)     (_)                  
  _______ _____ _   _  ____ _____    _       ___   ___ _| |_    _     _ ____ _| |_ _ ____  _ _____ _____  ____ 
@@ -1345,16 +1303,16 @@ if __name__ == "__main__":
 |_|   |_(_____)____/|_|   |_____)   \______)___/(___/   \__)   \_____/|  __/  \__)_|_|_|_|_(_____)_____)_|    
                                                                       |_|                                     
     """,
-            style="light_blue",
+            "light_blue",
         )
     )
 
-    console.print(Text("Running Azure Cost Optimizer Tool...", style="bold black"))
-    console.print(Text("Please wait...", style="black"))
+    print(colored("Running Azure Cost Optimizer Tool...", "black"))
+    print(colored("Please wait...", "black"))
     for i in range(10):
         time.sleep(0.2)
-    console.print(Text("Azure Cost Optimizer Tool is ready!", style="bold green"))
-    console.print(Text("=" * 110, style="black"))
+    print(colored("Azure Cost Optimizer Tool is ready!", "green"))
+    print(colored("=" * 110, "black"))
     parser = argparse.ArgumentParser(description="Azure Cost Optimization Tool")
     parser.add_argument(
         "--mode",
@@ -1373,11 +1331,6 @@ if __name__ == "__main__":
         help="Use Azure Data Lake Storage for waste cost data",
     )
     args = parser.parse_args()
-    with Progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}")) as progress:
-        task = progress.add_task("Initializing...", total=10)
-        for _ in range(10):
-            time.sleep(0.1)
-            progress.update(task, advance=1)
     main(args.mode, args.all_subscriptions, args.use_adls)
-    console.print(Text("Azure Cost Optimizer Tool completed!", style="bold green"))
-    console.print(Text("=" * 110, style="black"))
+    print(colored("Azure Cost Optimizer Tool completed!", "green"))
+    print(colored("=" * 110, "black"))
