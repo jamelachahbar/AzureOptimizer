@@ -28,6 +28,11 @@
                   "type": "integer",
                   "minimum": 0
                 },
+                "threshold": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
                 "key": {
                   "type": "string"
                 },

@@ -1,12 +1,11 @@
+
 # Azure Cost Optimizer
 [![Azure Cost Optimization Workflow](https://github.com/jamelachahbar/CostOptTool/actions/workflows/ci.yml/badge.svg)](https://github.com/jamelachahbar/CostOptTool/actions/workflows/ci.yml)
-
 [![Azure Cost Optimization Workflow Apply Mode](https://github.com/jamelachahbar/CostOptTool/actions/workflows/cd.yml/badge.svg)](https://github.com/jamelachahbar/CostOptTool/actions/workflows/cd.yml)
 
 ![Description of Image](./ACOlogonew.png)
 
 Azure Cost Optimizer is a Python-based tool used to optimize Azure resource costs by applying various policies to resources across multiple subscriptions. It identifies resources that meet specific criteria and applies actions such as scaling, stopping, or deleting them to reduce costs. The tool also provides detailed reports and logs the financial impact of the applied policies.
-
 
 ## Features
 - **Apply Policies**: Apply predefined policies to resources, such as stopping unused VMs, deleting unattached disks, scaling SQL databases, etc.
@@ -14,12 +13,95 @@ Azure Cost Optimizer is a Python-based tool used to optimize Azure resource cost
     - **Delete unattached disks** based on tags.
     - **Delete all resources** in a resource group based on tags.
     - **Delete idle Application Gateway**.
-    - **Delete unattached Public  IP Addressess**.
+    - **Delete unattached Public IP Addresses**.
+    - **Delete unattached Network Interfaces**.
     - **SQL DTU Scaling**: Dynamically scale Azure SQL databases based on defined policies and schedules.
 - Analyze cost data for trends and **anomalies**.
 - Generate **summary reports**.
 - **Multi-Subscription Support**: Process multiple subscriptions within a tenant.
 - **Application Insights Integration**: Track events and metrics in Azure Application Insights. (Work in progress)
+
+## Policies
+
+### Example Policies
+
+1. **Stop Unused VMs**
+   ```yaml
+   name: stop-unused-vms
+   resource: azure.vm
+   filters:
+     - type: last_used
+       days: 30
+       threshold: 5
+   actions:
+     - type: stop
+   ```
+
+2. **Delete Unattached Disks**
+   ```yaml
+   name: delete-unused-disks
+   resource: azure.disk
+   filters:
+     - type: unattached
+   actions:
+     - type: delete
+   ```
+
+3. **Delete Resources in Group**
+   ```yaml
+   name: delete-resources-in-group
+   resource: azure.resourcegroup
+   filters:
+     - type: tag
+       key: delete
+       value: true
+   actions:
+     - type: delete
+   ```
+
+4. **Delete Idle Application Gateway**
+   ```yaml
+   name: delete-idle-application-gateway
+   resource: azure.applicationgateway
+   filters:
+     - type: empty_backend_pools
+   actions:
+     - type: delete
+   ```
+
+5. **Delete Unattached Public IPs**
+   ```yaml
+   name: delete-unattached-public-ips
+   resource: azure.publicip
+   filters:
+     - type: unattached
+   actions:
+     - type: delete
+   ```
+
+6. **Delete Unattached Network Interfaces**
+   ```yaml
+   name: delete-unattached-nics
+   resource: azure.nic
+   filters:
+     - type: unattached
+   actions:
+     - type: delete
+   ```
+
+7. **Scale SQL Database DTU**
+   ```yaml
+   name: scale-sql-database-dtu
+   resource: azure.sql
+   actions:
+     - type: scale_sql_database
+       tiers:
+         - name: Standard
+           min_dtu: 10
+           max_dtu: 100
+           off_peak_dtu: 50
+           peak_dtu: 100
+   ```
 
 ## Setup
 
@@ -31,14 +113,12 @@ Azure Cost Optimizer is a Python-based tool used to optimize Azure resource cost
 4. **Azure SDK for Python**
 5. Configuration file (**config.yaml**)
 
-
-
 ### Installation
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/jachahbar/azure-cost-optimizer.git
-    cd azure-cost-optimizer
+    git clone https://github.com/jamelachahbar/CostOptTool.git
+    cd CostOptTool
     ```
 
 2. Install dependencies:
@@ -51,8 +131,7 @@ Azure Cost Optimizer is a Python-based tool used to optimize Azure resource cost
 
 4. Define your policies in `policies/policies.yaml`.
 
-
-## Usage
+### Usage
 
 ### Running Locally
 
@@ -72,28 +151,40 @@ Execute the main script to apply your policies:
 
 **Dry run mode** can be used to see if any action will be taken before actually applying actions:
 
-```python src/main.py --mode dry-run```
-```python src/main.py --mode dry-run [--all-subscriptions]```
+```sh
+python src/main.py --mode dry-run
+```
+
+```sh
+python src/main.py --mode dry-run [--all-subscriptions]
+```
 
 #### Arguments
 - **--mode**: Mode to run the tool (dry-run or apply)
-
 - **--all-subscriptions**: Process all subscriptions in the tenant
 
 **Example**
 
 Dry run mode for a single subscription:
 
-```bash
+```sh
 python src/main.py --mode dry-run
 ```
-**Apply mode for all subscriptions:**
 
-```bash
+Apply mode for all subscriptions:
+
+```sh
 python src/main.py --mode apply --all-subscriptions
 ```
 
-**Output**
+**Work In Progress -->**
+Apply mode for all subscriptions + getting cost from adls:
+
+```sh
+python src/main.py --mode apply --all-subscriptions --use-adls
+```
+
+### Output
 
 The tool provides detailed output, including:
 
@@ -101,7 +192,6 @@ The tool provides detailed output, including:
 - Policy Application Summary: Summary of impacted and non-impacted resources for each policy.
 - Operation Status: Detailed status of each operation performed on the resources.
 - Subscription Details: Outputs are clearly labeled with subscription IDs for clarity.
-
 
 **Example Output**
 
@@ -159,33 +249,3 @@ Operation Status for Subscription ID: <subscription_id>
 
 Azure Cost Optimizer Tool completed!
 ==============================================================================================================
-
-
-
-```
-<!-- 
-![Description of Image](./acorun1.png)
-![Description of Image](./acorun2.png)
-![Description of Image](./acorun3.png) -->
-
-
-
-**Apply mode** will perform the actual actions from the policies is there are impacted resources:
-
-```python src/main.py --mode apply```
-
-![Description of Image](./acorunapply1.png)
-![Description of Image](./acorunapply2.png)
-### Project Files
-- src/main.py: The main script to enforce policies defined in policies.yaml.
-- src/schema.json: The JSON schema defining the structure of the policies.
-- policies/policies.yaml: YAML file where you define your policies for various Azure resources.
-### Contributing
-Contributions are welcome! Please open an issue or submit a pull request with your changes.
-
-### License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-
-### Acknowledgements
-https://github.com/Azure/azure-sdk-for-python for Python for providing the necessary tools to interact with Azure services

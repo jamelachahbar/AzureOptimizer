@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import yaml
 import jsonschema
@@ -17,6 +17,8 @@ from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.sql import SqlManagementClient
 from azure.mgmt.sql.models import Sku, Database
 from azure.mgmt.subscription import SubscriptionClient
+from azure.mgmt.monitor import MonitorManagementClient
+from azure.mgmt.monitor.models import AggregationType
 import pandas as pd
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
@@ -30,7 +32,7 @@ from azure.storage.filedatalake import DataLakeServiceClient
 import io
 
 # Set up logging
-# logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Set FORCE_COLOR to 1 to ensure color output
@@ -56,6 +58,7 @@ tc = TelemetryClient(instrumentation_key)
 credential = DefaultAzureCredential()
 # Clients
 subscription_client = SubscriptionClient(credential)
+monitor_client = MonitorManagementClient(credential, subscription_id=subscription_client)
 
 # Verify that the necessary environment variables are set and log their values
 required_env_vars = [
@@ -322,17 +325,24 @@ def evaluate_filters(resource, filters):
     for filter in filters:
         filter_type = filter["type"]
         if filter_type == "last_used":
-            if not last_used_filter(resource, filter["days"]):
+            days = filter["days"]
+            threshold = filter.get("threshold", 5)  # Default threshold to 10 if not provided
+            if not last_used_filter(resource, days, threshold):
+                logger.info(f"Resource {resource.name} does not meet last_used filter with threshold {threshold}")
                 return False
         elif filter_type == "unattached":
             if not unattached_filter(resource):
+                logger.info(f"Resource {resource.name} does not meet unattached filter")
                 return False
         elif filter_type == "tag":
             if not tag_filter(resource, filter["key"], filter["value"]):
+                logger.info(f"Resource {resource.name} does not meet tag filter")
                 return False
         elif filter_type == "sku":
             if not sku_filter(resource, filter["values"]):
+                logger.info(f"Resource {resource.name} does not meet sku filter")
                 return False
+    logger.info(f"Resource {resource.name} meets all filters")
     return True
 
 def evaluate_exclusions(resource, exclusions):
@@ -344,10 +354,16 @@ def evaluate_exclusions(resource, exclusions):
                 return True
     return False
 
-def last_used_filter(resource, days):
+def last_used_filter(resource, days, threshold):
     """Check if a resource was last used within a specified number of days."""
-    last_used_date = get_last_used_date(resource)
-    return (datetime.now() - last_used_date).days <= days
+    last_used_date = get_last_used_date(resource, days, threshold)
+    if (datetime.now(timezone.utc) - last_used_date).days <= days:
+        logger.info(f"Resource {resource.name} was last used within {days} days.")
+        return True
+    logger.info(f"Resource {resource.name} was not used within {days} days.")
+    return False
+
+
 
 def unattached_filter(resource):
     """Check if a resource is unattached."""
@@ -397,10 +413,60 @@ def sku_filter(resource, values):
     """Check if a resource's SKU is in the specified values."""
     return resource.sku.name in values
 
-def get_last_used_date(resource):
-    """Get the last used date of a VM. Placeholder logic."""
-    return datetime.now() - timedelta(days=10)
+def get_last_used_date(resource, days, threshold=5):
+    """
+    Get the last used date of a VM based on average CPU usage over a specified number of days.
+    
+    Parameters:
+    - resource: The VM resource object.
+    - days: The number of days to check for activity.
+    - threshold: The CPU usage threshold below which the VM is considered as not used (in percentage).
+    
+    Returns:
+    - The last date the VM was actively used.
+    """
+    resource_id = resource.id
+    end_time = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    start_time = (datetime.now(timezone.utc) - timedelta(days=days)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
+    # Initialize monitor client
+    monitor_client = MonitorManagementClient(credential, resource_id.split('/')[2])
+    
+    # Format timespan in ISO 8601 format
+    timespan = f"{start_time}/{end_time}"
+
+    # Query CPU usage metrics
+    metrics_data = monitor_client.metrics.list(
+        resource_id,
+        timespan=timespan,
+        interval='PT1H',
+        metricnames='Percentage CPU',
+        aggregation='Average',
+    )
+
+    cpu_usages = [data.average for metric in metrics_data.value for data in metric.timeseries[0].data if data.average is not None]
+
+    if not cpu_usages:
+        logger.info(f"No CPU usage data available for VM: {resource.name} in the last {days} days.")
+        return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+
+    # Log CPU usage data for debugging purposes
+    logger.info(f"CPU usage data for VM: {resource.name} in the last {days} days: {cpu_usages}")
+
+    # Check if the average CPU usage is below the threshold
+    average_cpu_usage = sum(cpu_usages) / len(cpu_usages)
+    logger.info(f"Average CPU usage for VM: {resource.name}: {average_cpu_usage:.2f}%")
+
+    if average_cpu_usage < threshold:
+        return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+
+    # If the VM was used, find the last time it was above the threshold
+    for data in reversed(metrics_data.value[0].timeseries[0].data):
+        if data.average and data.average >= threshold:
+            return data.time_stamp
+
+    # If all CPU usage values are below the threshold, return the start_time
+    return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
 def apply_actions(resource, actions, status_log, dry_run, subscription_id):
     """Apply actions to a resource."""
     for action in actions:
@@ -429,6 +495,8 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                         "Message": message,
                     }
                 )
+                logger.info(f"Action stop applied to VM {resource.name} with status: {status}")
+
             elif action_type == "delete":
                 if isinstance(resource, compute_client.disks.models.Disk):
                     status, message = delete_disk(resource)
@@ -535,8 +603,10 @@ def stop_vm(vm):
     """Stop a VM."""
     try:
         logger.info(f"Stopping VM: {vm.name}")
+        # Extract resource group name from VM ID
+        resource_group_name = vm.id.split("/")[4]
         async_stop = compute_client.virtual_machines.begin_deallocate(
-            vm.resource_group_name, vm.name
+            resource_group_name, vm.name
         )
         async_stop.result()  # Wait for the operation to complete
         tc.track_event("VMStopped", {"VMName": vm.name})
@@ -545,6 +615,7 @@ def stop_vm(vm):
         logger.error(f"Failed to stop VM {vm.name}: {e}")
         tc.track_event("VMStopFailed", {"VMName": vm.name, "Error": str(e)})
         return "Failed", f"Failed to stop VM: {e}"
+
 
 def delete_disk(disk):
     """Delete a disk."""
@@ -919,9 +990,9 @@ def apply_policies(
         if resource_type == "azure.vm":
             vms = compute_client.virtual_machines.list_all()
             for vm in vms:
-                if not evaluate_exclusions(vm, exclusions) and evaluate_filters(
-                    vm, filters
-                ):
+                logger.info(f"Evaluating VM {vm.name}")
+                if not evaluate_exclusions(vm, exclusions) and evaluate_filters(vm, filters):
+                    logger.info(f"VM {vm.name} meets filters and exclusions")
                     apply_actions(vm, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
