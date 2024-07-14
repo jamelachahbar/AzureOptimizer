@@ -32,7 +32,7 @@ from azure.storage.filedatalake import DataLakeServiceClient
 import io
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Set FORCE_COLOR to 1 to ensure color output
