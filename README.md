@@ -3,7 +3,7 @@
 [![Azure Cost Optimization Workflow](https://github.com/jamelachahbar/CostOptTool/actions/workflows/ci.yml/badge.svg)](https://github.com/jamelachahbar/CostOptTool/actions/workflows/ci.yml)
 [![Azure Cost Optimization Workflow Apply Mode](https://github.com/jamelachahbar/CostOptTool/actions/workflows/cd.yml/badge.svg)](https://github.com/jamelachahbar/CostOptTool/actions/workflows/cd.yml)
 
-![Description of Image](./ACOlogonew.png)
+<img src="./newacologo1.png" alt="Description" width="300"/>
 
 Azure Cost Optimizer is a Python-based tool used to optimize Azure resource costs by applying various policies to resources across multiple subscriptions. It identifies resources that meet specific criteria and applies actions such as scaling, stopping, or deleting them to reduce costs. The tool also provides detailed reports and logs the financial impact of the applied policies.
 
@@ -16,6 +16,7 @@ Azure Cost Optimizer is a Python-based tool used to optimize Azure resource cost
     - **Delete unattached Public IP Addresses**.
     - **Delete unattached Network Interfaces**.
     - **SQL DTU Scaling**: Dynamically scale Azure SQL databases based on defined policies and schedules.
+    - **Storage Account SKU change**: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
 - Analyze cost data for trends and **anomalies**.
 - Generate **summary reports**.
 - **Multi-Subscription Support**: Process multiple subscriptions within a tenant.
@@ -103,6 +104,20 @@ Azure Cost Optimizer is a Python-based tool used to optimize Azure resource cost
            peak_dtu: 100
    ```
 
+
+
+7.  **Storage Account SKU change**
+    ```yaml
+    name: update-storage-account-sku
+    description: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
+    resource: "azure.storage"
+    filters:
+      - type: "sku"
+        values: ["Standard_GRS", "Standard_RAGRS", "Standard_ZRS", "Standard_GZRS"]
+      - type: "tag"
+        key: "costopt"
+        value: "true"
+    ```
 ## Setup
 
 ### Prerequisites

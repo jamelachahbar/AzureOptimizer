@@ -32,7 +32,7 @@ from azure.storage.filedatalake import DataLakeServiceClient
 import io
 
 # Set up logging
-# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Set FORCE_COLOR to 1 to ensure color output
@@ -326,7 +326,7 @@ def evaluate_filters(resource, filters):
         filter_type = filter["type"]
         if filter_type == "last_used":
             days = filter["days"]
-            threshold = filter.get("threshold", 10)  # Default threshold to 1 if not provided
+            threshold = filter.get("threshold", 10)  # Default threshold to 10 if not provided
             if not last_used_filter(resource, days, threshold):
                 logger.info(f"Resource {resource.name} does not meet last_used filter with threshold {threshold}")
                 return False
@@ -355,15 +355,13 @@ def evaluate_exclusions(resource, exclusions):
     return False
 
 def last_used_filter(resource, days, threshold):
-    """Check if a resource was last used within a specified number of days."""
-    last_used_date = get_last_used_date(resource, days, threshold)
-    if (datetime.now(timezone.utc) - last_used_date).days <= days:
-        logger.info(f"Resource {resource.name} was last used within {days} days.")
+    """Check if a resource was last used within a specified number of days and meets the CPU threshold."""
+    last_used_date, avg_cpu = get_last_used_date(resource, days, threshold)
+    if (datetime.now(timezone.utc) - last_used_date).days <= days and avg_cpu < threshold:
+        logger.info(f"Resource {resource.name} was last used within {days} days with average CPU usage {avg_cpu:.2f}% which is below the threshold of {threshold}%.")
         return True
-    logger.info(f"Resource {resource.name} was not used within {days} days.")
+    logger.info(f"Resource {resource.name} was either not used within {days} days or its average CPU usage {avg_cpu:.2f}% is above the threshold of {threshold}%.")
     return False
-
-
 
 def unattached_filter(resource):
     """Check if a resource is unattached."""
@@ -423,7 +421,7 @@ def get_last_used_date(resource, days, threshold=5):
     - threshold: The CPU usage threshold below which the VM is considered as not used (in percentage).
     
     Returns:
-    - The last date the VM was actively used.
+    - The last date the VM was actively used and the average CPU usage.
     """
     resource_id = resource.id
     end_time = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -458,15 +456,15 @@ def get_last_used_date(resource, days, threshold=5):
     logger.info(f"Average CPU usage for VM: {resource.name}: {average_cpu_usage:.2f}%")
 
     if average_cpu_usage < threshold:
-        return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
-
+        return datetime.fromisoformat(start_time.replace("Z", "+00:00")), average_cpu_usage
     # If the VM was used, find the last time it was above the threshold
     for data in reversed(metrics_data.value[0].timeseries[0].data):
         if data.average and data.average >= threshold:
-            return data.time_stamp
+            return data.time_stamp, average_cpu_usage
 
     # If all CPU usage values are below the threshold, return the start_time
     return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+
 def apply_actions(resource, actions, status_log, dry_run, subscription_id):
     """Apply actions to a resource."""
     for action in actions:
@@ -615,20 +613,16 @@ def stop_vm(vm):
                 logger.info(message)
                 tc.track_event("VMAlreadyDeallocated", {"VMName": vm.name})
                 return "No Action", message
-        
-        logger.info(f"Stopping VM: {vm.name}")
         async_stop = compute_client.virtual_machines.begin_deallocate(
             resource_group_name, vm.name
         )
         async_stop.result()  # Wait for the operation to complete
         tc.track_event("VMDeallocated", {"VMName": vm.name})
-        return "Success", "VM deallocated  successfully."
+        return "Success", f"VM deallocated successfully."
     except Exception as e:
-        logger.error(f"Failed to deallocate  VM {vm.name}: {e}")
+        logger.error(f"Failed to deallocate VM {vm.name}: {e}")
         tc.track_event("VMDeallocateFailed", {"VMName": vm.name, "Error": str(e)})
         return "Failed", f"Failed to deallocate VM: {e}"
-
-
 
 def delete_disk(disk):
     """Delete a disk."""
