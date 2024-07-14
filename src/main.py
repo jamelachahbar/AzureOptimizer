@@ -326,7 +326,7 @@ def evaluate_filters(resource, filters):
         filter_type = filter["type"]
         if filter_type == "last_used":
             days = filter["days"]
-            threshold = filter.get("threshold", 5)  # Default threshold to 10 if not provided
+            threshold = filter.get("threshold", 10)  # Default threshold to 1 if not provided
             if not last_used_filter(resource, days, threshold):
                 logger.info(f"Resource {resource.name} does not meet last_used filter with threshold {threshold}")
                 return False
@@ -602,19 +602,32 @@ def delete_network_interface(nic):
 def stop_vm(vm):
     """Stop a VM."""
     try:
-        logger.info(f"Stopping VM: {vm.name}")
+        logger.info(f"Checking status of VM: {vm.name}")
         # Extract resource group name from VM ID
         resource_group_name = vm.id.split("/")[4]
+        
+        # Get the current instance view of the VM to check its status
+        instance_view = compute_client.virtual_machines.instance_view(resource_group_name, vm.name)
+        statuses = instance_view.statuses
+        for status in statuses:
+            if "PowerState" in status.code and "deallocated" in status.code:
+                message = f"VM {vm.name} is already deallocated."
+                logger.info(message)
+                tc.track_event("VMAlreadyDeallocated", {"VMName": vm.name})
+                return "No Action", message
+        
+        logger.info(f"Stopping VM: {vm.name}")
         async_stop = compute_client.virtual_machines.begin_deallocate(
             resource_group_name, vm.name
         )
         async_stop.result()  # Wait for the operation to complete
-        tc.track_event("VMStopped", {"VMName": vm.name})
-        return "Success", "VM stopped successfully."
+        tc.track_event("VMDeallocated", {"VMName": vm.name})
+        return "Success", "VM deallocated  successfully."
     except Exception as e:
-        logger.error(f"Failed to stop VM {vm.name}: {e}")
-        tc.track_event("VMStopFailed", {"VMName": vm.name, "Error": str(e)})
-        return "Failed", f"Failed to stop VM: {e}"
+        logger.error(f"Failed to deallocate  VM {vm.name}: {e}")
+        tc.track_event("VMDeallocateFailed", {"VMName": vm.name, "Error": str(e)})
+        return "Failed", f"Failed to deallocate VM: {e}"
+
 
 
 def delete_disk(disk):
@@ -1284,7 +1297,7 @@ def main(mode, all_subscriptions, use_adls=False):
             table_status_log = PrettyTable()
             table_status_log.field_names = ["Subscription ID", "Resource", "Action", "Status", "Message"]
             for status in status_log:
-                table_status_log.add_row([status["SubscriptionId"], wrap_text(status["Resource"]), status["Action"], status["Status"], wrap_text(status["Message"])])
+                table_status_log.add_row([status["SubscriptionId"], wrap_text(status["Resource"]), status["Action"], status["Status"], wrap_text(status["Message"])])            
             print(colored("Action Status Log:", "cyan", attrs=["bold"]))
             print(colored(table_status_log.get_string(), "cyan"))
 
