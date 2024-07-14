@@ -31,15 +31,9 @@ import pytz
 from azure.storage.filedatalake import DataLakeServiceClient
 import io
 
-from rich.console import Console
-from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
-from rich.logging import RichHandler
-from rich.text import Text
-
 # Set up logging
-logger = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 # Set FORCE_COLOR to 1 to ensure color output
 os.environ["FORCE_COLOR"] = "1"
@@ -332,7 +326,7 @@ def evaluate_filters(resource, filters):
         filter_type = filter["type"]
         if filter_type == "last_used":
             days = filter["days"]
-            threshold = filter.get("threshold", 5)  # Default threshold to 10 if not provided
+            threshold = filter.get("threshold", 10)  # Default threshold to 1 if not provided
             if not last_used_filter(resource, days, threshold):
                 logger.info(f"Resource {resource.name} does not meet last_used filter with threshold {threshold}")
                 return False
@@ -473,7 +467,6 @@ def get_last_used_date(resource, days, threshold=5):
 
     # If all CPU usage values are below the threshold, return the start_time
     return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
-
 def apply_actions(resource, actions, status_log, dry_run, subscription_id):
     """Apply actions to a resource."""
     for action in actions:
@@ -580,39 +573,62 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                 status, message = scale_sql_database(
                     resource, action["tiers"], status_log, dry_run, subscription_id
                 )
+            elif isinstance(resource, network_client.network_interfaces.models.NetworkInterface):
+                status, message = delete_network_interface(resource)
+                status_log.append(
+                        {
+                            "SubscriptionId": subscription_id,
+                            "Resource": resource.name,
+                            "Action": "delete",
+                            "Status": status,
+                            "Message": message,
+                        }
+                    )
+
+def delete_network_interface(nic):
+    """Delete an unattached network interface."""
+    try:
+        logger.info(f"Deleting Network Interface: {nic.name}")
+        resource_group_name = nic.id.split("/")[4]
+        async_delete = network_client.network_interfaces.begin_delete(resource_group_name, nic.name)
+        async_delete.result()  # Wait for the operation to complete
+        tc.track_event("NetworkInterfaceDeleted", {"NetworkInterfaceName": nic.name})
+        return "Success", "Network Interface deleted successfully."
+    except Exception as e:
+        logger.error(f"Failed to delete Network Interface {nic.name}: {e}")
+        tc.track_event("NetworkInterfaceDeletionFailed", {"NetworkInterfaceName": nic.name, "Error": str(e)})
+        return "Failed", f"Failed to delete Network Interface: {e}"
 
 def stop_vm(vm):
     """Stop a VM."""
     try:
-        logger.info(f"Stopping VM: {vm.name}")
+        logger.info(f"Checking status of VM: {vm.name}")
         # Extract resource group name from VM ID
         resource_group_name = vm.id.split("/")[4]
-        vm_state = get_vm_power_state(resource_group_name, vm.name)
-        if vm_state == "deallocated":
-            logger.info(f"VM {vm.name} is already stopped.")
-            return "Success", "VM already stopped."
+        
+        # Get the current instance view of the VM to check its status
+        instance_view = compute_client.virtual_machines.instance_view(resource_group_name, vm.name)
+        statuses = instance_view.statuses
+        for status in statuses:
+            if "PowerState" in status.code and "deallocated" in status.code:
+                message = f"VM {vm.name} is already deallocated."
+                logger.info(message)
+                tc.track_event("VMAlreadyDeallocated", {"VMName": vm.name})
+                return "No Action", message
+        
+        logger.info(f"Stopping VM: {vm.name}")
         async_stop = compute_client.virtual_machines.begin_deallocate(
             resource_group_name, vm.name
         )
         async_stop.result()  # Wait for the operation to complete
-        tc.track_event("VMStopped", {"VMName": vm.name})
-        return "Success", "VM stopped successfully."
+        tc.track_event("VMDeallocated", {"VMName": vm.name})
+        return "Success", "VM deallocated  successfully."
     except Exception as e:
-        logger.error(f"Failed to stop VM {vm.name}: {e}")
-        tc.track_event("VMStopFailed", {"VMName": vm.name, "Error": str(e)})
-        return "Failed", f"Failed to stop VM: {e}"
+        logger.error(f"Failed to deallocate  VM {vm.name}: {e}")
+        tc.track_event("VMDeallocateFailed", {"VMName": vm.name, "Error": str(e)})
+        return "Failed", f"Failed to deallocate VM: {e}"
 
-def get_vm_power_state(resource_group_name, vm_name):
-    """Get the power state of a VM."""
-    try:
-        instance_view = compute_client.virtual_machines.instance_view(resource_group_name, vm_name)
-        for status in instance_view.statuses:
-            if status.code.startswith("PowerState/"):
-                return status.code.split("/")[-1]
-        return "unknown"
-    except Exception as e:
-        logger.error(f"Failed to get power state for VM {vm_name}: {e}")
-        return "unknown"
+
 
 def delete_disk(disk):
     """Delete a disk."""
@@ -1281,7 +1297,7 @@ def main(mode, all_subscriptions, use_adls=False):
             table_status_log = PrettyTable()
             table_status_log.field_names = ["Subscription ID", "Resource", "Action", "Status", "Message"]
             for status in status_log:
-                table_status_log.add_row([status["SubscriptionId"], wrap_text(status["Resource"]), status["Action"], status["Status"], wrap_text(status["Message"])])
+                table_status_log.add_row([status["SubscriptionId"], wrap_text(status["Resource"]), status["Action"], status["Status"], wrap_text(status["Message"])])            
             print(colored("Action Status Log:", "cyan", attrs=["bold"]))
             print(colored(table_status_log.get_string(), "cyan"))
 
