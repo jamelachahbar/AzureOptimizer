@@ -1,6 +1,11 @@
 name: Azure Cost Optimization Workflow Dry Run
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  
 
 jobs:
   build:
