@@ -5,7 +5,7 @@ policies:
     filters:
       - type: last_used
         days: 30
-        threshold: 4
+        threshold: 10
       # - type: tag
       #   key: environment
       #   value: dev

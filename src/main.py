@@ -30,6 +30,7 @@ from collections import defaultdict
 import pytz
 from azure.storage.filedatalake import DataLakeServiceClient
 import io
+from functools import wraps
 
 # Set up logging
 # logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -94,6 +95,25 @@ service_client = DataLakeServiceClient(
     account_url=f"https://{account_name}.dfs.core.windows.net",
     credential=credential
 )
+
+# Retry decorator with exponential backoff and jitter for resilience in case of transient errors
+def retry(max_retries=3, delay=5, backoff=2, exceptions=(Exception,)):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            retries = 0
+            current_delay = delay
+            while retries < max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except exceptions as e:
+                    logger.warning(f"Exception occurred: {e}. Retrying in {current_delay} seconds...")
+                    time.sleep(current_delay)
+                    current_delay *= backoff
+                    retries += 1
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 # Function to list files in a directory
 def list_files_in_directory(directory_path):
@@ -163,11 +183,11 @@ def load_policies(policy_file, schema_file):
     jsonschema.validate(instance=policies, schema=schema)
     return policies["policies"]
 
+@retry(max_retries=5, delay=10, backoff=2, exceptions=(Exception,))
 def get_cost_data(scope):
     """Retrieve cost data from Azure."""
     try:
         logger.info(f"Retrieving cost data for scope: {scope}")
-        time.sleep(15)  # Delay to avoid rate limiting
 
         cet = pytz.timezone("CET")
         now_cet = datetime.now(cet)
@@ -227,6 +247,7 @@ def analyze_cost_data(cost_data, subscription_id, summary_reports):
     detect_anomalies_isolation_forest(df, subscription_id)
     generate_summary_report(df, subscription_id, summary_reports)
 
+# trend analysis function
 def trend_analysis(df, subscription_id):
     """Analyze cost trends over time and plot the trend."""
     df["cost"].plot(
@@ -240,6 +261,7 @@ def trend_analysis(df, subscription_id):
     logger.info(f"Trend analysis plot saved as cost_trend_{subscription_id}.png.")
     tc.track_event("TrendAnalysisCompleted", {"SubscriptionId": subscription_id})
 
+# anomaly detection function using Isolation Forest algorithm from scikit-learn library
 def detect_anomalies_isolation_forest(df, subscription_id):
     """Detect anomalies in the cost data using Isolation Forest."""
     model = IsolationForest(contamination=0.025)
@@ -275,6 +297,7 @@ def detect_anomalies_isolation_forest(df, subscription_id):
             "NoAnomaliesDetectedIsolationForest", {"SubscriptionId": subscription_id}
         )
 
+# summary report generation function to calculate total, average, maximum, and minimum daily costs
 def generate_summary_report(df, subscription_id, summary_reports):
     """Generate a summary report of the cost data."""
     total_cost = df["cost"].sum()
@@ -320,6 +343,7 @@ def generate_summary_report(df, subscription_id, summary_reports):
         "MinimumDailyCost", min_cost, properties={"SubscriptionId": subscription_id}
     )
 
+# function to evaluate filters for resources based on last used, unattached, tag, and SKU filters
 def evaluate_filters(resource, filters):
     """Evaluate if a resource meets the defined filters."""
     for filter in filters:
@@ -345,6 +369,7 @@ def evaluate_filters(resource, filters):
     logger.info(f"Resource {resource.name} meets all filters")
     return True
 
+# function to evaluate exclusions for resources based on tags
 def evaluate_exclusions(resource, exclusions):
     """Evaluate if a resource meets any of the exclusion criteria."""
     for exclusion in exclusions:
@@ -354,6 +379,7 @@ def evaluate_exclusions(resource, exclusions):
                 return True
     return False
 
+# last used filter function to check if a resource was last used within a specified number of days and meets the CPU threshold
 def last_used_filter(resource, days, threshold):
     """Check if a resource was last used within a specified number of days and meets the CPU threshold."""
     last_used_date, avg_cpu = get_last_used_date(resource, days, threshold)
@@ -363,6 +389,7 @@ def last_used_filter(resource, days, threshold):
     logger.info(f"Resource {resource.name} was either not used within {days} days or its average CPU usage {avg_cpu:.2f}% is above the threshold of {threshold}%.")
     return False
 
+# unattached filter function to check if a resource is unattached
 def unattached_filter(resource):
     """Check if a resource is unattached."""
     logger.info(f"Checking if resource {resource.name} is unattached.")
@@ -399,6 +426,7 @@ def unattached_filter(resource):
     # Default case: check if the resource is managed by another resource
     return resource.managed_by is None
 
+# tag filter function to check if a resource has a specific tag
 def tag_filter(resource, key, value):
     """Check if a resource has a specific tag."""
     if not hasattr(resource, "tags"):
@@ -407,10 +435,12 @@ def tag_filter(resource, key, value):
     tags = resource.tags
     return tags and tags.get(key) == value
 
+# SKU filter function to check if a resource's SKU is in the specified values
 def sku_filter(resource, values):
     """Check if a resource's SKU is in the specified values."""
     return resource.sku.name in values
 
+# function to get the last used date of a VM based on average CPU usage over a specified number of days
 def get_last_used_date(resource, days, threshold=5):
     """
     Get the last used date of a VM based on average CPU usage over a specified number of days.
@@ -465,6 +495,7 @@ def get_last_used_date(resource, days, threshold=5):
     # If all CPU usage values are below the threshold, return the start_time
     return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
 
+# function to apply actions to a resource based on the specified actions and log the status of the actions taken or skipped in a status log list 
 def apply_actions(resource, actions, status_log, dry_run, subscription_id):
     """Apply actions to a resource."""
     for action in actions:
