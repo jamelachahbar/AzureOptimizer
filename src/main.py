@@ -875,15 +875,24 @@ def scale_sql_database(database, tiers, status_log, dry_run=True, subscription_i
     current_time = datetime.now().time()
     for tier in tiers:
         if tier["name"] in database.sku.name:
-            off_peak_start = datetime.strptime(tier["off_peak_start"], "%H:%M").time()
-            off_peak_end = datetime.strptime(tier["off_peak_end"], "%H:%M").time()
+            # Check if off_peak_start and off_peak_end are provided
+            off_peak_start = tier.get("off_peak_start")
+            off_peak_end = tier.get("off_peak_end")
 
-            if off_peak_start < off_peak_end:
-                is_off_peak = off_peak_start <= current_time < off_peak_end
-            else:  # Over midnight
-                is_off_peak = not (off_peak_end <= current_time < off_peak_start)
+            # Default to off-peak DTU if no schedule is specified
+            if off_peak_start is None or off_peak_end is None:
+                new_dtu = tier["off_peak_dtu"]
+            else:
+                # Parse the off-peak times if provided
+                off_peak_start = datetime.strptime(off_peak_start, "%H:%M").time()
+                off_peak_end = datetime.strptime(off_peak_end, "%H:%M").time()
 
-            new_dtu = tier["off_peak_dtu"] if is_off_peak else tier["peak_dtu"]
+                if off_peak_start < off_peak_end:
+                    is_off_peak = off_peak_start <= current_time < off_peak_end
+                else:  # Over midnight
+                    is_off_peak = not (off_peak_end <= current_time < off_peak_start)
+
+                new_dtu = tier["off_peak_dtu"] if is_off_peak else tier["peak_dtu"]
 
             if new_dtu == database.sku.capacity:
                 message = "Current DTU is already optimal. No scaling required."
