@@ -22,7 +22,7 @@
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": ["last_used", "unattached", "tag", "sku"]
+                  "enum": ["last_used", "unattached", "tag", "sku","stopped"]
                 },
                 "days": {
                   "type": "integer",
@@ -50,7 +50,7 @@
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": ["stop", "delete", "update_sku", "scale_dtu", "log"]
+                  "enum": ["stop", "delete", "update_sku", "scale_dtu", "log","downgrade_disks"]
                 },
                 "sku": {
                   "type": "string"

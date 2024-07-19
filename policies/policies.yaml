@@ -42,19 +42,19 @@ policies:
         value: dev
     actions:
       - type: delete
-    # exclusions:
-    #   - type: tag
-    #     key: exclude
-    #     value: "true"
+    exclusions:
+      - type: tag
+        key: exclude
+        value: "true"
   - name: update-storage-account-sku
     description: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
     resource: "azure.storage"
     filters:
       - type: "sku"
         values: ["Standard_GRS", "Standard_RAGRS", "Standard_ZRS", "Standard_GZRS"]
-      - type: "tag"
-        key: "costopt"
-        value: "true"
+      # - type: "tag"
+      #   key: costopt
+      #   value: "true"
     actions:
       - type: "update_sku"
         sku: "Standard_LRS"
@@ -62,7 +62,7 @@ policies:
     resource: azure.applicationgateway
     filters:
       - type: tag
-        key: environment
+        key: Environment
         value: dev
     actions:
       - type: delete
@@ -86,8 +86,8 @@ policies:
           - name: Standard
             min_dtu: 10
             max_dtu: 100
-            off_peak_dtu: 10
-            peak_dtu: 20
+            off_peak_dtu: 50
+            peak_dtu: 100
             # off_peak_start: "18:00"
             # off_peak_end: "06:00"
           - name: Premium
@@ -105,3 +105,9 @@ policies:
     actions:
       - type: "delete"
     exclusions: []
+  - name: DowngradeDisksOfStoppedVMs
+    resource: azure.vm
+    filters:
+      - type: stopped
+    actions:
+      - type: downgrade_disks
