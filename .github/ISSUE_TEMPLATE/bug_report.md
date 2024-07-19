@@ -1,38 +1,31 @@
----
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+<!--
+⚠️⚠️⚠️ BEFORE YOU SUBMIT ⚠️⚠️⚠️
+1. Confirm there isn't an issue already. If so, vote it up (👍) and add comments.
+2. Complete all TODO items below and remove the TODO lines after.
+3. Internal: Add applicable labels: Type, Micro PR, Area
+-->
 
----
+## 🐛 Problem
+TODO: Add a clear and concise description of what the bug is.
 
-**Describe the bug**
-A clear and concise description of what the bug is.
-
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
+## 👣 Repro steps
+TODO: Add repro steps below:
+1. Go to
+2. Click on
+3. Scroll down to
 4. See error
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## 🤔 Expected
+TODO: Add a clear and concise description of what you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+## 📷 Screenshots
+TODO: If applicable, add screenshots to help explain your problem. Remove if not applicable.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+## ℹ️ Additional context
+TODO: Add any other context about the problem here. Remove if not applicable.
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
-
-**Additional context**
-Add any other context about the problem here.
+## 🙋‍♀️ Ask for the community
+<!-- TODO: Customize this section to let the community know how they can help. -->
+We could use your help:
+1. Please vote this issue up (👍) to prioritize it.
+2. Leave comments to help us solidify the vision.
