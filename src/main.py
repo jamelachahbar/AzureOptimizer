@@ -33,7 +33,7 @@ import io
 from functools import wraps
 
 # Set up logging
-# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Set FORCE_COLOR to 1 to ensure color output
@@ -366,8 +366,18 @@ def evaluate_filters(resource, filters):
             if not sku_filter(resource, filter["values"]):
                 logger.info(f"Resource {resource.name} does not meet sku filter")
                 return False
+        elif filter_type == "stopped":
+            if not is_vm_stopped(resource):
+                logger.info(f"Resource {resource.name} is not stopped (deallocated)")
+                return False
     logger.info(f"Resource {resource.name} meets all filters")
     return True
+
+def is_vm_stopped(vm):
+    resource_group_name = vm.id.split("/")[4]
+    vm_instance_view = compute_client.virtual_machines.instance_view(resource_group_name, vm.name)
+    statuses = vm_instance_view.statuses
+    return any(status.code == 'PowerState/deallocated' for status in statuses)
 
 # function to evaluate exclusions for resources based on tags
 def evaluate_exclusions(resource, exclusions):
@@ -525,7 +535,21 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                     }
                 )
                 logger.info(f"Action stop applied to VM {resource.name} with status: {status}")
-
+            elif action_type == "downgrade_disks":
+                            if isinstance(resource, compute_client.virtual_machines.models.VirtualMachine):
+                                status, message = downgrade_disks_of_vm(resource, status_log, dry_run, subscription_id)
+                            elif isinstance(resource, compute_client.disks.models.Disk):
+                                status, message = downgrade_disk(resource)
+                            status_log.append(
+                                {
+                                    "SubscriptionId": subscription_id,
+                                    "Resource": resource.name,
+                                    "Action": "downgrade_disks",
+                                    "Status": status,
+                                    "Message": message,
+                                }
+                            )
+                            logger.info(f"Action downgrade_disks applied to {resource.name} with status: {status} and message: {message}")
             elif action_type == "delete":
                 if isinstance(resource, compute_client.disks.models.Disk):
                     status, message = delete_disk(resource)
@@ -538,6 +562,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                             "Message": message,
                         }
                     )
+                    logger.info(f"Action delete applied to Disk {resource.name} with status: {status} and message: {message}")
                 elif isinstance(
                     resource, resource_client.resource_groups.models.ResourceGroup
                 ):
@@ -551,6 +576,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                             "Message": message,
                         }
                     )
+                    logger.info(f"Action delete applied to Resource Group {resource.name} with status: {status} and message: {message}")
                 elif isinstance(
                     resource, network_client.public_ip_addresses.models.PublicIPAddress
                 ):
@@ -564,6 +590,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                             "Message": message,
                         }
                     )
+                    logger.info(f"Action delete applied to Public IP {resource.name} with status: {status} and message: {message}")
                 elif isinstance(resource, network_client.network_interfaces.models.NetworkInterface):
                     status, message = delete_network_interface(resource)
                     status_log.append(
@@ -575,6 +602,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                             "Message": message,
                         }
                     )
+                    logger.info(f"Action delete applied to Network Interface {resource.name} with status: {status} and message: {message}")
                 elif isinstance(
                     resource,
                     network_client.application_gateways.models.ApplicationGateway,
@@ -582,6 +610,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                     status, message = delete_application_gateway(
                         network_client, resource, status_log, dry_run
                     )
+                    logger.info(f"Action delete applied to Application Gateway {resource.name} with status: {status} and message: {message}")
             elif action_type == "update_sku":
                 if isinstance(
                     resource, storage_client.storage_accounts.models.StorageAccount
@@ -598,21 +627,12 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                             "Message": message,
                         }
                     )
+                    logger.info(f"Action update_sku applied to Storage Account {resource.name} with status: {status} and message: {message}")
             elif action_type == "scale_sql_database":
                 status, message = scale_sql_database(
                     resource, action["tiers"], status_log, dry_run, subscription_id
                 )
-            elif isinstance(resource, network_client.network_interfaces.models.NetworkInterface):
-                status, message = delete_network_interface(resource)
-                status_log.append(
-                        {
-                            "SubscriptionId": subscription_id,
-                            "Resource": resource.name,
-                            "Action": "delete",
-                            "Status": status,
-                            "Message": message,
-                        }
-                    )
+                logger.info(f"Action scale_sql_database applied to SQL Database {resource.name} with status: {status} and message: {message}")
 
 def delete_network_interface(nic):
     """Delete an unattached network interface."""
@@ -654,6 +674,143 @@ def stop_vm(vm):
         logger.error(f"Failed to deallocate VM {vm.name}: {e}")
         tc.track_event("VMDeallocateFailed", {"VMName": vm.name, "Error": str(e)})
         return "Failed", f"Failed to deallocate VM: {e}"
+
+
+from azure.mgmt.compute.models import StorageAccountTypes
+
+
+from azure.mgmt.compute.models import StorageAccountTypes
+
+def downgrade_disk(disk):
+    resource_group_name = disk.id.split("/")[4]
+    disk_name = disk.name
+
+    try:
+        if disk.sku.name != StorageAccountTypes.standard_lrs:
+            disk.sku.name = StorageAccountTypes.standard_lrs
+            async_update = compute_client.disks.begin_create_or_update(
+                resource_group_name,
+                disk_name,
+                disk
+            )
+            async_update.result()  # Wait for the operation to complete
+
+            updated_disk = compute_client.disks.get(resource_group_name, disk_name)
+            if updated_disk.sku.name == StorageAccountTypes.standard_lrs:
+                logger.info(f"Successfully downgraded disk {disk_name} to Standard_LRS")
+                return "Success", f"Successfully downgraded disk {disk_name} to Standard_LRS"
+            else:
+                logger.error(f"Failed to downgrade disk {disk_name}. Current SKU: {updated_disk.sku.name}")
+                return "Failed", f"Failed to downgrade disk {disk_name}. Current SKU: {updated_disk.sku.name}"
+        else:
+            logger.info(f"Disk {disk_name} is already {disk.sku.name}")
+            return "No Action", f"Disk {disk_name} is already {disk.sku.name}"
+
+    except Exception as e:
+        logger.error(f"Failed to downgrade disk {disk_name}: {e}")
+        return "Failed", f"Failed to downgrade disk {disk_name}: {e}"
+
+
+def is_vm_deallocated(vm):
+    resource_group_name = vm.id.split("/")[4]
+    vm_instance_view = compute_client.virtual_machines.instance_view(resource_group_name, vm.name)
+    statuses = vm_instance_view.statuses
+    return any(status.code == 'PowerState/deallocated' for status in statuses)
+
+def downgrade_disks_of_vm(vm, status_log, dry_run=True, subscription_id=None):
+    try:
+        resource_group_name = vm.id.split("/")[4]
+        vm_instance = compute_client.virtual_machines.get(resource_group_name, vm.name, expand='instanceView')
+
+        # Process the OS disk
+        os_disk = vm_instance.storage_profile.os_disk
+        if os_disk.managed_disk:
+            os_disk_id = os_disk.managed_disk.id
+            os_disk_name = os_disk_id.split('/')[-1]
+            os_disk_rg = os_disk_id.split('/')[4]
+            logger.info(f"Processing OS disk {os_disk_name} with ID {os_disk_id} in RG {os_disk_rg}")
+            try:
+                managed_disk = compute_client.disks.get(os_disk_rg, os_disk_name)
+                if dry_run:
+                    log_entry = {
+                        "SubscriptionId": subscription_id,
+                        "Resource": managed_disk.name,
+                        "Action": "downgrade_disks",
+                        "Status": "Dry Run",
+                        "Message": f"Would downgrade OS disk {managed_disk.name} to Standard_LRS"
+                    }
+                    status_log.append(log_entry)
+                else:
+                    status, message = downgrade_disk(managed_disk)
+                    log_entry = {
+                        "SubscriptionId": subscription_id,
+                        "Resource": managed_disk.name,
+                        "Action": "downgrade_disks",
+                        "Status": status,
+                        "Message": message,
+                    }
+                    status_log.append(log_entry)
+            except Exception as e:
+                log_entry = {
+                    "SubscriptionId": subscription_id,
+                    "Resource": os_disk_name,
+                    "Action": "downgrade_disks",
+                    "Status": "Failed",
+                    "Message": f"Failed to downgrade OS disk {os_disk_name} for VM {vm.name}: {e}"
+                }
+                status_log.append(log_entry)
+                logger.error(f"Failed to downgrade OS disk {os_disk_name} for VM {vm.name}: {e}")
+
+        # Process the data disks
+        for disk in vm_instance.storage_profile.data_disks:
+            if disk.managed_disk:
+                data_disk_id = disk.managed_disk.id
+                data_disk_name = data_disk_id.split('/')[-1]
+                data_disk_rg = data_disk_id.split('/')[4]
+                logger.info(f"Processing data disk {data_disk_name} with ID {data_disk_id} in RG {data_disk_rg}")
+                try:
+                    managed_disk = compute_client.disks.get(data_disk_rg, data_disk_name)
+                    if dry_run:
+                        log_entry = {
+                            "SubscriptionId": subscription_id,
+                            "Resource": managed_disk.name,
+                            "Action": "downgrade_disks",
+                            "Status": "Dry Run",
+                            "Message": f"Would downgrade data disk {managed_disk.name} to Standard_LRS"
+                        }
+                        status_log.append(log_entry)
+                    else:
+                        status, message = downgrade_disk(managed_disk)
+                        log_entry = {
+                            "SubscriptionId": subscription_id,
+                            "Resource": managed_disk.name,
+                            "Action": "downgrade_disks",
+                            "Status": status,
+                            "Message": message,
+                        }
+                        status_log.append(log_entry)
+                except Exception as e:
+                    log_entry = {
+                        "SubscriptionId": subscription_id,
+                        "Resource": data_disk_name,
+                        "Action": "downgrade_disks",
+                        "Status": "Failed",
+                        "Message": f"Failed to downgrade data disk {data_disk_name} for VM {vm.name}: {e}"
+                    }
+                    status_log.append(log_entry)
+                    logger.error(f"Failed to downgrade data disk {data_disk_name} for VM {vm.name}: {e}")
+        return "Success", "Disk downgrades processed."
+    except Exception as e:
+        log_entry = {
+            "SubscriptionId": subscription_id,
+            "Resource": vm.name,
+            "Action": "downgrade_disks",
+            "Status": "Failed",
+            "Message": f"Failed to process disks for VM {vm.name}: {e}"
+        }
+        status_log.append(log_entry)
+        logger.error(f"Failed to process disks for VM {vm.name}: {e}")
+        return "Failed", f"Failed to process disks for VM {vm.name}: {e}"
 
 def delete_disk(disk):
     """Delete a disk."""
@@ -1013,6 +1170,13 @@ def log_empty_backend_pool(gateway, dry_run=True):
             "Success",
             f"Logged empty backend pool in Application Gateway: {gateway.name}",
         )
+def evaluate_unattached_filter(disk):
+    """Check if a disk is unattached."""
+    if not disk.managed_by:
+        logger.info(f"Disk {disk.name} is unattached.")
+        return True
+    logger.info(f"Disk {disk.name} is attached.")
+    return False
 
 def apply_policies(
     policies,
@@ -1064,10 +1228,8 @@ def apply_policies(
         elif resource_type == "azure.disk":
             disks = compute_client.disks.list()
             for disk in disks:
-                logger.info(f"Evaluating disk {disk.name} for deletion.")
-                if not evaluate_exclusions(disk, exclusions) and evaluate_filters(
-                    disk, filters
-                ):
+                logger.info(f"Evaluating disk {disk.name}")
+                if not evaluate_exclusions(disk, exclusions) and evaluate_filters(disk, filters):
                     apply_actions(disk, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
@@ -1231,6 +1393,7 @@ def apply_policies(
                         "ResourceType": "Application Gateway",
                     }
                 )
+
         elif resource_type == "azure.nic":
             nics = network_client.network_interfaces.list_all()
             for nic in nics:
