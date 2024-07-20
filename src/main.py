@@ -7,18 +7,6 @@ from datetime import datetime, timedelta, timezone
 import json
 import yaml
 import jsonschema
-from applicationinsights import TelemetryClient
-from azure.identity import DefaultAzureCredential
-from azure.mgmt.resource import ResourceManagementClient
-from azure.mgmt.costmanagement import CostManagementClient
-from azure.mgmt.compute import ComputeManagementClient
-from azure.mgmt.storage import StorageManagementClient
-from azure.mgmt.network import NetworkManagementClient
-from azure.mgmt.sql import SqlManagementClient
-from azure.mgmt.sql.models import Sku, Database
-from azure.mgmt.subscription import SubscriptionClient
-from azure.mgmt.monitor import MonitorManagementClient
-from azure.mgmt.monitor.models import AggregationType
 import pandas as pd
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
@@ -28,9 +16,21 @@ from sklearn.ensemble import IsolationForest
 import textwrap
 from collections import defaultdict
 import pytz
-from azure.storage.filedatalake import DataLakeServiceClient
 import io
 from functools import wraps
+from azure.identity import DefaultAzureCredential
+from azure.mgmt.resource import ResourceManagementClient
+from azure.mgmt.costmanagement import CostManagementClient
+from azure.mgmt.compute import ComputeManagementClient
+from azure.mgmt.storage import StorageManagementClient
+from azure.mgmt.network import NetworkManagementClient
+from azure.mgmt.sql import SqlManagementClient
+from azure.mgmt.subscription import SubscriptionClient
+from azure.mgmt.monitor import MonitorManagementClient
+from azure.mgmt.sql.models import Sku, Database
+from azure.storage.filedatalake import DataLakeServiceClient
+from applicationinsights import TelemetryClient
+from azure.mgmt.compute.models import StorageAccountTypes
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -63,13 +63,9 @@ monitor_client = MonitorManagementClient(credential, subscription_id=subscriptio
 
 # Verify that the necessary environment variables are set and log their values
 required_env_vars = [
-    "AZURE_CLIENT_ID",
-    "AZURE_TENANT_ID",
-    "AZURE_CLIENT_SECRET",
-    "AZURE_SUBSCRIPTION_ID",
-    "AZURE_STORAGE_ACCOUNT_NAME",
-    "AZURE_STORAGE_FILE_SYSTEM_NAME",
-    "ADLS_DIRECTORY_PATH"
+    "AZURE_CLIENT_ID", "AZURE_TENANT_ID", "AZURE_CLIENT_SECRET",
+    "AZURE_SUBSCRIPTION_ID", "AZURE_STORAGE_ACCOUNT_NAME",
+    "AZURE_STORAGE_FILE_SYSTEM_NAME", "ADLS_DIRECTORY_PATH"
 ]
 for var in required_env_vars:
     value = os.getenv(var)
@@ -96,8 +92,8 @@ service_client = DataLakeServiceClient(
     credential=credential
 )
 
-# Retry decorator with exponential backoff and jitter for resilience in case of transient errors
 def retry(max_retries=3, delay=5, backoff=2, exceptions=(Exception,)):
+    """Retry decorator with exponential backoff and jitter for resilience in case of transient errors."""
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -115,14 +111,13 @@ def retry(max_retries=3, delay=5, backoff=2, exceptions=(Exception,)):
         return wrapper
     return decorator
 
-# Function to list files in a directory
 def list_files_in_directory(directory_path):
+    """Function to list files in a directory."""
     try:
         file_system_client = service_client.get_file_system_client(file_system_name)
         paths = file_system_client.get_paths(path=directory_path)
 
-        files = []
-        folders = []
+        files, folders = [], []
         for path in paths:
             if path.is_directory:
                 folders.append(path.name)
@@ -138,6 +133,7 @@ def list_files_in_directory(directory_path):
         return []
 
 def read_parquet_file_from_adls(file_path):
+    """Function to read a Parquet file from ADLS."""
     try:
         file_system_client = service_client.get_file_system_client(file_system_name)
         file_client = file_system_client.get_file_client(file_path)
@@ -151,8 +147,8 @@ def read_parquet_file_from_adls(file_path):
         logger.error(f"Error reading Parquet file {file_path}: {e}")
         return pd.DataFrame()
 
-# Function to fetch cost data from ADLS
 def fetch_cost_data_from_adls(directory_path):
+    """Function to fetch cost data from ADLS."""
     try:
         files = list_files_in_directory(directory_path)
         all_data = []
@@ -165,7 +161,7 @@ def fetch_cost_data_from_adls(directory_path):
 
         if all_data:
             combined_df = pd.concat(all_data, ignore_index=True)
-            combined_df['BilledCost'] = combined_df['BilledCost'].astype(float)  # Ensure BilledCost is float
+            combined_df['BilledCost'] = combined_df['BilledCost'].astype(float)
             return combined_df
         else:
             logger.warning("No Parquet files found in the specified directory.")
@@ -247,7 +243,6 @@ def analyze_cost_data(cost_data, subscription_id, summary_reports):
     detect_anomalies_isolation_forest(df, subscription_id)
     generate_summary_report(df, subscription_id, summary_reports)
 
-# trend analysis function
 def trend_analysis(df, subscription_id):
     """Analyze cost trends over time and plot the trend."""
     df["cost"].plot(
@@ -261,7 +256,6 @@ def trend_analysis(df, subscription_id):
     logger.info(f"Trend analysis plot saved as cost_trend_{subscription_id}.png.")
     tc.track_event("TrendAnalysisCompleted", {"SubscriptionId": subscription_id})
 
-# anomaly detection function using Isolation Forest algorithm from scikit-learn library
 def detect_anomalies_isolation_forest(df, subscription_id):
     """Detect anomalies in the cost data using Isolation Forest."""
     model = IsolationForest(contamination=0.025)
@@ -297,7 +291,6 @@ def detect_anomalies_isolation_forest(df, subscription_id):
             "NoAnomaliesDetectedIsolationForest", {"SubscriptionId": subscription_id}
         )
 
-# summary report generation function to calculate total, average, maximum, and minimum daily costs
 def generate_summary_report(df, subscription_id, summary_reports):
     """Generate a summary report of the cost data."""
     total_cost = df["cost"].sum()
@@ -343,14 +336,13 @@ def generate_summary_report(df, subscription_id, summary_reports):
         "MinimumDailyCost", min_cost, properties={"SubscriptionId": subscription_id}
     )
 
-# function to evaluate filters for resources based on last used, unattached, tag, and SKU filters
 def evaluate_filters(resource, filters):
     """Evaluate if a resource meets the defined filters."""
     for filter in filters:
         filter_type = filter["type"]
         if filter_type == "last_used":
             days = filter["days"]
-            threshold = filter.get("threshold", 10)  # Default threshold to 10 if not provided
+            threshold = filter.get("threshold", 10)
             if not last_used_filter(resource, days, threshold):
                 logger.info(f"Resource {resource.name} does not meet last_used filter with threshold {threshold}")
                 return False
@@ -374,12 +366,12 @@ def evaluate_filters(resource, filters):
     return True
 
 def is_vm_stopped(vm):
+    """Check if a VM is stopped (deallocated)."""
     resource_group_name = vm.id.split("/")[4]
     vm_instance_view = compute_client.virtual_machines.instance_view(resource_group_name, vm.name)
     statuses = vm_instance_view.statuses
     return any(status.code == 'PowerState/deallocated' for status in statuses)
 
-# function to evaluate exclusions for resources based on tags
 def evaluate_exclusions(resource, exclusions):
     """Evaluate if a resource meets any of the exclusion criteria."""
     for exclusion in exclusions:
@@ -389,7 +381,6 @@ def evaluate_exclusions(resource, exclusions):
                 return True
     return False
 
-# last used filter function to check if a resource was last used within a specified number of days and meets the CPU threshold
 def last_used_filter(resource, days, threshold):
     """Check if a resource was last used within a specified number of days and meets the CPU threshold."""
     last_used_date, avg_cpu = get_last_used_date(resource, days, threshold)
@@ -399,7 +390,6 @@ def last_used_filter(resource, days, threshold):
     logger.info(f"Resource {resource.name} was either not used within {days} days or its average CPU usage {avg_cpu:.2f}% is above the threshold of {threshold}%.")
     return False
 
-# unattached filter function to check if a resource is unattached
 def unattached_filter(resource):
     """Check if a resource is unattached."""
     logger.info(f"Checking if resource {resource.name} is unattached.")
@@ -411,10 +401,7 @@ def unattached_filter(resource):
             associated_lb = network_client.load_balancers.list_all()
             for lb in associated_lb:
                 for frontend_ip in lb.frontend_ip_configurations:
-                    if (
-                        frontend_ip.public_ip_address
-                        and frontend_ip.public_ip_address.id == resource.id
-                    ):
+                    if frontend_ip.public_ip_address and frontend_ip.public_ip_address.id == resource.id:
                         return False
             associated_nat_gateways = network_client.nat_gateways.list_all()
             for nat_gateway in associated_nat_gateways:
@@ -436,7 +423,6 @@ def unattached_filter(resource):
     # Default case: check if the resource is managed by another resource
     return resource.managed_by is None
 
-# tag filter function to check if a resource has a specific tag
 def tag_filter(resource, key, value):
     """Check if a resource has a specific tag."""
     if not hasattr(resource, "tags"):
@@ -445,35 +431,19 @@ def tag_filter(resource, key, value):
     tags = resource.tags
     return tags and tags.get(key) == value
 
-# SKU filter function to check if a resource's SKU is in the specified values
 def sku_filter(resource, values):
     """Check if a resource's SKU is in the specified values."""
     return resource.sku.name in values
 
-# function to get the last used date of a VM based on average CPU usage over a specified number of days
 def get_last_used_date(resource, days, threshold=5):
-    """
-    Get the last used date of a VM based on average CPU usage over a specified number of days.
-    
-    Parameters:
-    - resource: The VM resource object.
-    - days: The number of days to check for activity.
-    - threshold: The CPU usage threshold below which the VM is considered as not used (in percentage).
-    
-    Returns:
-    - The last date the VM was actively used and the average CPU usage.
-    """
+    """Get the last used date of a VM based on average CPU usage over a specified number of days."""
     resource_id = resource.id
     end_time = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     start_time = (datetime.now(timezone.utc) - timedelta(days=days)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
-    # Initialize monitor client
     monitor_client = MonitorManagementClient(credential, resource_id.split('/')[2])
-    
-    # Format timespan in ISO 8601 format
     timespan = f"{start_time}/{end_time}"
 
-    # Query CPU usage metrics
     metrics_data = monitor_client.metrics.list(
         resource_id,
         timespan=timespan,
@@ -488,24 +458,20 @@ def get_last_used_date(resource, days, threshold=5):
         logger.info(f"No CPU usage data available for VM: {resource.name} in the last {days} days.")
         return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
 
-    # Log CPU usage data for debugging purposes
     logger.info(f"CPU usage data for VM: {resource.name} in the last {days} days: {cpu_usages}")
 
-    # Check if the average CPU usage is below the threshold
     average_cpu_usage = sum(cpu_usages) / len(cpu_usages)
     logger.info(f"Average CPU usage for VM: {resource.name}: {average_cpu_usage:.2f}%")
 
     if average_cpu_usage < threshold:
         return datetime.fromisoformat(start_time.replace("Z", "+00:00")), average_cpu_usage
-    # If the VM was used, find the last time it was above the threshold
+
     for data in reversed(metrics_data.value[0].timeseries[0].data):
         if data.average and data.average >= threshold:
             return data.time_stamp, average_cpu_usage
 
-    # If all CPU usage values are below the threshold, return the start_time
     return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
 
-# function to apply actions to a resource based on the specified actions and log the status of the actions taken or skipped in a status log list 
 def apply_actions(resource, actions, status_log, dry_run, subscription_id):
     """Apply actions to a resource."""
     for action in actions:
@@ -536,20 +502,20 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                 )
                 logger.info(f"Action stop applied to VM {resource.name} with status: {status}")
             elif action_type == "downgrade_disks":
-                            if isinstance(resource, compute_client.virtual_machines.models.VirtualMachine):
-                                status, message = downgrade_disks_of_vm(resource, status_log, dry_run, subscription_id)
-                            elif isinstance(resource, compute_client.disks.models.Disk):
-                                status, message = downgrade_disk(resource)
-                            status_log.append(
-                                {
-                                    "SubscriptionId": subscription_id,
-                                    "Resource": resource.name,
-                                    "Action": "downgrade_disks",
-                                    "Status": status,
-                                    "Message": message,
-                                }
-                            )
-                            logger.info(f"Action downgrade_disks applied to {resource.name} with status: {status} and message: {message}")
+                if isinstance(resource, compute_client.virtual_machines.models.VirtualMachine):
+                    status, message = downgrade_disks_of_vm(resource, status_log, dry_run, subscription_id)
+                elif isinstance(resource, compute_client.disks.models.Disk):
+                    status, message = downgrade_disk(resource)
+                status_log.append(
+                    {
+                        "SubscriptionId": subscription_id,
+                        "Resource": resource.name,
+                        "Action": "downgrade_disks",
+                        "Status": status,
+                        "Message": message,
+                    }
+                )
+                logger.info(f"Action downgrade_disks applied to {resource.name} with status: {status} and message: {message}")
             elif action_type == "delete":
                 if isinstance(resource, compute_client.disks.models.Disk):
                     status, message = delete_disk(resource)
@@ -563,9 +529,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                         }
                     )
                     logger.info(f"Action delete applied to Disk {resource.name} with status: {status} and message: {message}")
-                elif isinstance(
-                    resource, resource_client.resource_groups.models.ResourceGroup
-                ):
+                elif isinstance(resource, resource_client.resource_groups.models.ResourceGroup):
                     status, message = delete_resource_group(resource)
                     status_log.append(
                         {
@@ -577,9 +541,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                         }
                     )
                     logger.info(f"Action delete applied to Resource Group {resource.name} with status: {status} and message: {message}")
-                elif isinstance(
-                    resource, network_client.public_ip_addresses.models.PublicIPAddress
-                ):
+                elif isinstance(resource, network_client.public_ip_addresses.models.PublicIPAddress):
                     status, message = delete_public_ip(resource)
                     status_log.append(
                         {
@@ -603,21 +565,12 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                         }
                     )
                     logger.info(f"Action delete applied to Network Interface {resource.name} with status: {status} and message: {message}")
-                elif isinstance(
-                    resource,
-                    network_client.application_gateways.models.ApplicationGateway,
-                ):
-                    status, message = delete_application_gateway(
-                        network_client, resource, status_log, dry_run
-                    )
+                elif isinstance(resource, network_client.application_gateways.models.ApplicationGateway):
+                    status, message = delete_application_gateway(network_client, resource, status_log, dry_run)
                     logger.info(f"Action delete applied to Application Gateway {resource.name} with status: {status} and message: {message}")
             elif action_type == "update_sku":
-                if isinstance(
-                    resource, storage_client.storage_accounts.models.StorageAccount
-                ):
-                    status, message = update_storage_account_sku(
-                        resource, action["sku"]
-                    )
+                if isinstance(resource, storage_client.storage_accounts.models.StorageAccount):
+                    status, message = update_storage_account_sku(resource, action["sku"])
                     status_log.append(
                         {
                             "SubscriptionId": subscription_id,
@@ -629,9 +582,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                     )
                     logger.info(f"Action update_sku applied to Storage Account {resource.name} with status: {status} and message: {message}")
             elif action_type == "scale_sql_database":
-                status, message = scale_sql_database(
-                    resource, action["tiers"], status_log, dry_run, subscription_id
-                )
+                status, message = scale_sql_database(resource, action["tiers"], status_log, dry_run, subscription_id)
                 logger.info(f"Action scale_sql_database applied to SQL Database {resource.name} with status: {status} and message: {message}")
 
 def delete_network_interface(nic):
@@ -652,10 +603,8 @@ def stop_vm(vm):
     """Stop a VM."""
     try:
         logger.info(f"Checking status of VM: {vm.name}")
-        # Extract resource group name from VM ID
         resource_group_name = vm.id.split("/")[4]
         
-        # Get the current instance view of the VM to check its status
         instance_view = compute_client.virtual_machines.instance_view(resource_group_name, vm.name)
         statuses = instance_view.statuses
         for status in statuses:
@@ -664,36 +613,25 @@ def stop_vm(vm):
                 logger.info(message)
                 tc.track_event("VMAlreadyDeallocated", {"VMName": vm.name})
                 return "No Action", message
-        async_stop = compute_client.virtual_machines.begin_deallocate(
-            resource_group_name, vm.name
-        )
-        async_stop.result()  # Wait for the operation to complete
+        async_stop = compute_client.virtual_machines.begin_deallocate(resource_group_name, vm.name)
+        async_stop.result()
         tc.track_event("VMDeallocated", {"VMName": vm.name})
-        return "Success", f"VM deallocated successfully."
+        return "Success", "VM deallocated successfully."
     except Exception as e:
         logger.error(f"Failed to deallocate VM {vm.name}: {e}")
         tc.track_event("VMDeallocateFailed", {"VMName": vm.name, "Error": str(e)})
         return "Failed", f"Failed to deallocate VM: {e}"
 
-
-from azure.mgmt.compute.models import StorageAccountTypes
-
-
-from azure.mgmt.compute.models import StorageAccountTypes
-
 def downgrade_disk(disk):
+    """Downgrade the disk to Standard_LRS."""
     resource_group_name = disk.id.split("/")[4]
     disk_name = disk.name
 
     try:
         if disk.sku.name != StorageAccountTypes.standard_lrs:
             disk.sku.name = StorageAccountTypes.standard_lrs
-            async_update = compute_client.disks.begin_create_or_update(
-                resource_group_name,
-                disk_name,
-                disk
-            )
-            async_update.result()  # Wait for the operation to complete
+            async_update = compute_client.disks.begin_create_or_update(resource_group_name, disk_name, disk)
+            async_update.result()
 
             updated_disk = compute_client.disks.get(resource_group_name, disk_name)
             if updated_disk.sku.name == StorageAccountTypes.standard_lrs:
@@ -705,19 +643,19 @@ def downgrade_disk(disk):
         else:
             logger.info(f"Disk {disk_name} is already {disk.sku.name}")
             return "No Action", f"Disk {disk_name} is already {disk.sku.name}"
-
     except Exception as e:
         logger.error(f"Failed to downgrade disk {disk_name}: {e}")
         return "Failed", f"Failed to downgrade disk {disk_name}: {e}"
 
-
 def is_vm_deallocated(vm):
+    """Check if a VM is deallocated."""
     resource_group_name = vm.id.split("/")[4]
     vm_instance_view = compute_client.virtual_machines.instance_view(resource_group_name, vm.name)
     statuses = vm_instance_view.statuses
     return any(status.code == 'PowerState/deallocated' for status in statuses)
 
 def downgrade_disks_of_vm(vm, status_log, dry_run=True, subscription_id=None):
+    """Downgrade the disks of a VM to Standard_LRS."""
     try:
         resource_group_name = vm.id.split("/")[4]
         vm_instance = compute_client.virtual_machines.get(resource_group_name, vm.name, expand='instanceView')
@@ -820,7 +758,7 @@ def delete_disk(disk):
         logger.info(f"Disk resource group: {resource_group_name}")
         logger.info(f"Disk details: {disk}")
         async_delete = compute_client.disks.begin_delete(resource_group_name, disk.name)
-        async_delete.result()  # Wait for the operation to complete
+        async_delete.result()
         tc.track_event("DiskDeleted", {"DiskName": disk.name})
         return "Success", "Disk deleted successfully."
     except Exception as e:
@@ -832,17 +770,13 @@ def delete_resource_group(resource_group):
     """Delete all resources in a resource group."""
     try:
         logger.info(f"Deleting Resource Group: {resource_group.name}")
-        delete_operation = resource_client.resource_groups.begin_delete(
-            resource_group.name
-        )
+        delete_operation = resource_client.resource_groups.begin_delete(resource_group.name)
         while not delete_operation.done():
             print("Deleting resource group, please wait...")
             time.sleep(10)
         operation_status = delete_operation.status()
         if operation_status == "Succeeded":
-            tc.track_event(
-                "ResourceGroupDeleted", {"ResourceGroupName": resource_group.name}
-            )
+            tc.track_event("ResourceGroupDeleted", {"ResourceGroupName": resource_group.name})
             logger.info(f"Resource Group {resource_group.name} deleted successfully.")
             return "Success", "Resource group deleted successfully."
         else:
@@ -853,9 +787,7 @@ def delete_resource_group(resource_group):
                     "Error": "Deletion operation did not succeed",
                 },
             )
-            logger.error(
-                f"Failed to delete Resource Group {resource_group.name}: Deletion operation did not succeed"
-            )
+            logger.error(f"Failed to delete Resource Group {resource_group.name}: Deletion operation did not succeed")
             return (
                 "Failed",
                 "Failed to delete resource group: Deletion operation did not succeed",
@@ -875,22 +807,16 @@ def delete_public_ip(public_ip):
         resource_group_name = public_ip.id.split("/")[4]
         logger.info(f"Public IP resource group: {resource_group_name}")
         logger.info(f"Public IP details: {public_ip}")
-        async_delete = network_client.public_ip_addresses.begin_delete(
-            resource_group_name, public_ip.name
-        )
-        async_delete.result()  # Wait for the operation to complete
+        async_delete = network_client.public_ip_addresses.begin_delete(resource_group_name, public_ip.name)
+        async_delete.result()
         tc.track_event("PublicIPDeleted", {"PublicIPName": public_ip.name})
         return "Success", "Public IP deleted successfully."
     except Exception as e:
         logger.error(f"Failed to delete Public IP {public_ip.name}: {e}")
-        tc.track_event(
-            "PublicIPDeletionFailed", {"PublicIPName": public_ip.name, "Error": str(e)}
-        )
+        tc.track_event("PublicIPDeletionFailed", {"PublicIPName": public_ip.name, "Error": str(e)})
         return "Failed", f"Failed to delete Public IP: {e}"
 
-def delete_application_gateway(
-    network_client, application_gateway, status_log, dry_run=True
-):
+def delete_application_gateway(network_client, application_gateway, status_log, dry_run=True):
     """Delete an application gateway."""
     logger.info(f"Deleting Application Gateway: {application_gateway.name}")
     resource_group_name = application_gateway.id.split("/")[4]
@@ -909,14 +835,9 @@ def delete_application_gateway(
         )
     else:
         try:
-            async_delete = network_client.application_gateways.begin_delete(
-                resource_group_name, application_gateway.name
-            )
+            async_delete = network_client.application_gateways.begin_delete(resource_group_name, application_gateway.name)
             async_delete.result()
-            tc.track_event(
-                "ApplicationGatewayDeleted",
-                {"ApplicationGatewayName": application_gateway.name},
-            )
+            tc.track_event("ApplicationGatewayDeleted", {"ApplicationGatewayName": application_gateway.name})
             status_log.append(
                 {
                     "Resource": application_gateway.name,
@@ -927,9 +848,7 @@ def delete_application_gateway(
             )
             return "Success", "Application Gateway deleted successfully."
         except Exception as e:
-            logger.error(
-                f"Failed to delete Application Gateway {application_gateway.name}: {e}"
-            )
+            logger.error(f"Failed to delete Application Gateway {application_gateway.name}: {e}")
             tc.track_event(
                 "ApplicationGatewayDeletionFailed",
                 {"ApplicationGatewayName": application_gateway.name, "Error": str(e)},
@@ -953,24 +872,14 @@ def update_storage_account_sku(storage_account, new_sku):
             account_name=storage_account.name,
             parameters={"sku": {"name": new_sku}},
         )
-        tc.track_event(
-            "StorageAccountSkuUpdated",
-            {"StorageAccountName": storage_account.name, "NewSku": new_sku},
-        )
+        tc.track_event("StorageAccountSkuUpdated", {"StorageAccountName": storage_account.name, "NewSku": new_sku})
         return "Success", f"Storage account SKU updated to {new_sku}."
     except Exception as e:
-        logger.error(
-            f"Failed to update storage account SKU {storage_account.name}: {e}"
-        )
-        tc.track_event(
-            "StorageAccountSkuUpdateFailed",
-            {"StorageAccountName": storage_account.name, "Error": str(e)},
-        )
+        logger.error(f"Failed to update storage account SKU {storage_account.name}: {e}")
+        tc.track_event("StorageAccountSkuUpdateFailed", {"StorageAccountName": storage_account.name, "Error": str(e)})
         return "Failed", f"Failed to update storage account SKU: {e}"
 
-def simple_scale_sql_database(
-    sql_client, database, new_dtu, min_dtu, max_dtu, dry_run=True
-):
+def simple_scale_sql_database(sql_client, database, new_dtu, min_dtu, max_dtu, dry_run=True):
     """Simple function to scale a SQL database DTU without any conditions."""
     try:
         current_sku = database.sku
@@ -1001,22 +910,16 @@ def simple_scale_sql_database(
             return "Error", f"DTU {new_dtu} is not valid for tier {current_sku.tier}."
 
         new_sku = Sku(name=current_sku.name, tier=current_sku.tier, capacity=new_dtu)
-        update_parameters = Database(
-            location=database.location, sku=new_sku, min_capacity=new_dtu
-        )
+        update_parameters = Database(location=database.location, sku=new_sku, min_capacity=new_dtu)
         logger.info(f"Update parameters: {update_parameters}")
 
         if dry_run:
             logger.info("This is a dry run. No changes will be made.")
             return "Dry Run", f"Would scale DTU to {new_dtu}."
         else:
-            sql_client.databases.begin_create_or_update(
-                resource_group_name, server_name, database_name, update_parameters
-            ).result()
+            sql_client.databases.begin_create_or_update(resource_group_name, server_name, database_name, update_parameters).result()
             while True:
-                database = sql_client.databases.get(
-                    resource_group_name, server_name, database_name
-                )
+                database = sql_client.databases.get(resource_group_name, server_name, database_name)
                 if database.sku.capacity == new_dtu:
                     break
                 else:
@@ -1029,24 +932,22 @@ def simple_scale_sql_database(
         return "Error", str(e)
 
 def scale_sql_database(database, tiers, status_log, dry_run=True, subscription_id=None):
+    """Scale SQL database based on tier and time of day."""
     current_time = datetime.now().time()
     for tier in tiers:
         if tier["name"] in database.sku.name:
-            # Check if off_peak_start and off_peak_end are provided
             off_peak_start = tier.get("off_peak_start")
             off_peak_end = tier.get("off_peak_end")
 
-            # Default to off-peak DTU if no schedule is specified
             if off_peak_start is None or off_peak_end is None:
                 new_dtu = tier["off_peak_dtu"]
             else:
-                # Parse the off-peak times if provided
                 off_peak_start = datetime.strptime(off_peak_start, "%H:%M").time()
                 off_peak_end = datetime.strptime(off_peak_end, "%H:%M").time()
 
                 if off_peak_start < off_peak_end:
                     is_off_peak = off_peak_start <= current_time < off_peak_end
-                else:  # Over midnight
+                else:
                     is_off_peak = not (off_peak_end <= current_time < off_peak_start)
 
                 new_dtu = tier["off_peak_dtu"] if is_off_peak else tier["peak_dtu"]
@@ -1065,14 +966,8 @@ def scale_sql_database(database, tiers, status_log, dry_run=True, subscription_i
                 )
                 return "No Change", message
 
-            logger.info(
-                f"Database: {database.name}, Current DTU: {database.sku.capacity}, New DTU: {new_dtu}"
-            )
-            message = (
-                f"Dry run mode, no action taken. Would scale DTU to {new_dtu}"
-                if dry_run
-                else f"Scaled DTU to {new_dtu}"
-            )
+            logger.info(f"Database: {database.name}, Current DTU: {database.sku.capacity}, New DTU: {new_dtu}")
+            message = f"Dry run mode, no action taken. Would scale DTU to {new_dtu}" if dry_run else f"Scaled DTU to {new_dtu}"
             logger.info(f"Scale status for {database.name}: {message}")
             status_log.append(
                 {
@@ -1084,14 +979,7 @@ def scale_sql_database(database, tiers, status_log, dry_run=True, subscription_i
                 }
             )
             if not dry_run:
-                simple_scale_sql_database(
-                    sql_client,
-                    database,
-                    new_dtu,
-                    tier["min_dtu"],
-                    tier["max_dtu"],
-                    dry_run,
-                )
+                simple_scale_sql_database(sql_client, database, new_dtu, tier["min_dtu"], tier["max_dtu"], dry_run)
             return "Success", message
     return "No Change", "Current DTU is already optimal."
 
@@ -1100,37 +988,23 @@ def wrap_text(text, width=30):
     return "\n".join(textwrap.wrap(text, width))
 
 def review_application_gateways(policies, status_log, dry_run=True):
+    """Review application gateways based on policies."""
     impacted_resources = []
     for policy in policies:
         if policy["resource"] == "azure.applicationgateway":
-            logger.info(
-                "Reviewing application gateways for policy: {}".format(policy["name"])
-            )
+            logger.info(f"Reviewing application gateways for policy: {policy['name']}")
             gateways = network_client.application_gateways.list_all()
             for gateway in gateways:
-                if not gateway.backend_address_pools or any(
-                    not pool.backend_addresses for pool in gateway.backend_address_pools
-                ):
+                if not gateway.backend_address_pools or any(not pool.backend_addresses for pool in gateway.backend_address_pools):
                     if evaluate_filters(gateway, policy["filters"]):
                         try:
-                            status, message = apply_app_gateway_actions(
-                                network_client,
-                                gateway,
-                                policy["actions"],
-                                status_log,
-                                dry_run,
-                            )
+                            status, message = apply_app_gateway_actions(network_client, gateway, policy["actions"], status_log, dry_run)
                             if status != "No Change":
                                 impacted_resources.append(
                                     {
                                         "Policy": policy["name"],
                                         "Resource": gateway.name,
-                                        "Actions": ", ".join(
-                                            [
-                                                action["type"]
-                                                for action in policy["actions"]
-                                            ]
-                                        ),
+                                        "Actions": ", ".join([action["type"] for action in policy["actions"]]),
                                         "Status": status,
                                         "Message": message,
                                     }
@@ -1139,9 +1013,8 @@ def review_application_gateways(policies, status_log, dry_run=True):
                             logger.error(f"Failed to apply actions: {e}")
     return impacted_resources
 
-def apply_app_gateway_actions(
-    network_client, gateway, actions, status_log, dry_run=True
-):
+def apply_app_gateway_actions(network_client, gateway, actions, status_log, dry_run=True):
+    """Apply actions to an application gateway."""
     status = "No Change"
     message = "No applicable actions found"
     for action in actions:
@@ -1151,25 +1024,19 @@ def apply_app_gateway_actions(
         elif action_type == "delete":
             try:
                 print(colored(f"Deleting Application Gateway: {gateway.name}", "red"))
-                status, message = delete_application_gateway(
-                    network_client, gateway, status_log, dry_run
-                )
+                status, message = delete_application_gateway(network_client, gateway, status_log, dry_run)
             except Exception as e:
                 logger.error(f"Failed to delete application gateway: {e}")
     return status, message
 
 def log_empty_backend_pool(gateway, dry_run=True):
+    """Log empty backend pool in Application Gateway."""
     logger.info(f"Empty backend pool found in Application Gateway: {gateway.name}")
     if dry_run:
-        return (
-            "Dry Run",
-            f"Would log empty backend pool in Application Gateway: {gateway.name}",
-        )
+        return "Dry Run", f"Would log empty backend pool in Application Gateway: {gateway.name}"
     else:
-        return (
-            "Success",
-            f"Logged empty backend pool in Application Gateway: {gateway.name}",
-        )
+        return "Success", f"Logged empty backend pool in Application Gateway: {gateway.name}"
+
 def evaluate_unattached_filter(disk):
     """Check if a disk is unattached."""
     if not disk.managed_by:
@@ -1178,25 +1045,15 @@ def evaluate_unattached_filter(disk):
     logger.info(f"Disk {disk.name} is attached.")
     return False
 
-def apply_policies(
-    policies,
-    dry_run,
-    subscription_id,
-    impacted_resources,
-    non_impacted_resources,
-    status_log,
-):
+def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_impacted_resources, status_log):
     """Apply policies to resources."""
-
     for policy in policies:
         resource_type = policy["resource"]
         filters = policy["filters"]
         actions = policy["actions"]
         exclusions = policy.get("exclusions", [])
 
-        resources_impacted = (
-            False  # Flag to check if any resources are impacted by the policy
-        )
+        resources_impacted = False
 
         if resource_type == "azure.vm":
             vms = compute_client.virtual_machines.list_all()
@@ -1210,9 +1067,7 @@ def apply_policies(
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": vm.name,
-                            "Actions": ", ".join(
-                                [action["type"] for action in actions]
-                            ),
+                            "Actions": ", ".join([action["type"] for action in actions]),
                         }
                     )
                     resources_impacted = True
@@ -1236,9 +1091,7 @@ def apply_policies(
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": disk.name,
-                            "Actions": ", ".join(
-                                [action["type"] for action in actions]
-                            ),
+                            "Actions": ", ".join([action["type"] for action in actions]),
                         }
                     )
                     resources_impacted = True
@@ -1254,20 +1107,14 @@ def apply_policies(
         elif resource_type == "azure.resourcegroup":
             resource_groups = resource_client.resource_groups.list()
             for resource_group in resource_groups:
-                if not evaluate_exclusions(
-                    resource_group, exclusions
-                ) and evaluate_filters(resource_group, filters):
-                    apply_actions(
-                        resource_group, actions, status_log, dry_run, subscription_id
-                    )
+                if not evaluate_exclusions(resource_group, exclusions) and evaluate_filters(resource_group, filters):
+                    apply_actions(resource_group, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": resource_group.name,
-                            "Actions": ", ".join(
-                                [action["type"] for action in actions]
-                            ),
+                            "Actions": ", ".join([action["type"] for action in actions]),
                         }
                     )
                     resources_impacted = True
@@ -1283,20 +1130,14 @@ def apply_policies(
         elif resource_type == "azure.storage":
             storage_accounts = storage_client.storage_accounts.list()
             for storage_account in storage_accounts:
-                if not evaluate_exclusions(
-                    storage_account, exclusions
-                ) and evaluate_filters(storage_account, filters):
-                    apply_actions(
-                        storage_account, actions, status_log, dry_run, subscription_id
-                    )
+                if not evaluate_exclusions(storage_account, exclusions) and evaluate_filters(storage_account, filters):
+                    apply_actions(storage_account, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": storage_account.name,
-                            "Actions": ", ".join(
-                                [action["type"] for action in actions]
-                            ),
+                            "Actions": ", ".join([action["type"] for action in actions]),
                         }
                     )
                     resources_impacted = True
@@ -1312,20 +1153,14 @@ def apply_policies(
         elif resource_type == "azure.publicip":
             public_ips = network_client.public_ip_addresses.list_all()
             for public_ip in public_ips:
-                if not evaluate_exclusions(public_ip, exclusions) and evaluate_filters(
-                    public_ip, filters
-                ):
-                    apply_actions(
-                        public_ip, actions, status_log, dry_run, subscription_id
-                    )
+                if not evaluate_exclusions(public_ip, exclusions) and evaluate_filters(public_ip, filters):
+                    apply_actions(public_ip, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": public_ip.name,
-                            "Actions": ", ".join(
-                                [action["type"] for action in actions]
-                            ),
+                            "Actions": ", ".join([action["type"] for action in actions]),
                         }
                     )
                     resources_impacted = True
@@ -1343,18 +1178,10 @@ def apply_policies(
             servers = sql_client.servers.list()
             for server in servers:
                 resource_group_name = server.id.split("/")[4]
-                databases = sql_client.databases.list_by_server(
-                    resource_group_name, server.name
-                )
+                databases = sql_client.databases.list_by_server(resource_group_name, server.name)
                 for db in databases:
                     logger.info(f"Database: {db.name}, Current DTU: {db.sku.capacity}")
-                    status, message = scale_sql_database(
-                        db,
-                        policy["actions"][0]["tiers"],
-                        status_log,
-                        dry_run,
-                        subscription_id,
-                    )
+                    status, message = scale_sql_database(db, policy["actions"][0]["tiers"], status_log, dry_run, subscription_id)
                     if status != "No Change":
                         impacted_resources.append(
                             {
@@ -1377,12 +1204,8 @@ def apply_policies(
                 )
 
         elif resource_type == "azure.applicationgateway":
-            policy_results = review_application_gateways(
-                [policy], status_log, dry_run=dry_run
-            )
-            impacted_resources.extend(
-                [{"SubscriptionId": subscription_id, **res} for res in policy_results]
-            )
+            policy_results = review_application_gateways([policy], status_log, dry_run=dry_run)
+            impacted_resources.extend([{"SubscriptionId": subscription_id, **res} for res in policy_results])
             if policy_results:
                 resources_impacted = True
             else:
@@ -1418,6 +1241,7 @@ def apply_policies(
                 )
 
 def process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date, end_date, use_adls=False):
+    """Process a subscription for cost optimization."""
     global resource_client, cost_management_client, compute_client, storage_client, network_client, sql_client
     
     subscription_id = subscription.subscription_id
@@ -1449,6 +1273,7 @@ def process_subscription(subscription, mode, summary_reports, impacted_resources
         return {}
 
 def main(mode, all_subscriptions, use_adls=False):
+    """Main function to run the Azure Cost Optimization Tool."""
     logger.info('Cost Optimizer Function triggered.')
     tc.track_event("FunctionTriggered")
 
@@ -1457,7 +1282,6 @@ def main(mode, all_subscriptions, use_adls=False):
     non_impacted_resources = []
     status_log = []
 
-    # Define the start and end dates for the past 30 days
     cet = pytz.timezone("CET")
     now_cet = datetime.now(cet)
     start_date = (now_cet - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%SZ')
