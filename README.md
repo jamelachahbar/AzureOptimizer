@@ -17,6 +17,7 @@ Azure Cost Optimizer is a Python-based tool used to optimize Azure resource cost
     - **Delete unattached Network Interfaces**.
     - **SQL DTU Scaling**: Dynamically scale Azure SQL databases based on defined policies and schedules.
     - **Storage Account SKU change**: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
+    - **Downgrade disks of deallocated VM's**: Automatically downgrade disks of deallocated VM's.
 - Analyze cost data for trends and **anomalies**.
 - Generate **summary reports**.
 - **Multi-Subscription Support**: Process multiple subscriptions within a tenant.
