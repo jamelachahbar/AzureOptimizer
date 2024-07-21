@@ -148,7 +148,7 @@ def read_parquet_file_from_adls(file_path):
         return pd.DataFrame()
 
 def fetch_cost_data_from_adls(directory_path):
-    """Function to fetch cost data from ADLS."""
+    """Function to fetch cost data from ADLS and filter for the last 30 days."""
     try:
         files = list_files_in_directory(directory_path)
         all_data = []
@@ -162,13 +162,25 @@ def fetch_cost_data_from_adls(directory_path):
         if all_data:
             combined_df = pd.concat(all_data, ignore_index=True)
             combined_df['BilledCost'] = combined_df['BilledCost'].astype(float)
-            return combined_df
+
+            # Filter for the last 30 days
+            today = datetime.now().date()
+            thirty_days_ago = today - timedelta(days=30)
+            combined_df['ChargePeriodStart'] = pd.to_datetime(combined_df['ChargePeriodStart']).dt.date
+            combined_df['ChargePeriodEnd'] = pd.to_datetime(combined_df['ChargePeriodEnd']).dt.date
+
+            filtered_df = combined_df[
+                (combined_df['ChargePeriodStart'] >= thirty_days_ago) &
+                (combined_df['ChargePeriodEnd'] <= today)
+            ]
+            return filtered_df
         else:
             logger.warning("No Parquet files found in the specified directory.")
             return pd.DataFrame()
     except Exception as e:
         logger.error(f"Error fetching cost data from ADLS: {e}")
         raise
+
 
 def load_policies(policy_file, schema_file):
     """Load and validate policies from the YAML file against the schema."""
