@@ -33,7 +33,7 @@ from applicationinsights import TelemetryClient
 from azure.mgmt.compute.models import StorageAccountTypes
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Set FORCE_COLOR to 1 to ensure color output
@@ -152,7 +152,6 @@ def fetch_cost_data_from_adls(directory_path):
     try:
         files = list_files_in_directory(directory_path)
         all_data = []
-
         for file in files:
             if file.endswith('.parquet'):
                 logger.info(f"Reading file: {file}")
@@ -160,23 +159,60 @@ def fetch_cost_data_from_adls(directory_path):
                 all_data.append(df)
 
         if all_data:
+            # Combine all dataframes into one
             combined_df = pd.concat(all_data, ignore_index=True)
             combined_df['BilledCost'] = combined_df['BilledCost'].astype(float)
-
-            # Filter for the last 30 days
+            
+            # Verify and print current date
             today = datetime.now().date()
             thirty_days_ago = today - timedelta(days=30)
+            # print(f"Current Date: {today}")
+            # print(f"30 Days Ago: {thirty_days_ago}")
+            
+            # Ensure ChargePeriodStart is treated as date
             combined_df['ChargePeriodStart'] = pd.to_datetime(combined_df['ChargePeriodStart']).dt.date
-            combined_df['ChargePeriodEnd'] = pd.to_datetime(combined_df['ChargePeriodEnd']).dt.date
-
+            # print("Sample data before filtering:")
+            # print(combined_df[['ChargePeriodStart']].head(10))  # Inspect raw dates
+            
+            # Debug: Check unique dates in the data
+            unique_dates = combined_df['ChargePeriodStart'].unique()
+            # print("Unique dates in the data:")
+            # print(unique_dates)
+            
+            # Filter for the last 30 days worth of data
             filtered_df = combined_df[
                 (combined_df['ChargePeriodStart'] >= thirty_days_ago) &
-                (combined_df['ChargePeriodEnd'] <= today)
+                (combined_df['ChargePeriodStart'] <= today)
             ]
-            return filtered_df
+            
+            # Inspect filtered dates
+            # print("Sample data after filtering:")
+            # print(filtered_df[['ChargePeriodStart']].head(10))
+            
+            # Debug: Check unique dates in the filtered data
+            # filtered_unique_dates = filtered_df['ChargePeriodStart'].unique()
+            # print("Unique dates in the filtered data:")
+            # print(filtered_unique_dates)
+            
+            # Sort the filtered data by ChargePeriodStart
+            filtered_df = filtered_df.sort_values(by='ChargePeriodStart')
+            
+            # # Inspect sorted dates
+            # print("Sample data after sorting:")
+            # print(filtered_df[['ChargePeriodStart']].head(10))
+            
+            # Aggregate costs per ResourceId
+            aggregated_df = filtered_df.groupby('ResourceId')['BilledCost'].sum().reset_index()
+            
+            # Save filtered and aggregated data for verification
+            filtered_df.to_csv('filtered_cost_data.csv', index=False)
+            aggregated_df.to_csv('aggregated_cost_data.csv', index=False)
+            
+            return aggregated_df
         else:
             logger.warning("No Parquet files found in the specified directory.")
             return pd.DataFrame()
+        
     except Exception as e:
         logger.error(f"Error fetching cost data from ADLS: {e}")
         raise
