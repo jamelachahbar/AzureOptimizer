@@ -1,8 +1,8 @@
 ResourceId,BilledCost
-/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/BCDRDEMO_BARCO/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/DAILYBACKUPREPORTBARCODEMO,0.0187896741151816
+/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/BCDRDEMO_BARCO/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/DAILYBACKUPREPORTBARCODEMO,0.0140922555863862
 /SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/CHATGPTTEST-RG/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/CHATGPTTEST321645,0.0022803116440784396
 /SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/FINOPS-HUB021/PROVIDERS/MICROSOFT.DATAFACTORY/FACTORIES/FINOPS-HUB021-ENGINE-75WQMMUBTDX2S,0.00024000000000000003
-/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/FINOPS-HUB021/PROVIDERS/MICROSOFT.DATAFACTORY/FACTORIES/FINOPS-HUB021-ENGINE-75WQMMUBTDX2S/PIPELINES/MSEXPORTS_ETL_INGESTION,1.1463583333333336
+/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/FINOPS-HUB021/PROVIDERS/MICROSOFT.DATAFACTORY/FACTORIES/FINOPS-HUB021-ENGINE-75WQMMUBTDX2S/PIPELINES/MSEXPORTS_ETL_INGESTION,1.1463500000000002
 /SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/FINOPS-HUB021/PROVIDERS/MICROSOFT.DATAFACTORY/FACTORIES/FINOPS-HUB021-ENGINE-75WQMMUBTDX2S/PIPELINES/MSEXPORTS_EXECUTEETL,0.035
 /SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/FINOPS-HUB021/PROVIDERS/MICROSOFT.DATAFACTORY/FACTORIES/FINOPS-HUB021-ENGINE-75WQMMUBTDX2S/TRIGGERS/MSEXPORTS_FILEADDED,0.035
 /SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/MGMT/PROVIDERS/MICROSOFT.DASHBOARD/GRAFANA/MGMTDASHBOARDGRAFANA,64.08
@@ -10,33 +10,33 @@ ResourceId,BilledCost
 /SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/MGMT/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/TEST,0.027675753593443198
 /SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/MGMT/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/WASTEAPPCUSTOMTEST,0.00081219499856192
 /SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/MGMT/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/WASTEREDUCTIONAPP,0.0034436029955769998
-/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/MGMT/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/WASTEREDUCTIONAPPNEW,0.0068104001939308404
-/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/MGMT/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/WASTEREDUCTIONAPPSES,0.006960635893048041
-/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/RG-STARTSTOPV2/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/STSTV2_VMS_AUTOSTOP,0.017366860893369758
-/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/RG-STARTSTOPV2/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/STSTV2_VMS_SCHEDULED_STOP,0.00290871852040316
-/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/RG-TUBDEMOS/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/APICENTERCOSTREPORT,0.00045173504650588
+/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/MGMT/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/WASTEREDUCTIONAPPNEW,0.0052667491182694
+/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/MGMT/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/WASTEREDUCTIONAPPSES,0.0054169848173866
+/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/RG-STARTSTOPV2/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/STSTV2_VMS_AUTOSTOP,0.01676104016453128
+/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/RG-STARTSTOPV2/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/STSTV2_VMS_SCHEDULED_STOP,0.00280841308385164
+/SUBSCRIPTIONS/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/RESOURCEGROUPS/RG-TUBDEMOS/PROVIDERS/MICROSOFT.LOGIC/WORKFLOWS/APICENTERCOSTREPORT,0.00045173504650587997
 /subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/Default-ActivityLogAlerts/providers/microsoft.insights/actionGroups/AGManager,0.00024
 /subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/Default-ActivityLogAlerts/providers/microsoft.insights/actionGroups/AGOwner,0.00012000000000000002
 /subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql,14.516129032258066
-/subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql/databases/costopttestdb,29.881925000000024
+/subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql/databases/costopttestdb,30.547562500000026
 /subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql/databases/hsdemo,34.733655494623655
 /subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql/databases/hsdemo_NamedReplicaro1,34.559272
 /subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql/databases/hssqldbtest,0.4059074301075269
-/subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql/databases/onpremdgwsql,29.96259583333336
+/subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql/databases/onpremdgwsql,30.62823333333336
 /subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql/databases/sqldbtest,0.4059074301075269
 "/subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql/restorableDroppedDatabases/hsdemo,133651587043500000",1.7846801075268817
 /subscriptions/38C26C07-CCCE-4839-B504-CDDAC8E5B09D/resourceGroups/rg-tubdemos/providers/Microsoft.DBforMySQL/flexibleservers/wordpressd-7f924a25a920aa9575ef98d0-dbserver,179.37448387096777
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/providers/Microsoft.Security/pricings/Arm,4.968
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/AzureBackupRG_eastus_1/providers/Microsoft.Compute/restorePointCollections/AzureBackup_VM-LINUX-01_923836058441071710,0.46072975
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/AzureBackupRG_westcentralus_1/providers/Microsoft.Compute/restorePointCollections/AzureBackup_vmencrypted1_351844948721367,0.3081308
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/AzureBackupRG_westeurope_1/providers/Microsoft.Compute/restorePointCollections/AzureBackup_myvm_70370055045838,1.2772801
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/BCDRDEMO_BARCO/providers/Microsoft.Compute/disks/SQLVM1DataDisk1,3.17575404
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/BCDRDEMO_BARCO/providers/Microsoft.Compute/disks/SQLVM1OSDisk,3.17575404
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/MGMT/providers/Microsoft.Compute/disks/VM-LINUX-01_OsDisk_1_765c8e478e9148afa4ba3d2dc370d52e,2.381435874
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/MGMT/providers/Microsoft.Compute/disks/vmwithhibernationmode_OsDisk_1_80889764746a4f4ebbf127a1fb7f6645,0.430574842
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/providers/Microsoft.Security/pricings/Arm,4.9749
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/AzureBackupRG_eastus_1/providers/Microsoft.Compute/restorePointCollections/AzureBackup_VM-LINUX-01_923836058441071710,0.45708605
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/AzureBackupRG_westcentralus_1/providers/Microsoft.Compute/restorePointCollections/AzureBackup_vmencrypted1_351844948721367,0.30446955
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/AzureBackupRG_westeurope_1/providers/Microsoft.Compute/restorePointCollections/AzureBackup_myvm_70370055045838,1.2758785
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/BCDRDEMO_BARCO/providers/Microsoft.Compute/disks/SQLVM1DataDisk1,2.51870148
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/BCDRDEMO_BARCO/providers/Microsoft.Compute/disks/SQLVM1OSDisk,2.51870148
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/MGMT/providers/Microsoft.Compute/disks/VM-LINUX-01_OsDisk_1_765c8e478e9148afa4ba3d2dc370d52e,2.35097109
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/MGMT/providers/Microsoft.Compute/disks/vmwithhibernationmode_OsDisk_1_80889764746a4f4ebbf127a1fb7f6645,0.62049817
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/MGMT/providers/Microsoft.Compute/virtualMachines/VM-LINUX-01,0.2758429328
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/MGMT/providers/Microsoft.Compute/virtualMachines/vmwithhibernationmode,0.19066828
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-ACOADEMOS/providers/Microsoft.Compute/disks/acoademo_d02f4339_OsDisk_1_1a4b6d699f6b464f8ede247f84e542f8,0.499239936
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-ACOADEMOS/providers/Microsoft.Compute/disks/acoademo_d02f4339_OsDisk_1_1a4b6d699f6b464f8ede247f84e542f8,0.44803583999999996
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/02e32b9f1b564dbd9087881910742498-0-scratchVolume,0.05298048
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/02e32b9f1b564dbd9087881910742498-containerRootVolume,0.102176637696
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/02e32b9f1b564dbd9087881910742498-osDisk,0.014191296
@@ -48,6 +48,9 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/04e54c01b9cf43dfa16f486a7f3b6665-osDisk,0.014666451
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/066f5425c74c4a3c82af302625faf268-0-scratchVolume,0.05298048
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/066f5425c74c4a3c82af302625faf268-containerRootVolume,0.102176637696
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/073cbe0c7e7c4b0bb837b69e16dda5e9-0-scratchVolume,0.05298048
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/073cbe0c7e7c4b0bb837b69e16dda5e9-containerRootVolume,0.102176637696
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/073cbe0c7e7c4b0bb837b69e16dda5e9-osDisk,0.014191296
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/0e7600768b9b4aecb2435e5367f97c71-0-scratchVolume,0.05298048
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/0e7600768b9b4aecb2435e5367f97c71-containerRootVolume,0.102176637696
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/0e7600768b9b4aecb2435e5367f97c71-osDisk,0.014191296
@@ -60,9 +63,6 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/10c5a07fe90f45be91e575cbe1682cb6-containerRootVolume,0.153264956544
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/1196472193924502bb36906966695e5e-0-scratchVolume,0.05298048
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/1196472193924502bb36906966695e5e-containerRootVolume,0.102176637696
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/1335668e674941c19f30620f1f0945bc-0-scratchVolume,0.05475438
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/1335668e674941c19f30620f1f0945bc-containerRootVolume,0.105597730476
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/1335668e674941c19f30620f1f0945bc-osDisk,0.014666451
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/14c4c0cdbafc4a6c95e5773e45bbc702-0-scratchVolume,0.05475438
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/14c4c0cdbafc4a6c95e5773e45bbc702-containerRootVolume,0.105597730476
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/14c4c0cdbafc4a6c95e5773e45bbc702-osDisk,0.014666451
@@ -127,14 +127,13 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5c516d00bbda4c258369217cf2a34f74-0-scratchVolume,0.05475438
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5c516d00bbda4c258369217cf2a34f74-containerRootVolume,0.105597730476
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5c516d00bbda4c258369217cf2a34f74-osDisk,0.014666451
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5c8d806190424f09a177d1983c4fce15-0-scratchVolume,0.05298048
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5c8d806190424f09a177d1983c4fce15-containerRootVolume,0.102176637696
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5dfea1577efe4fa1b6af1701f0c12a6a-0-scratchVolume,0.05298048
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5dfea1577efe4fa1b6af1701f0c12a6a-containerRootVolume,0.102176637696
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5e9f7ab566d64b3ca3ff1d7bc603b4c6-0-scratchVolume,0.07947072
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5e9f7ab566d64b3ca3ff1d7bc603b4c6-containerRootVolume,0.153264956544
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5e9f7ab566d64b3ca3ff1d7bc603b4c6-osDisk,0.021286944
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5eb2c6c6e1254d43be7df8535038e3f0-0-scratchVolume,0.02737719
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5eb2c6c6e1254d43be7df8535038e3f0-containerRootVolume,0.052798865238
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/5eb2c6c6e1254d43be7df8535038e3f0-osDisk,0.0073332255
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/6892b9c414b542bda95d9e1a5f6d4eab-0-scratchVolume,0.05298048
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/6892b9c414b542bda95d9e1a5f6d4eab-containerRootVolume,0.102176637696
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/6892b9c414b542bda95d9e1a5f6d4eab-osDisk,0.014191296
@@ -211,6 +210,9 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/a3aed9e60b584a2f8c023627e8e0ba05-0-scratchVolume,0.05298048
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/a3aed9e60b584a2f8c023627e8e0ba05-containerRootVolume,0.102176637696
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/a3aed9e60b584a2f8c023627e8e0ba05-osDisk,0.014191296
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/a3c32b3ba84b4635a5e40a8a124a0fa5-0-scratchVolume,0.05298048
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/a3c32b3ba84b4635a5e40a8a124a0fa5-containerRootVolume,0.102176637696
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/a3c32b3ba84b4635a5e40a8a124a0fa5-osDisk,0.014191296
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/a9e1d6c941b74403a28f270645215db3-0-scratchVolume,0.05298048
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/a9e1d6c941b74403a28f270645215db3-containerRootVolume,0.102176637696
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/a9e1d6c941b74403a28f270645215db3-osDisk,0.014191296
@@ -223,11 +225,6 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/b3c382323d4545a9bc378ecdcfa9e807-containerRootVolume,0.102176637696
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/b46415b3592849f28d0b73d7231d481d-0-scratchVolume,0.05298048
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/b46415b3592849f28d0b73d7231d481d-containerRootVolume,0.102176637696
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/bc3afe9d46fa4624a64ccf1c58718b0b-0-scratchVolume,0.05475438
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/bc3afe9d46fa4624a64ccf1c58718b0b-containerRootVolume,0.105597730476
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/bc3afe9d46fa4624a64ccf1c58718b0b-osDisk,0.014666451
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/bd82ef5bb55f4568a232460ddf0a4899-0-scratchVolume,0.05475438
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/bd82ef5bb55f4568a232460ddf0a4899-containerRootVolume,0.105597730476
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/bd892947a21a49ac9c927ef547dc205b-0-scratchVolume,0.05298048
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/bd892947a21a49ac9c927ef547dc205b-containerRootVolume,0.102176637696
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/disks/bd892947a21a49ac9c927ef547dc205b-osDisk,0.014191296
@@ -325,17 +322,17 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/0474bbbb501e4493b18de2908b49566a,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/04e54c01b9cf43dfa16f486a7f3b6665,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/066f5425c74c4a3c82af302625faf268,0.618057101
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/073cbe0c7e7c4b0bb837b69e16dda5e9,0.082161454584
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/0e7600768b9b4aecb2435e5367f97c71,0.080427008508
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/0f64aadd598245708daa7d4cccb563ee,0.017358347160000002
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/10c2fe1293bb4bb4aad288830f91ec65,0.609290259
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/10c5a07fe90f45be91e575cbe1682cb6,0.696953419
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/1196472193924502bb36906966695e5e,0.604906838
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/1335668e674941c19f30620f1f0945bc,0.027194743884
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/14c4c0cdbafc4a6c95e5773e45bbc702,0.08100492575999999
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/14c4c0cdbafc4a6c95e5773e45bbc702,0.08100492576
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/17eacad61dfa4ccdb92fe445a05744ed,0.08100492576
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/1a8940ba5e6b4f3da63ab01fb9857f62,0.08042631418799999
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/1a8940ba5e6b4f3da63ab01fb9857f62,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/1ab2003137d345bc8597f813703b647f,0.02314446288
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/1ac0a40ab15447fd91962e9523fc62df,0.080426314188
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/1ac0a40ab15447fd91962e9523fc62df,0.08042631418799999
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/1aea4a224fff4d4d80da3ebf9f101fa6,0.026616132312
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/24200e264a1f48ec95a73a57d709a198,0.02314446288
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/24b8a5388cfc4d44a18a0df2ce3fad8e,0.082161454584
@@ -347,7 +344,7 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/369b1e5fb4e84c4c83caf52c24013201,0.042238644756000004
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/3881fc1aaa02495bab87f5f47052eee2,0.604906838
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/394a032dbdae4300868508d4d8104fa3,0.091419239736
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/42d6600687e84d6ea8c602a904b90bb9,0.08042631418799999
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/42d6600687e84d6ea8c602a904b90bb9,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/45359a4a04924f6d8b7eac42f75d66b7,0.079847702616
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/4a3f68055b10489cb9ad46651e96690f,0.609290259
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/4ab6741644154fed9e65303f6c76fcde,0.080426314188
@@ -356,22 +353,22 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/50ae017a0dd0437ca162755ec56d8db2,0.61367368
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/5b0fd043bc4548bc93a7c250b0412235,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/5c516d00bbda4c258369217cf2a34f74,0.08100492576
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/5c8d806190424f09a177d1983c4fce15,0.609290259
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/5dfea1577efe4fa1b6af1701f0c12a6a,0.61367368
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/5e9f7ab566d64b3ca3ff1d7bc603b4c6,0.052652958732
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/5eb2c6c6e1254d43be7df8535038e3f0,0.050339206764
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/6892b9c414b542bda95d9e1a5f6d4eab,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/6acd578f03c945d69c6d9647ee2f7fcc,0.61367368
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/6b1987dfe36246d99623be1662ac1ae5,0.08100492576
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/6b50b869e4974cfb9f2646b5be257488,0.041081421612
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/6d274b780b454d6eb48ad8db692c36bb,0.080426314188
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/6db774b720d54a319db19846fcf73e26,0.05381018187599999
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/6db774b720d54a319db19846fcf73e26,0.053810181876
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/714a14b5ed9c4bceaf2f2177745027c3,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/72674c9bbad54d98b37f439c1658b7ac,0.152750677728
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/72e7da1ec4964e6681a09c3fd2bcd094,0.079847702616
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/744fde25eb844aed974bbc8b9755e3a0,0.609290259
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/74695725e34342d4a0574e4f82fd4a88,0.032980859604
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/761862634bcd4c0c9d0ffa0708a96408,0.081583537332
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/7762ad6c5f86469aa2ceee03d5a66142,0.13770747117600002
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/7762ad6c5f86469aa2ceee03d5a66142,0.137707471176
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/7eafcce940c949d9838a3226af5fdd4e,0.079847702616
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/80e7be1e757b4306b0a12a954716d638,0.079847702616
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/821f8ac05e75473f8be412051b68709d,0.052652958732
@@ -387,13 +384,12 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/9bc3aed45fc64f29ac9dceaa9b0b7b92,0.609290259
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/a21abf4db5dd40ffaed10916ccc57424,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/a3aed9e60b584a2f8c023627e8e0ba05,0.080426314188
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/a3c32b3ba84b4635a5e40a8a124a0fa5,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/a9e1d6c941b74403a28f270645215db3,0.08042631418799999
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/b13ec399f9f14442be02a4e6b3e635e9,0.609290259
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/b2942f6a152b44fe95c96ad8e2e3e8a4,0.059018380344
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/b3c382323d4545a9bc378ecdcfa9e807,0.61367368
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/b46415b3592849f28d0b73d7231d481d,0.618051841
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/bc3afe9d46fa4624a64ccf1c58718b0b,0.08100492576
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/bd82ef5bb55f4568a232460ddf0a4899,0.61367368
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/bd892947a21a49ac9c927ef547dc205b,0.079847702616
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/bf6ee15c15574ec89e25d2d2c5244592,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/c1d004b0462243c7a9d7b93ef6f38a7b,0.609290259
@@ -412,7 +408,7 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/dcccbd9002204d948bea3a4088b01a6e,0.609290259
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/ded1612a85b24f49acba4b4fee99fc6a,0.08100492576
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/e00f52b066e640d6896dc136f9b59184,0.609290259
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/e366f7b2ccf5454f8b3c55a57bda7a1d,0.08042631418799999
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/e366f7b2ccf5454f8b3c55a57bda7a1d,0.080426314188
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/e4bd30c568854020a68ba3573854e071,0.036452529036
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/e821668030624a53bb206257da5d8163,0.61367368
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/e859b07febbb401b8466a48c2ba27ded,0.079847702616
@@ -426,86 +422,86 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/f79e5025efad4eaeb65f86040713b59a,0.727637366
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/f836e2f7d2c344338dbdc0ec510d787c,0.61367368
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/fa61640571f34d4282b1b78bad7de7cd,0.08100492576
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/fa9e2338417a4acbb0de1357ee259081,0.080426314188
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/fa9e2338417a4acbb0de1357ee259081,0.08042631418799999
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-MANAGEDDATABRICKSDEMO/providers/Microsoft.Compute/virtualMachines/fdc32eedd1fa485aa9a10f3959fa3049,0.08042631418799999
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-1_DataDisk_0,0.038808199999999994
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-1_OsDisk_1_6949d21282454a37b4387743c3fd6343,0.313501124
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-2_OsDisk_1_128de3256d144260b5b4894b0ee0756b,0.30952568999999996
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-3_OsDisk_1_2f86c1fb4868417891d91251ff99ca2d,0.307655324
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vmacoademospot_OsDisk_1_9e7ee62ab5b34feaa27acac45990376c,5.483376442
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vmencrypted1_OsDisk_1_1efe14002f2746539ccdbd04301ba7d7,2.38768929
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/zrsdiskvmzone3,0.102462474
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-1_OsDisk_1_6949d21282454a37b4387743c3fd6343,0.36304634
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-2_OsDisk_1_128de3256d144260b5b4894b0ee0756b,0.36113529
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-3_OsDisk_1_2f86c1fb4868417891d91251ff99ca2d,0.35720054
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vmacoademospot_OsDisk_1_9e7ee62ab5b34feaa27acac45990376c,5.3393328388
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vmencrypted1_OsDisk_1_1efe14002f2746539ccdbd04301ba7d7,2.3592888899999997
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/zrsdiskvmzone3,0.15200769
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/VM-FORCEDETACHDEMO1-1,0.007
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-1,0.1465247078
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-2,0.1478214004
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-3,0.0829875484
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vmacoademospot,0.118725807952
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vmencrypted1,0.714272572
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/SAMPLE-RG/providers/Microsoft.Compute/disks/Sample-VM_OsDisk_1_2b5cd811edec4c85b53ebf6eaa8f6399,18.643567642
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/SAMPLE-RG/providers/Microsoft.Compute/virtualMachines/Sample-VM,2.1006472656
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/TESTCENTOS79_GROUP/providers/Microsoft.Compute/disks/centosfreetest_OsDisk_1_4d83df80ca1e44e7acdcc3c552847590,2.403500874
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/TESTCENTOS79_GROUP/providers/Microsoft.Compute/disks/osdisk,0.30014609
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/SAMPLE-RG/providers/Microsoft.Compute/disks/Sample-VM_OsDisk_1_2b5cd811edec4c85b53ebf6eaa8f6399,18.17643841
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/SAMPLE-RG/providers/Microsoft.Compute/virtualMachines/Sample-VM,0.5274469008
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/TESTCENTOS79_GROUP/providers/Microsoft.Compute/disks/centosfreetest_OsDisk_1_4d83df80ca1e44e7acdcc3c552847590,2.37303969
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/TESTCENTOS79_GROUP/providers/Microsoft.Compute/disks/osdisk,0.349691306
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/TESTCENTOS79_GROUP/providers/Microsoft.Compute/virtualMachines/CENTOSFREETEST,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/TESTCENTOS79_GROUP/providers/Microsoft.Compute/virtualMachines/centosfreetest,0.848807544
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/apim-prd-apiopslab-001/providers/Microsoft.ApiManagement/service/apiopsprdlab,47.047
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/apiopslab/providers/Microsoft.ApiManagement/service/apim-apiopslab-001,47.047
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/apim-prd-apiopslab-001/providers/Microsoft.ApiManagement/service/apiopsprdlab,47.4418
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/apiopslab/providers/Microsoft.ApiManagement/service/apim-apiopslab-001,47.376
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/bcdrdemo_barco/providers/Microsoft.RecoveryServices/vaults/zrsrsvbarco,23.586329478297337
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/bcdrdemo_barco/providers/Microsoft.Storage/storageAccounts/contososqlwitnessbrco,2.3532231400000003
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/bckupbarcovms1001/providers/Microsoft.Compute/restorePointCollections/AzureBackup_Sample-VM_1594889996550527673,1.52185185
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/cloud-shell-storage-westeurope/providers/Microsoft.Storage/storageAccounts/csb1003200265375371,14.970657834
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/cloud-shell-storage-westeurope/providers/Microsoft.Storage/storageAccounts/csb100320026935034a,14.976875667
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/cloud-shell-storage-westeurope/providers/Microsoft.Storage/storageAccounts/csb10032002e5557e61,14.970938409
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/cloud-shell-storage-westeurope/providers/Microsoft.Storage/storageAccounts/czoiuoiuoiuoiuoui,14.676828132
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/databricksdemo/providers/Microsoft.Databricks/workspaces/ecbdemodb,181.68040779166665
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/finops-hub021/providers/Microsoft.KeyVault/vaults/finops-hub-75wqmmubtdx2s,0.24511500000000003
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/finops-hub021/providers/Microsoft.Storage/storageAccounts/finopshub0275wqmmubtdx2s,16.32819369140197
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/finops-hub021/providers/Microsoft.Storage/storageAccounts/finopshub0275wqmmubtdx2s/providers/Microsoft.EventGrid/extensionTopics/default,0.0078612
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/bcdrdemo_barco/providers/Microsoft.Storage/storageAccounts/contososqlwitnessbrco,1.86213733
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/bckupbarcovms1001/providers/Microsoft.Compute/restorePointCollections/AzureBackup_Sample-VM_1594889996550527673,1.52018265
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/cloud-shell-storage-westeurope/providers/Microsoft.Storage/storageAccounts/csb1003200265375371,14.991145911
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/cloud-shell-storage-westeurope/providers/Microsoft.Storage/storageAccounts/csb100320026935034a,14.996953533000001
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/cloud-shell-storage-westeurope/providers/Microsoft.Storage/storageAccounts/csb10032002e5557e61,14.991022755
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/cloud-shell-storage-westeurope/providers/Microsoft.Storage/storageAccounts/czoiuoiuoiuoiuoui,14.697235038
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/databricksdemo/providers/Microsoft.Databricks/workspaces/ecbdemodb,181.7134556875
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/finops-hub021/providers/Microsoft.KeyVault/vaults/finops-hub-75wqmmubtdx2s,0.24545500000000003
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/finops-hub021/providers/Microsoft.Storage/storageAccounts/finopshub0275wqmmubtdx2s,16.841505752679307
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/finops-hub021/providers/Microsoft.Storage/storageAccounts/finopshub0275wqmmubtdx2s/providers/Microsoft.EventGrid/extensionTopics/default,0.0078744
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.AAD/domainServices/jmldemo.onmicrosoft.com,287.52011111111113
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Automation/automationAccounts/automationpe,0.13606666666666667
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Automation/automationAccounts/automationpe,0.1356
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Compute/virtualMachines/VM-LINUX-01,0.128
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Compute/virtualMachines/vmwithhibernationmode,0.054
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.DocumentDb/databaseAccounts/costoptdb,0.000688800000000003
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.DocumentDb/databaseAccounts/costoptdb,0.000688171428571431
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Easm/Workspaces/tst,0.34099999999999997
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Fabric/capacities/fabriccapjml,259.56
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Fabric/capacities/fbcpc,259.56
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.KeyVault/vaults/azkv-demojml,0.24480000000000002
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.KeyVault/vaults/keyvaultnckn4fodifsnw,0.24480000000000002
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Kusto/Clusters/tstkqlcluster,0.325929904
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Network/privateDnsZones/privatelink.azure-automation.net,0.09690860215053766
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Fabric/capacities/fabriccapjml,259.20000000000005
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Fabric/capacities/fbcpc,259.20000000000005
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.KeyVault/vaults/azkv-demojml,0.24514000000000002
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.KeyVault/vaults/keyvaultnckn4fodifsnw,0.24514000000000002
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Kusto/Clusters/tstkqlcluster,0.326776952
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Network/privateDnsZones/privatelink.azure-automation.net,0.0970430107526882
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.RecoveryServices/vaults/testgrstolrs,21.72369451365174
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Storage/storageAccounts/mgmtbadc,8.653191537
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Storage/storageAccounts/mgmtbdaa,14.8240693014
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Storage/storageAccounts/stgaccttest123654,15.355793582
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Storage/storageAccounts/storagenckn4fodifsnw,14.677521901
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Storage/storageAccounts/vmsta,15.18871371
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Storage/storageAccounts/mgmtbadc,9.163356129
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Storage/storageAccounts/mgmtbdaa,14.8456289262
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Storage/storageAccounts/stgaccttest123654,15.429500132000001
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Storage/storageAccounts/storagenckn4fodifsnw,14.697922981
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/Microsoft.Storage/storageAccounts/vmsta,15.209256951
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/microsoft.insights/actiongroups/RecommendedAlertRules-AG-1,0.00016
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/mgmt/providers/microsoft.insights/scheduledqueryrules/backup,1.431283602150538
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql,5.04
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/myResourceGroup/providers/Microsoft.Storage/storageAccounts/memnmyresomyvm021307250,69.2096845626
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/myResourceGroup/providers/Microsoft.Storage/storageAccounts/memnmyresomyvm021307250/providers/Microsoft.EventGrid/extensionTopics/default,0.100833
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/myResourceGroup/providers/Microsoft.Sql/servers/onpremdgwtessql,5.047000000000001
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/myResourceGroup/providers/Microsoft.Storage/storageAccounts/memnmyresomyvm021307250,68.7935400502
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/myResourceGroup/providers/Microsoft.Storage/storageAccounts/memnmyresomyvm021307250/providers/Microsoft.EventGrid/extensionTopics/default,0.0999858
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/myresourcegroup/providers/Microsoft.Network/privateDnsZones/privatelink.database.windows.net,0.09758064516129035
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/myresourcegroup/providers/Microsoft.RecoveryServices/vaults/RSVault-westeurope-7a79d7e7-5256-5d68-aba2-dd72a0c,5.9170127062963145
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/poc-onedrivetostgacc/providers/Microsoft.RecoveryServices/vaults/vault-ly08uhc4,1.9982177419349245
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/poc-onedrivetostgacc/providers/Microsoft.Storage/storageAccounts/onedrivefilesharepoc,10.2919212588
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/poc-onedrivetostgacc/providers/Microsoft.Storage/storageAccounts/poconedrivetostgaccbf0f,10.508312485
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-Backup-demo2/providers/Microsoft.RecoveryServices/vaults/rsv-backup-demo2,44.108738982715344
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-azgovviz/providers/Microsoft.Web/serverFarms/AppServicePlan-azgovviz-webappjml,14.399999999999999
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-azuresqldbnamedreplicademo/providers/Microsoft.Web/serverFarms/windows-plan,5.46
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-backup-demo2/providers/Microsoft.Automation/automationAccounts/rsv-backu-ek5-asr-automationaccount,1.2440666666666667
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-backup-demo2/providers/Microsoft.Storage/storageAccounts/n8h6r6rsvbackupasrcache,14.680328179
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-backup-demo2/providers/Microsoft.Storage/storageAccounts/s44yi2rsvbackupasrcache,0.241255671
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-demo-proud-moth/providers/Microsoft.KeyVault/vaults/kv-demo-proud-moth,0.020066
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-demo-proud-moth/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net,0.008061081242532858
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-locustest/providers/Microsoft.Storage/storageAccounts/stglocustest,5.03969184
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/poc-onedrivetostgacc/providers/Microsoft.RecoveryServices/vaults/vault-ly08uhc4,2.0917016129026402
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/poc-onedrivetostgacc/providers/Microsoft.Storage/storageAccounts/onedrivefilesharepoc,10.8027901776
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/poc-onedrivetostgacc/providers/Microsoft.Storage/storageAccounts/poconedrivetostgaccbf0f,11.018336119
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-Backup-demo2/providers/Microsoft.RecoveryServices/vaults/rsv-backup-demo2,44.01648643448116
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-azgovviz/providers/Microsoft.Web/serverFarms/AppServicePlan-azgovviz-webappjml,14.42
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-azuresqldbnamedreplicademo/providers/Microsoft.Web/serverFarms/windows-plan,5.96
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-backup-demo2/providers/Microsoft.Automation/automationAccounts/rsv-backu-ek5-asr-automationaccount,1.2321
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-backup-demo2/providers/Microsoft.Storage/storageAccounts/n8h6r6rsvbackupasrcache,14.70073705
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-backup-demo2/providers/Microsoft.Storage/storageAccounts/s44yi2rsvbackupasrcache,0.241216176
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-demo-proud-moth/providers/Microsoft.KeyVault/vaults/kv-demo-proud-moth,0.028566
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-demo-proud-moth/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net,0.011286887694145762
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-locustest/providers/Microsoft.Storage/storageAccounts/stglocustest,5.549772953
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/02e32b9f1b564dbd9087881910742498,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/0474bbbb501e4493b18de2908b49566a,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/04e54c01b9cf43dfa16f486a7f3b6665,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/066f5425c74c4a3c82af302625faf268,0.04
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/073cbe0c7e7c4b0bb837b69e16dda5e9,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/0e7600768b9b4aecb2435e5367f97c71,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/10c2fe1293bb4bb4aad288830f91ec65,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/10c5a07fe90f45be91e575cbe1682cb6,0.06
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/1196472193924502bb36906966695e5e,0.04
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/1335668e674941c19f30620f1f0945bc,0.02
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/14c4c0cdbafc4a6c95e5773e45bbc702,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/17eacad61dfa4ccdb92fe445a05744ed,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/1a8940ba5e6b4f3da63ab01fb9857f62,0.04
@@ -528,9 +524,9 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/50ae017a0dd0437ca162755ec56d8db2,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/5b0fd043bc4548bc93a7c250b0412235,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/5c516d00bbda4c258369217cf2a34f74,0.04
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/5c8d806190424f09a177d1983c4fce15,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/5dfea1577efe4fa1b6af1701f0c12a6a,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/5e9f7ab566d64b3ca3ff1d7bc603b4c6,0.02
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/5eb2c6c6e1254d43be7df8535038e3f0,0.02
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/6892b9c414b542bda95d9e1a5f6d4eab,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/6acd578f03c945d69c6d9647ee2f7fcc,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/6b1987dfe36246d99623be1662ac1ae5,0.04
@@ -558,13 +554,12 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/9bc3aed45fc64f29ac9dceaa9b0b7b92,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/a21abf4db5dd40ffaed10916ccc57424,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/a3aed9e60b584a2f8c023627e8e0ba05,0.04
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/a3c32b3ba84b4635a5e40a8a124a0fa5,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/a9e1d6c941b74403a28f270645215db3,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/b13ec399f9f14442be02a4e6b3e635e9,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/b2942f6a152b44fe95c96ad8e2e3e8a4,0.02
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/b3c382323d4545a9bc378ecdcfa9e807,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/b46415b3592849f28d0b73d7231d481d,0.04
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/bc3afe9d46fa4624a64ccf1c58718b0b,0.04
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/bd82ef5bb55f4568a232460ddf0a4899,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/bd892947a21a49ac9c927ef547dc205b,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/bf6ee15c15574ec89e25d2d2c5244592,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/c1d004b0462243c7a9d7b93ef6f38a7b,0.04
@@ -599,124 +594,123 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/fa61640571f34d4282b1b78bad7de7cd,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/fa9e2338417a4acbb0de1357ee259081,0.04
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Compute/virtualMachines/fdc32eedd1fa485aa9a10f3959fa3049,0.04
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Storage/storageAccounts/dbstorage6xgnebmgwml4c,5.3257424028
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-openaitest/providers/Microsoft.KeyVault/vaults/azmltest4845414340,0.24544800000000003
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-openaitest/providers/Microsoft.MachineLearningServices/workspaces/azmltest,129.81003755912704
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Storage/storageAccounts/dbstorage6xgnebmgwml4c,5.3335803414
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-openaitest/providers/Microsoft.KeyVault/vaults/azmltest4845414340,0.245791
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-openaitest/providers/Microsoft.MachineLearningServices/workspaces/azmltest,125.65125267863753
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-openaitest/providers/Microsoft.Search/searchServices/csopenaitest,72.821
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-openaitest/providers/Microsoft.Storage/storageAccounts/azmltest0467355361,14.698641648456
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-openaitest/providers/Microsoft.Storage/storageAccounts/azmltest0467355361,14.718380559456
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-openaitest/providers/Microsoft.Storage/storageAccounts/azmltest0467355361/providers/Microsoft.EventGrid/extensionTopics/default,0.0003012
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-openaitest/providers/Microsoft.Web/serverFarms/asp-jmltestchatgpt,14.399999999999999
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-openaitest/providers/Microsoft.Web/serverFarms/asp-jmltestchatgpt,14.42
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/Microsoft.Insights/actionGroups/StartStopV2_VM_Notification,2e-05
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/Microsoft.Storage/storageAccounts/stgstartstopv2edzod5,15.737422513766704
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/Microsoft.Storage/storageAccounts/stgstartstopv2edzod5/providers/Microsoft.EventGrid/extensionTopics/default,0.014763
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/Microsoft.Web/serverFarms/fncappstartstopv2edzod5p22rihy-plan,40.86
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/microsoft.insights/scheduledqueryrules/AutoStop_VM_AzFunc,1.3723118279569897
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/microsoft.insights/scheduledqueryrules/ScheduledStartStop_AzFunc,1.365759408602151
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/microsoft.insights/scheduledqueryrules/SequencedStartStop_AzFunc,1.372647849462366
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/Microsoft.Storage/storageAccounts/stgstartstopv2edzod5,15.182921050133256
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/Microsoft.Storage/storageAccounts/stgstartstopv2edzod5/providers/Microsoft.EventGrid/extensionTopics/default,0.0142608
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/Microsoft.Web/serverFarms/fncappstartstopv2edzod5p22rihy-plan,39.42
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/microsoft.insights/scheduledqueryrules/AutoStop_VM_AzFunc,1.323924731182796
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/microsoft.insights/scheduledqueryrules/ScheduledStartStop_AzFunc,1.3177083333333337
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-startstopv2/providers/microsoft.insights/scheduledqueryrules/SequencedStartStop_AzFunc,1.3242607526881724
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.ApiCenter/service/apicenterfree,0.0
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.ApiCenter/service/apictubdemoseus,219.2675
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Cdn/profiles/wordpressd-af8b300af40f847d-cdnprofile,0.00014761585800000002
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.ApiCenter/service/apictubdemoseus,196.2875
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Cdn/profiles/wordpressd-af8b300af40f847d-cdnprofile,0.000128738727
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-1,0.081
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-2,0.08800000000000001
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-2,0.088
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-3,0.054
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Compute/virtualMachines/vmacoademospot,0.256
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Compute/virtualMachines/vmencrypted1,0.202
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.DBForMySQL/flexibleServers/wordpressd-7f924a25a920aa9575ef98d0-dbserver,14.3463264
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.DBForMySQL/flexibleServers/wordpressd-7f924a25a920aa9575ef98d0-dbserver,14.3332116
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.EventHub/namespaces/demonamespacetub,10.8300273
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.KeyVault/vaults/kv-jachahba824420600289,0.24516000000000002
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Kusto/Clusters/dbw-e4fa108e13274a0abd,0.232836614888
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.MachineLearningServices/workspaces/jachahbar-0170,0.000426695
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Network/privateDnsZones/wordpressd-80f9ca55c4-privatelink.mysql.database.azure.com,0.09863424516129035
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.RecoveryServices/vaults/defaultVault474,6.238011093524343
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/rgtubdemos8046,14.841755003
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/stgacctdemofsbackup,14.678215264
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/stjachahbara824420600289,14.7331696016
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/tubdemosstg,14.6831760314
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/tubdemosstg/providers/Microsoft.EventGrid/extensionTopics/default,9.36e-05
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.KeyVault/vaults/kv-jachahba824420600289,0.24549100000000001
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Kusto/Clusters/dbw-e4fa108e13274a0abd,0.234249593488
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.MachineLearningServices/workspaces/jachahbar-0170,0.000440711
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Network/privateDnsZones/wordpressd-80f9ca55c4-privatelink.mysql.database.azure.com,0.09852623655913981
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.RecoveryServices/vaults/defaultVault474,6.1967423844769645
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/rgtubdemos8046,14.862242667
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/stgacctdemofsbackup,14.69861382
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/stjachahbara824420600289,14.753490696
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/tubdemosstg,14.7035603102
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/tubdemosstg/providers/Microsoft.EventGrid/extensionTopics/default,9.42e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/tubdemosstg/storageTaskAssignments/test,0.0
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/tubdemosstg/storageTaskAssignments/testoperation,0.0
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/tubdemosstg/storageTaskAssignments/testtask2,0.0
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/wordpressdbb659df76a,14.676728026000001
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Web/serverFarms/ASP-rgtubdemos-960a,14.399999999999999
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Web/serverFarms/ASP-rgtubdemos-a164,14.399999999999999
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/microsoft.insights/scheduledqueryrules/testrule,0.6570564516129034
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/sample-rg/providers/Microsoft.Compute/virtualMachines/Sample-VM,0.641
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Storage/storageAccounts/wordpressdbb659df76a,14.697098862
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Web/serverFarms/ASP-rgtubdemos-960a,14.42
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/Microsoft.Web/serverFarms/ASP-rgtubdemos-a164,14.42
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-tubdemos/providers/microsoft.insights/scheduledqueryrules/testrule,0.7099462365591399
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/sample-rg/providers/Microsoft.Compute/virtualMachines/Sample-VM,0.17500000000000002
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/testcentos79_group/providers/Microsoft.Compute/virtualMachines/centosfreetest,0.196
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/aksdemo/providers/Microsoft.DataProtection/BackupVaults/aksdemo-bckupvault,11.62903225806126
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/available memory bytes - myvm,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/data disk iops consumed percentage - myvm,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/network in total - myvm,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/network out total - myvm,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/os disk iops consumed percentage - myvm,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/percentage cpu - myvm,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/vm availability - myvm,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/bcdrdemo_barco/providers/microsoft.network/loadbalancers/contososqllbprimary,2.925
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/bcdrdemo_barco/providers/microsoft.network/loadbalancers/contosoweblbprimary,2.925
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/bcdrdemo_barco/providers/microsoft.network/natgateways/vnet1nat,5.265000000000001
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/bcdrdemo_barco/providers/microsoft.network/publicipaddresses/contosoweblbprimaryip,0.585
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/bcdrdemo_barco/providers/microsoft.network/publicipaddresses/vnet1natip,0.585
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/available memory bytes - myvm,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/data disk iops consumed percentage - myvm,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/network in total - myvm,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/network out total - myvm,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/os disk iops consumed percentage - myvm,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/percentage cpu - myvm,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/azurebackuprg_westeurope_1/providers/microsoft.insights/metricalerts/vm availability - myvm,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/bcdrdemo_barco/providers/microsoft.network/loadbalancers/contososqllbprimary,2.325
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/bcdrdemo_barco/providers/microsoft.network/loadbalancers/contosoweblbprimary,2.325
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/bcdrdemo_barco/providers/microsoft.network/natgateways/vnet1nat,4.1850000000000005
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/bcdrdemo_barco/providers/microsoft.network/publicipaddresses/contosoweblbprimaryip,0.46499999999999997
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/bcdrdemo_barco/providers/microsoft.network/publicipaddresses/vnet1natip,0.46499999999999997
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/default-activitylogalerts/providers/microsoft.insights/actiongroups/agmanager,6e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/defaultresourcegroup-neu/providers/microsoft.operationalinsights/workspaces/defaultworkspace-38c26c07-ccce-4839-b504-cddac8e5b09d-neu,0.00648368988
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/defaultresourcegroup-par/providers/microsoft.operationalinsights/workspaces/defaultworkspace-38c26c07-ccce-4839-b504-cddac8e5b09d-par,0.920256105
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/defaultresourcegroup-weu/providers/microsoft.operationalinsights/workspaces/defaultworkspace-38c26c07-ccce-4839-b504-cddac8e5b09d-weu,0.00145543632
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/defaultresourcegroup-par/providers/microsoft.operationalinsights/workspaces/defaultworkspace-38c26c07-ccce-4839-b504-cddac8e5b09d-par,0.92018035956
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/defaultresourcegroup-weu/providers/microsoft.operationalinsights/workspaces/defaultworkspace-38c26c07-ccce-4839-b504-cddac8e5b09d-weu,0.00112367788
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/flex-fe7b09c64fccf993d328d28e7522694bff3ca8897e4853a12f6eeb9526d88792/providers/microsoft.web/sites/fncappaco,0.0
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.compute/virtualmachines/vm-linux-01,0.000271470807492734
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.compute/virtualmachines/vmwithhibernationmode,0.000119289766065777
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/available memory bytes - backstagetest,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/available memory bytes - vm-optscalehystax-001,0.0959677419354839
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/data disk iops consumed percentage - backstagetest,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/data disk iops consumed percentage - vm-optscalehystax-001,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/network in total - backstagetest,0.0959677419354839
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/network in total - vm-optscalehystax-001,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/network out total - backstagetest,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/network out total - vm-optscalehystax-001,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/os disk iops consumed percentage - backstagetest,0.09583333333333335
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/os disk iops consumed percentage - vm-optscalehystax-001,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/percentage cpu - backstagetest,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/percentage cpu - vm-optscalehystax-001,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/vm availability - backstagetest,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/vm availability - vm-optscalehystax-001,0.09610215053763443
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.compute/virtualmachines/vmwithhibernationmode,0.00011928976606577699
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/available memory bytes - backstagetest,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/available memory bytes - vm-optscalehystax-001,0.09569892473118281
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/data disk iops consumed percentage - backstagetest,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/data disk iops consumed percentage - vm-optscalehystax-001,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/network in total - backstagetest,0.09569892473118281
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/network in total - vm-optscalehystax-001,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/network out total - backstagetest,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/network out total - vm-optscalehystax-001,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/os disk iops consumed percentage - backstagetest,0.09556451612903229
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/os disk iops consumed percentage - vm-optscalehystax-001,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/percentage cpu - backstagetest,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/percentage cpu - vm-optscalehystax-001,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/vm availability - backstagetest,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.insights/metricalerts/vm availability - vm-optscalehystax-001,0.09583333333333335
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/applicationgateways/appgwacodemo,0.4268463441120366
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/bastionhosts/test-bastion,7.8161717109697975
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/loadbalancers/aadds-8265914fdb1d4cdd95261a921969dba0-lb,18.127397965677083
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/networksecuritygroups/aadds-nsg,0.5502617399208247
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/bastionhosts/test-bastion,12.193829044562682
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/loadbalancers/aadds-8265914fdb1d4cdd95261a921969dba0-lb,18.102917146477846
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/networksecuritygroups/aadds-nsg,0.5540420562028885
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/privateendpoints/autpe,7.21
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/publicipaddresses/aadds-8265914fdb1d4cdd95261a921969dba0-pip,3.605
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/publicipaddresses/pip-sbtestlbzonal,3.61
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/publicipaddresses/pip-sbtestlbzonal,3.605
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/publicipaddresses/pip-slbtestzoneredundant,3.605
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/publicipaddresses/pipappgwacodemo,0.0724625
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/publicipaddresses/test,0.045
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/publicipaddresses/test-ip,0.20580277777777778
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.operationalinsights/workspaces/law-default,52.93666630149174
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.web/sites/costoptvms,4.1382e-05
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.network/publicipaddresses/test-ip,0.3258027777777778
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.operationalinsights/workspaces/law-default,52.26822889678755
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.web/sites/costoptvms,2.113e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/mgmt/providers/microsoft.web/sites/fncappaco,0.0
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/myresourcegroup/providers/microsoft.network/privateendpoints/pep-onpremdgwsqltest,7.21
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/myresourcegroup/providers/microsoft.network/publicipaddresses/mypublicip,1.7784
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/myresourcegroup/providers/microsoft.network/publicipaddresses/vmmcostopttest-ip,2.4699999999999998
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/networkwatcherrg/providers/microsoft.network/networkwatchers/networkwatcher_westeurope,0.1861638273112476
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/myresourcegroup/providers/microsoft.network/publicipaddresses/mypublicip,1.6920000000000002
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/myresourcegroup/providers/microsoft.network/publicipaddresses/vmmcostopttest-ip,2.35
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/networkwatcherrg/providers/microsoft.network/networkwatchers/networkwatcher_westeurope,0.18696266785264015
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/poc-onedrivetostgacc/providers/microsoft.web/sites/fncapp-monitoronedrive,0.0
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-acoademos/providers/microsoft.network/loadbalancers/acoademolb,5.875
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-acoademos/providers/microsoft.network/publicipaddresses/acoademopip,1.175
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-acoademos/providers/microsoft.network/loadbalancers/acoademolb,5.2749999999999995
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-acoademos/providers/microsoft.network/publicipaddresses/acoademopip,1.055
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-avnm-sample/providers/microsoft.network/networkmanagers/avnm-security,72.1
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-avnm-sample/providers/microsoft.network/networkmanagers/avnm-westeurope,72.1
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-azgovviz/providers/microsoft.web/serverfarms/appserviceplan-azgovviz-webappjml,54.0
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-azgovviz/providers/microsoft.web/sites/azgovviz-webappjml,0.000676188
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-azuresqldbnamedreplicademo/providers/microsoft.web/serverfarms/windows-plan,20.4518976
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-azgovviz/providers/microsoft.web/sites/azgovviz-webappjml,0.000679591
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-azuresqldbnamedreplicademo/providers/microsoft.web/serverfarms/windows-plan,22.2518976
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-azuresqldbnamedreplicademo/providers/microsoft.web/sites/sqldbnamedreplicaapp,6.7425e-05
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-bcdr-primary-demo2/providers/microsoft.network/bastionhosts/vnet-primary-bastion,137.36202639647667
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-bcdr-primary-demo2/providers/microsoft.network/bastionhosts/vnet-primary-bastion,137.17563075997958
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-bcdr-primary-demo2/providers/microsoft.network/publicipaddresses/vnet-primary-ip,3.605
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-demo-proud-moth/providers/microsoft.network/privateendpoints/pe-kv-demo-proud-moth,0.5991083333333334
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-demo-proud-moth/providers/microsoft.operationalinsights/workspaces/law-demo-proud-moth,0.00010022181
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-demo-proud-moth/providers/microsoft.network/privateendpoints/pe-kv-demo-proud-moth,0.8291083333333333
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-demo-proud-moth/providers/microsoft.operationalinsights/workspaces/law-demo-proud-moth,0.00010971506
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/02e32b9f1b564dbd9087881910742498,3.908290527761e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/0474bbbb501e4493b18de2908b49566a,4.2596010491252e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/04e54c01b9cf43dfa16f486a7f3b6665,0.000212621673941612
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/066f5425c74c4a3c82af302625faf268,0.0009482009503990409
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/073cbe0c7e7c4b0bb837b69e16dda5e9,0.0004905525948852299
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/0e7600768b9b4aecb2435e5367f97c71,0.000206618956290185
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/0f64aadd598245708daa7d4cccb563ee,4.025315865875e-06
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/10c2fe1293bb4bb4aad288830f91ec65,0.000927645156159997
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/10c5a07fe90f45be91e575cbe1682cb6,0.0016733208913356072
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/1196472193924502bb36906966695e5e,0.000624385192990303
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/1335668e674941c19f30620f1f0945bc,5.630828440189e-06
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/14c4c0cdbafc4a6c95e5773e45bbc702,0.00019231560546904798
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/17eacad61dfa4ccdb92fe445a05744ed,3.7137061357498e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/1a8940ba5e6b4f3da63ab01fb9857f62,0.000206476126797497
@@ -742,9 +736,9 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/50ae017a0dd0437ca162755ec56d8db2,0.000557902823202312
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/5b0fd043bc4548bc93a7c250b0412235,5.5818985216319e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/5c516d00bbda4c258369217cf2a34f74,4.6758926473558e-05
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/5c8d806190424f09a177d1983c4fce15,0.00057121395226568
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/5dfea1577efe4fa1b6af1701f0c12a6a,0.00048607081081718196
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/5e9f7ab566d64b3ca3ff1d7bc603b4c6,0.00080374501273036
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/5eb2c6c6e1254d43be7df8535038e3f0,0.000178245175629854
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/6892b9c414b542bda95d9e1a5f6d4eab,0.00018393718637526
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/6acd578f03c945d69c6d9647ee2f7fcc,0.0006091668894514441
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/6b1987dfe36246d99623be1662ac1ae5,0.000189101000316442
@@ -773,13 +767,12 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/9bc3aed45fc64f29ac9dceaa9b0b7b92,0.000442814474925399
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/a21abf4db5dd40ffaed10916ccc57424,0.000230393952690064
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/a3aed9e60b584a2f8c023627e8e0ba05,3.9271268993616e-05
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/a3c32b3ba84b4635a5e40a8a124a0fa5,4.1160604916513e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/a9e1d6c941b74403a28f270645215db3,0.0002148502394557
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/b13ec399f9f14442be02a4e6b3e635e9,0.000620014329440892
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/b2942f6a152b44fe95c96ad8e2e3e8a4,3.0884642153978996e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/b3c382323d4545a9bc378ecdcfa9e807,0.000575072281993925
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/b46415b3592849f28d0b73d7231d481d,0.00077346869930625
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/bc3afe9d46fa4624a64ccf1c58718b0b,4.3470147997141e-05
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/bd82ef5bb55f4568a232460ddf0a4899,0.000443875940516591
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/bd892947a21a49ac9c927ef547dc205b,4.3167702853679997e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/bf6ee15c15574ec89e25d2d2c5244592,4.0612550452352e-05
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.compute/virtualmachines/c1d004b0462243c7a9d7b93ef6f38a7b,0.000591596761718393
@@ -818,12 +811,12 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/0474bbbb501e4493b18de2908b49566a-publicip,0.00943
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/04e54c01b9cf43dfa16f486a7f3b6665-publicip,0.009266666666666668
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/066f5425c74c4a3c82af302625faf268-publicip,0.009426666666666667
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/073cbe0c7e7c4b0bb837b69e16dda5e9-publicip,0.00943
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/0e7600768b9b4aecb2435e5367f97c71-publicip,0.009266666666666668
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/0f64aadd598245708daa7d4cccb563ee-publicip,0.002
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/10c2fe1293bb4bb4aad288830f91ec65-publicip,0.00952
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/10c5a07fe90f45be91e575cbe1682cb6-publicip,0.013427777777777778
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/1196472193924502bb36906966695e5e-publicip,0.009432222222222222
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/1335668e674941c19f30620f1f0945bc-publicip,0.003133333333333334
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/14c4c0cdbafc4a6c95e5773e45bbc702-publicip,0.009497777777777779
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/17eacad61dfa4ccdb92fe445a05744ed-publicip,0.009384444444444444
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/1a8940ba5e6b4f3da63ab01fb9857f62-publicip,0.00943111111111111
@@ -850,9 +843,9 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/50ae017a0dd0437ca162755ec56d8db2-publicip,0.009266666666666668
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/5b0fd043bc4548bc93a7c250b0412235-publicip,0.009453333333333333
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/5c516d00bbda4c258369217cf2a34f74-publicip,0.009427777777777778
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/5c8d806190424f09a177d1983c4fce15-publicip,0.00943
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/5dfea1577efe4fa1b6af1701f0c12a6a-publicip,0.009434444444444443
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/5e9f7ab566d64b3ca3ff1d7bc603b4c6-publicip,0.006066666666666667
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/5eb2c6c6e1254d43be7df8535038e3f0-publicip,0.005733333333333333
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/6892b9c414b542bda95d9e1a5f6d4eab-publicip,0.009266666666666666
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/6acd578f03c945d69c6d9647ee2f7fcc-publicip,0.009364444444444444
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/6b1987dfe36246d99623be1662ac1ae5-publicip,0.009426666666666667
@@ -882,13 +875,12 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/9bc3aed45fc64f29ac9dceaa9b0b7b92-publicip,0.0092
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/a21abf4db5dd40ffaed10916ccc57424-publicip,0.009453333333333333
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/a3aed9e60b584a2f8c023627e8e0ba05-publicip,0.009364444444444444
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/a3c32b3ba84b4635a5e40a8a124a0fa5-publicip,0.00943
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/a9e1d6c941b74403a28f270645215db3-publicip,0.009434444444444443
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/b13ec399f9f14442be02a4e6b3e635e9-publicip,0.00943
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/b2942f6a152b44fe95c96ad8e2e3e8a4-publicip,0.006963333333333333
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/b3c382323d4545a9bc378ecdcfa9e807-publicip,0.009384444444444444
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/b46415b3592849f28d0b73d7231d481d-publicip,0.009426666666666667
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/bc3afe9d46fa4624a64ccf1c58718b0b-publicip,0.009333333333333332
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/bd82ef5bb55f4568a232460ddf0a4899-publicip,0.009333333333333332
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/bd892947a21a49ac9c927ef547dc205b-publicip,0.0092
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/bf6ee15c15574ec89e25d2d2c5244592-publicip,0.009455555555555556
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/c1d004b0462243c7a9d7b93ef6f38a7b-publicip,0.00943111111111111
@@ -923,34 +915,34 @@ ResourceId,BilledCost
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/fa61640571f34d4282b1b78bad7de7cd-publicip,0.009266666666666668
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/fa9e2338417a4acbb0de1357ee259081-publicip,0.00943
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-manageddatabricksdemo/providers/microsoft.network/publicipaddresses/fdc32eedd1fa485aa9a10f3959fa3049-publicip,0.0092
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-openaitest/providers/microsoft.web/serverfarms/asp-jmltestchatgpt,105.39888494499999
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-openaitest/providers/microsoft.web/serverfarms/asp-jmltestchatgpt,107.928884945
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-openaitest/providers/microsoft.web/sites/jmltestchatgpt,0.0
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-openaitest/providers/microsoft.web/sites/jmltestchatgpt/slots/apttool,0.0
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-openaitest/providers/microsoft.web/sites/jmltestchatgpt/slots/dev,0.0
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-startstopv2/providers/microsoft.operationalinsights/workspaces/law-default,3.26251771053
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-startstopv2/providers/microsoft.web/serverfarms/fncappstartstopv2edzod5p22rihy-plan,426.40970886735
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-startstopv2/providers/microsoft.web/sites/fncappstartstopv2edzod5p22rihy,0.029383087999999998
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-startstopv2/providers/microsoft.web/serverfarms/fncappstartstopv2edzod5p22rihy-plan,411.38690886735
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-startstopv2/providers/microsoft.web/sites/fncappstartstopv2edzod5p22rihy,0.027541816
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.communication/communicationservices/wordpressd-1cf37b6ff370e9b013ff-acsendpoint,0.000250086860656738
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.compute/virtualmachines/vm-forcedetachdemo1-1,0.000195642990060151
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.compute/virtualmachines/vm-forcedetachdemo1-2,0.000293363695032894
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.compute/virtualmachines/vm-forcedetachdemo1-3,0.000145746265538037
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.compute/virtualmachines/vmacoademospot,0.000537276975810529
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.compute/virtualmachines/vmencrypted1,0.000650296080857516
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/available memory bytes - vmencrypted1,0.0959677419354839
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/data disk iops consumed percentage - vmencrypted1,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/network in total - vmencrypted1,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/network out total - vmencrypted1,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/os disk iops consumed percentage - vmencrypted1,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/percentage cpu - vmencrypted1,0.09610215053763443
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/vm availability - vmencrypted1,0.09610215053763443
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/available memory bytes - vmencrypted1,0.09583333333333335
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/data disk iops consumed percentage - vmencrypted1,0.0959677419354839
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/network in total - vmencrypted1,0.0959677419354839
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/network out total - vmencrypted1,0.0959677419354839
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/os disk iops consumed percentage - vmencrypted1,0.0959677419354839
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/percentage cpu - vmencrypted1,0.0959677419354839
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.insights/metricalerts/vm availability - vmencrypted1,0.0959677419354839
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.loadtestservice/loadtests/azloadtestingtub,10.0
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.loadtestservice/loadtests/loadtest,20.0
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.web/serverfarms/asp-rgtubdemos-960a,136.089452268
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.web/serverfarms/asp-rgtubdemos-a164,186.637
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.web/sites/testlgcappmonitor,0.016258239
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.web/sites/testlgcappmonitor/slots/zerodowntimelogicapptubdemo,0.01326364
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.web/sites/testlgcappmonitor,0.015983509
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.web/sites/testlgcappmonitor/slots/zerodowntimelogicapptubdemo,0.01308768
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/rg-tubdemos/providers/microsoft.web/sites/wordpressdemoappjml,0.0
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/sample-rg/providers/microsoft.compute/virtualmachines/sample-vm,0.001574291037395598
-/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/sample-rg/providers/microsoft.network/bastionhosts/sample-vm-vnet-bastion,137.9382210228862
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/sample-rg/providers/microsoft.compute/virtualmachines/sample-vm,0.000723503618501128
+/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/sample-rg/providers/microsoft.network/bastionhosts/sample-vm-vnet-bastion,137.75152396799436
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/sample-rg/providers/microsoft.network/publicipaddresses/sample-vm-vnet-ip,3.605
 /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourcegroups/testcentos79_group/providers/microsoft.compute/virtualmachines/centosfreetest,0.000840939834713937
