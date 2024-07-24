@@ -13,5 +13,5 @@ venv
 # Azure Functions
 .local.settings.json
 
-
+node_modules/
 WasteReport.xlsx
