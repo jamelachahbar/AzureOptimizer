@@ -755,8 +755,6 @@ def delete_disk(disk):
     try:
         logger.info(f"Attempting to delete disk: {disk.name}")
         resource_group_name = disk.id.split("/")[4]
-        logger.info(f"Disk resource group: {resource_group_name}")
-        logger.info(f"Disk details: {disk}")
         async_delete = compute_client.disks.begin_delete(resource_group_name, disk.name)
         async_delete.result()
         tc.track_event("DiskDeleted", {"DiskName": disk.name})
@@ -805,8 +803,6 @@ def delete_public_ip(public_ip):
     try:
         logger.info(f"Deleting Public IP: {public_ip.name}")
         resource_group_name = public_ip.id.split("/")[4]
-        logger.info(f"Public IP resource group: {resource_group_name}")
-        logger.info(f"Public IP details: {public_ip}")
         async_delete = network_client.public_ip_addresses.begin_delete(resource_group_name, public_ip.name)
         async_delete.result()
         tc.track_event("PublicIPDeleted", {"PublicIPName": public_ip.name})
@@ -1060,6 +1056,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             for vm in vms:
                 logger.info(f"Evaluating VM {vm.name}")
                 if not evaluate_exclusions(vm, exclusions) and evaluate_filters(vm, filters):
+                    owner = get_owner_tag(vm)
                     logger.info(f"VM {vm.name} meets filters and exclusions")
                     apply_actions(vm, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
@@ -1068,6 +1065,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                             "Policy": policy["name"],
                             "Resource": vm.name,
                             "Actions": ", ".join([action["type"] for action in actions]),
+                            "Owner": owner,
                         }
                     )
                     resources_impacted = True
@@ -1085,6 +1083,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             for disk in disks:
                 logger.info(f"Evaluating disk {disk.name}")
                 if not evaluate_exclusions(disk, exclusions) and evaluate_filters(disk, filters):
+                    owner = get_owner_tag(disk)
                     apply_actions(disk, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
@@ -1092,6 +1091,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                             "Policy": policy["name"],
                             "Resource": disk.name,
                             "Actions": ", ".join([action["type"] for action in actions]),
+                            "Owner": owner,
                         }
                     )
                     resources_impacted = True
@@ -1108,6 +1108,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             resource_groups = resource_client.resource_groups.list()
             for resource_group in resource_groups:
                 if not evaluate_exclusions(resource_group, exclusions) and evaluate_filters(resource_group, filters):
+                    owner = get_owner_tag(resource_group)
                     apply_actions(resource_group, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
@@ -1115,6 +1116,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                             "Policy": policy["name"],
                             "Resource": resource_group.name,
                             "Actions": ", ".join([action["type"] for action in actions]),
+                            "Owner": owner,
                         }
                     )
                     resources_impacted = True
@@ -1131,6 +1133,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             storage_accounts = storage_client.storage_accounts.list()
             for storage_account in storage_accounts:
                 if not evaluate_exclusions(storage_account, exclusions) and evaluate_filters(storage_account, filters):
+                    owner = get_owner_tag(storage_account)
                     apply_actions(storage_account, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
@@ -1138,6 +1141,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                             "Policy": policy["name"],
                             "Resource": storage_account.name,
                             "Actions": ", ".join([action["type"] for action in actions]),
+                            "Owner": owner,
                         }
                     )
                     resources_impacted = True
@@ -1154,6 +1158,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             public_ips = network_client.public_ip_addresses.list_all()
             for public_ip in public_ips:
                 if not evaluate_exclusions(public_ip, exclusions) and evaluate_filters(public_ip, filters):
+                    owner = get_owner_tag(public_ip)
                     apply_actions(public_ip, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
@@ -1161,6 +1166,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                             "Policy": policy["name"],
                             "Resource": public_ip.name,
                             "Actions": ", ".join([action["type"] for action in actions]),
+                            "Owner": owner,
                         }
                     )
                     resources_impacted = True
@@ -1181,6 +1187,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                 databases = sql_client.databases.list_by_server(resource_group_name, server.name)
                 for db in databases:
                     logger.info(f"Database: {db.name}, Current DTU: {db.sku.capacity}")
+                    owner = get_owner_tag(db)
                     status, message = scale_sql_database(db, policy["actions"][0]["tiers"], status_log, dry_run, subscription_id)
                     if status != "No Change":
                         impacted_resources.append(
@@ -1191,6 +1198,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                                 "Actions": "scale",
                                 "Status": status,
                                 "Message": message,
+                                "Owner": owner,
                             }
                         )
                         resources_impacted = True
@@ -1221,6 +1229,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             nics = network_client.network_interfaces.list_all()
             for nic in nics:
                 if not evaluate_exclusions(nic, exclusions) and evaluate_filters(nic, filters):
+                    owner = get_owner_tag(nic)
                     apply_actions(nic, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
@@ -1228,6 +1237,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                             "Policy": policy["name"],
                             "Resource": nic.name,
                             "Actions": ", ".join([action["type"] for action in actions]),
+                            "Owner": owner,
                         }
                     )
                     resources_impacted = True
@@ -1239,6 +1249,11 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                         "ResourceType": "Network Interface",
                     }
                 )
+
+def get_owner_tag(resource):
+    """Retrieve the owner tag from the resource."""
+    tags = resource.tags
+    return tags.get('Owner') if tags else None
 
 def process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date, end_date, use_adls=False):
     """Process a subscription for cost optimization."""
@@ -1300,11 +1315,17 @@ def main(mode, all_subscriptions, use_adls=False):
 
         if impacted_resources:
             table_impacted_resources = PrettyTable()
-            table_impacted_resources.field_names = ["Subscription ID", "Policy", "Resource", "Actions"]
+            table_impacted_resources.field_names = ["Subscription ID", "Policy", "Resource", "Actions", "Owner"]
             for resource in impacted_resources:
-                table_impacted_resources.add_row([resource["SubscriptionId"], resource["Policy"], wrap_text(resource["Resource"]), resource["Actions"]])
+                table_impacted_resources.add_row([resource["SubscriptionId"], resource["Policy"], wrap_text(resource["Resource"]), resource["Actions"], resource["Owner"]])
             print(colored("Impacted Resources:", "cyan", attrs=["bold"]))
             print(colored(table_impacted_resources.get_string(), "cyan"))
+
+            # Generate impacted_resources.txt
+            with open('impacted_resources.txt', 'w') as f:
+                for resource in impacted_resources:
+                    f.write(json.dumps(resource, indent=2))
+                    f.write("\n")
 
         if non_impacted_resources:
             table_non_impacted_resources = PrettyTable()

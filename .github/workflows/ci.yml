@@ -61,3 +61,25 @@ jobs:
         run: |
           echo "Running Python script with mode dry-run"
           python src/main.py --mode dry-run --all-subscriptions
+
+
+
+      - name: Commit and Push impacted_resources.txt and Cost Trend Charts
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add impacted_resources.txt
+          git add cost_trend_*.png
+          git commit -m "Add impacted_resources.txt and cost trend charts"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Notify Owner via GitHub Issue
+        if: success()
+        uses: peter-evans/create-issue-from-file@v3
+        with:
+          title: "Azure Cost Optimization Results"
+          content-filepath: impacted_resources.txt
+          labels: |
+            notification
