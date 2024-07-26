@@ -75,7 +75,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
-      - name: Notify Owner via GitHub Issue
+      - name: Notify Owner via GitHub Issue.
         if: success()
         uses: peter-evans/create-issue-from-file@v3
         with:
