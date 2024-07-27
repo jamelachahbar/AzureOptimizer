@@ -73,6 +73,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          
       - name: Create a new branch and commit changes
         if: ${{ success() && env.HAS_CHANGES == 'yes'}}
         run: |
@@ -89,11 +90,11 @@ jobs:
       #     gh pr create --base main --head "$BRANCH_NAME" --title "Automated changes by Release Copilot" --body "This PR contains automated changes by the Release Copilot workflow." --label "release-copilot"
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}          
-      - name: Notify Owner via GitHub Issue.
-        if: success()
-        uses: peter-evans/create-issue-from-file@v3
-        with:
-          title: "Azure Cost Optimization Results"
-          content-filepath: impacted_resources.txt
-          labels: |
-            notification
+      # - name: Notify Owner via GitHub Issue.
+      #   if: success()
+      #   uses: peter-evans/create-issue-from-file@v3
+      #   with:
+      #     title: "Azure Cost Optimization Results"
+      #     content-filepath: impacted_resources.txt
+      #     labels: |
+      #       notification
