@@ -36,7 +36,7 @@ jobs:
           echo "AZURE_STORAGE_ACCOUNT_NAME= ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}" >> $GITHUB_ENV
           echo "AZURE_STORAGE_FILE_SYSTEM_NAME= ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}" >> $GITHUB_ENV
           echo "ADLS_DIRECTORY_PATH= ${{ secrets.ADLS_DIRECTORY_PATH  }}" >> $GITHUB_ENV
-          echo "GH_PAT= ${{ secrets.GH_PAT  }}"
+          echo "GH_PATNEW= ${{ secrets.GH_PATNEW  }}"
 
       - name: Verify environment variables
         run: |
@@ -49,7 +49,7 @@ jobs:
           echo "AZURE_STORAGE_ACCOUNT_NAME= ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}"
           echo "AZURE_STORAGE_FILE_SYSTEM_NAME= ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}"
           echo "ADLS_DIRECTORY_PATH= ${{ secrets.ADLS_DIRECTORY_PATH  }}"
-          echo "GH_PAT= ${{ secrets.GH_PAT  }}"
+          echo "GH_PATNEW= ${{ secrets.GH_PATNEW  }}"
 
       - name: Run Azure Cost Optimizer in Dry Mode
         env:
@@ -62,7 +62,7 @@ jobs:
           AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}
           AZURE_STORAGE_FILE_SYSTEM_NAME: ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}
           ADLS_DIRECTORY_PATH: ${{ secrets.ADLS_DIRECTORY_PATH  }}
-          GH_PAT: ${{ secrets.GH_PAT  }}
+          GH_PATNEW: ${{ secrets.GH_PATNEW  }}
 
         run: |
           echo "Running Python script with mode dry-run"
@@ -86,10 +86,10 @@ jobs:
       # - name: Create a new issue and a Pull Request
       #   if: ${{ success() && env.HAS_CHANGES == 'yes'}}
       #   run: |
-      #     gh issue create --title "Automated changes by Release Copilot" --body "This issue contains automated changes by the Release Copilot workflow." --label "release-copilot"
-      #     gh pr create --base main --head "$BRANCH_NAME" --title "Automated changes by Release Copilot" --body "This PR contains automated changes by the Release Copilot workflow." --label "release-copilot"
+      #     gh issue create --title "Azure Cost Optimization Results" --body "This issue contains automated changes by the Release Copilot workflow." --label "notification"
+      #     gh pr create --base main --head "$BRANCH_NAME" --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Release Copilot workflow." --label "notification"
       #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}          
+      #     GITHUB_TOKEN: ${{ secrets.GH_PATNEW }}          
       # - name: Notify Owner via GitHub Issue.
       #   if: success()
       #   uses: peter-evans/create-issue-from-file@v3
