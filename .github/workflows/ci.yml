@@ -76,7 +76,7 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global core.autocrlf true
 
-      - name: Create a new branch and commit changes
+      - name: Create a new branch and commit changes + Create Pull Request
         if: ${{ success() }}
         shell: pwsh
         env:
@@ -89,6 +89,7 @@ jobs:
           git commit -m "Add impacted_resources.txt and cost trend charts"
           git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/jamelachahbar/AzureCostOptimizer.git
           git push origin $branchName
+          gh pr create --base main --head $branchName --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
 
       - name: Check and Create GitHub Issue
         run: |
@@ -103,10 +104,12 @@ jobs:
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
-      - name: Create Pull Request
-        if: ${{ success() }}
-        shell: pwsh
-        env:
-          GH_PATNEW: ${{ secrets.GH_PATNEW }}
-        run: |
-          gh pr create --base main --head $branchName --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
+      # - name: Create Pull Request
+      #   if: ${{ success() }}
+      #   shell: pwsh
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #   run: |
+      #     $branchName = "cost-optimization-changes-$(date -u +%Y%m%d%H%M%S)"
+      #     git checkout -b $branchName
+      #     gh pr create --base main --head $branchName --title `"Automated changes by Azure Cost Optimizer"` --body `"This PR contains automated changes by the Azure Cost Optimizer."` --label "notification"
