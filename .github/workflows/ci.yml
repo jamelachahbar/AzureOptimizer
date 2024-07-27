@@ -46,23 +46,22 @@ jobs:
           echo "AZURE_TENANT_ID=$AZURE_TENANT_ID"
           echo "AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET"
           echo "APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY"
-          echo "AZURE_STORAGE_ACCOUNT_NAME=$AZURE_STORAGE_ACCOUNT_NAME"
-          echo "AZURE_STORAGE_FILE_SYSTEM_NAME=$AZURE_STORAGE_FILE_SYSTEM_NAME"
-          echo "ADLS_DIRECTORY_PATH=$ADLS_DIRECTORY_PATH"
-          echo "GH_PATNEW=$GH_PATNEW"
-
+          echo "AZURE_STORAGE_ACCOUNT_NAME= ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}"
+          echo "AZURE_STORAGE_FILE_SYSTEM_NAME= ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}"
+          echo "ADLS_DIRECTORY_PATH= ${{ secrets.ADLS_DIRECTORY_PATH  }}"
+          echo "GH_PATNEW= ${{ secrets.$GH_PATNEW" }}"
       - name: Run Azure Cost Optimizer in Dry Mode
         env:
-          CONFIG_FILE: ${{ env.CONFIG_FILE }}
+          CONFIG_FILE: configs/config.yaml
           AZURE_SUBSCRIPTION_ID: 38c26c07-ccce-4839-b504-cddac8e5b09d
-          AZURE_CLIENT_ID: ${{ env.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
-          AZURE_CLIENT_SECRET: ${{ env.AZURE_CLIENT_SECRET }}
-          APPINSIGHTS_INSTRUMENTATIONKEY: ${{ env.APPINSIGHTS_INSTRUMENTATIONKEY }}
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ env.AZURE_STORAGE_ACCOUNT_NAME }}
-          AZURE_STORAGE_FILE_SYSTEM_NAME: ${{ env.AZURE_STORAGE_FILE_SYSTEM_NAME }}
-          ADLS_DIRECTORY_PATH: ${{ env.ADLS_DIRECTORY_PATH }}
-          GH_PATNEW: ${{ env.GH_PATNEW }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}
+          AZURE_STORAGE_FILE_SYSTEM_NAME: ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}
+          ADLS_DIRECTORY_PATH: ${{ secrets.ADLS_DIRECTORY_PATH  }}
+          GH_PATNEW:  ${{ secrets.GH_PATNEW }}
         run: |
           echo "Running Python script with mode dry-run"
           python src/main.py --mode dry-run --all-subscriptions
