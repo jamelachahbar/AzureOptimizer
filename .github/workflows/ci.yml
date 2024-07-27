@@ -102,7 +102,8 @@ jobs:
         
       - name: Create Pull Request
         if: ${{ success() }}
+        shell: pwsh
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_PATNEW: ${{ secrets.GH_PATNEW }}
         run: |
-          gh pr create --base main --head $branchName --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
+          gh pr create --base main --head $branchName --title "`"Automated changes by Azure Cost Optimizer`"" --body "`"This PR contains automated changes by the Azure Cost Optimizer.`"" --label "notification"
