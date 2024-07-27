@@ -48,6 +48,7 @@ jobs:
           echo "AZURE_STORAGE_ACCOUNT_NAME=$AZURE_STORAGE_ACCOUNT_NAME"
           echo "AZURE_STORAGE_FILE_SYSTEM_NAME=$AZURE_STORAGE_FILE_SYSTEM_NAME"
           echo "ADLS_DIRECTORY_PATH=$ADLS_DIRECTORY_PATH"
+          echo "GH_TOKEN=$GH_TOKEN"
       - name: Run Azure Cost Optimizer in Dry Mode
         env:
           CONFIG_FILE: configs/config.yaml
