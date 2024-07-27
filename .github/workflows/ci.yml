@@ -59,7 +59,7 @@ jobs:
           AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}
           AZURE_STORAGE_FILE_SYSTEM_NAME: ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}
           ADLS_DIRECTORY_PATH: ${{ secrets.ADLS_DIRECTORY_PATH  }}
-          GH_PATNEW:  ${{ secrets.GH_PATNEW }}
+          GH_TOKEN:  ${{ secrets.GH_TOKEN }}
         run: |
           echo "Running Python script with mode dry-run"
           python src/main.py --mode dry-run --all-subscriptions
@@ -74,20 +74,20 @@ jobs:
         if: ${{ success() }}
         shell: pwsh
         env:
-          GH_PATNEW: ${{ secrets.GH_PATNEW }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           $branchName = "ACO-$((Get-Date).ToString('yyyyMMddHHmmss'))"
           git checkout -b $branchName
           git add impacted_resources.txt
           git add cost_trend_*.png
           git commit -m "Add impacted_resources.txt and cost trend charts"
-          git remote set-url origin https://github-actions:${{ secrets.GH_PATNEW }}@github.com/jamelachahbar/AzureCostOptimizer.git
+          git remote set-url origin https://github-actions:${{ secrets.GH_TOKEN }}@github.com/jamelachahbar/AzureCostOptimizer.git
           git push origin $branchName
 
       - name: Notify Owners via GitHub Issues
         if: ${{ success() }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PATNEW }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           for file in output/impacted_resources_*.txt; do
             $owner = (Get-Item $file).BaseName -replace 'impacted_resources_', ''
@@ -98,6 +98,6 @@ jobs:
       - name: Create Pull Request
         if: ${{ success() }}
         env:
-          GH_PATNEW: ${{ secrets.GH_PATNEW }}
+          GH_PATNEW: ${{ secrets.GH_TOKEN }}
         run: |
           gh pr create --base main --head $branchName --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
