@@ -36,7 +36,7 @@ jobs:
           echo "AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "AZURE_STORAGE_FILE_SYSTEM_NAME=${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME }}" >> $GITHUB_ENV
           echo "ADLS_DIRECTORY_PATH=${{ secrets.ADLS_DIRECTORY_PATH }}" >> $GITHUB_ENV
-          echo "GH_PATNEW=${{ secrets.GH_PATNEW }}" >> $GITHUB_ENV
+          echo "GH_PATNEW=${{ secret.GH_PATNEW }}" >> $GITHUB_ENV
 
       - name: Verify environment variables
         run: |
@@ -46,10 +46,10 @@ jobs:
           echo "AZURE_TENANT_ID=$AZURE_TENANT_ID"
           echo "AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET"
           echo "APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY"
-          echo "AZURE_STORAGE_ACCOUNT_NAME= ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}"
-          echo "AZURE_STORAGE_FILE_SYSTEM_NAME= ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}"
-          echo "ADLS_DIRECTORY_PATH= ${{ secrets.ADLS_DIRECTORY_PATH  }}"
-          echo "GH_PATNEW= ${{ secrets.$GH_PATNEW" }}"
+          echo "AZURE_STORAGE_ACCOUNT_NAME=$AZURE_STORAGE_ACCOUNT_NAME"
+          echo "AZURE_STORAGE_FILE_SYSTEM_NAME=$AZURE_STORAGE_FILE_SYSTEM_NAME"
+          echo "ADLS_DIRECTORY_PATH=$ADLS_DIRECTORY_PATH"
+          echo "GH_PATNEW=$GH_PATNEW"
       - name: Run Azure Cost Optimizer in Dry Mode
         env:
           CONFIG_FILE: configs/config.yaml
@@ -89,7 +89,7 @@ jobs:
       - name: Notify Owners via GitHub Issues
         if: ${{ success() }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PATNEW }}
         run: |
           for file in output/impacted_resources_*.txt; do
             $owner = (Get-Item $file).BaseName -replace 'impacted_resources_', ''
