@@ -99,20 +99,7 @@ jobs:
             Write-Output "Creating issue for owner: $owner"
             gh issue create --title "Azure Cost Optimization Results for $owner" --body-file $_.FullName --label notification
           }
-          
-      - name: Notify Owners via GitHub Issues
-        if: ${{ success() }}
-        shell: pwsh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if (Test-Path -Path "./impacted_resources.txt") {
-            $owner = (Get-Item -Path ./impacted_resources.txt).BaseName -replace 'impacted_resources_', ''
-            Write-Output "Creating issue for owner: $owner"
-            gh issue create --title "Azure Cost Optimization Results for $owner" --body-file ./impacted_resources.txt --label notification
-          } else {
-            Write-Output "File 'impacted_resources.txt' does not exist. Skipping issue creation."
-          }
+        
       - name: Create Pull Request
         if: ${{ success() }}
         env:
