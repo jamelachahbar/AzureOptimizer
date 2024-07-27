@@ -83,13 +83,18 @@ jobs:
           git add cost_trend_*.png
           git commit -m "Add impacted_resources.txt and cost trend charts"
           git push origin $BRANCH_NAME
-      - name: Create a new issue and a Pull Request
-        if: ${{ success() && env.HAS_CHANGES == 'yes'}}
-        run: |
-          gh issue create --title "Azure Cost Optimization Results" --body "This issue contains automated changes by the Release Copilot workflow." --label "notification"
-          gh pr create --base main --head "$BRANCH_NAME" --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
+      - name: Notify Owners via GitHub Issues
+        if: success()
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PATNEW }}          
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for file in output/impacted_resources_*.txt; do
+            OWNER=$(basename "$file" .txt | sed 's/impacted_resources_//')
+            echo "Creating issue for owner: $OWNER"
+            gh issue create --title "Azure Cost Optimization Results for $OWNER" --body-file "$file" --label notification
+            gh pr create --base main --head "$BRANCH_NAME" --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
+          done
+ 
       # - name: Notify Owner via GitHub Issue.
       #   if: success()
       #   uses: peter-evans/create-issue-from-file@v3
