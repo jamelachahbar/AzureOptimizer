@@ -94,7 +94,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          Get-ChildItem output/impacted_resources_*.txt | ForEach-Object {
+          Get-ChildItem impacted_resources_*.txt | ForEach-Object {
             $owner = $_.BaseName -replace 'impacted_resources_', ''
             Write-Output "Creating issue for owner: $owner"
             gh issue create --title "Azure Cost Optimization Results for $owner" --body-file $_.FullName --label notification
