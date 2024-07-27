@@ -83,12 +83,13 @@ jobs:
           git add cost_trend_*.png
           git commit -m "Add impacted_resources.txt and cost trend charts"
           git remote set-url origin https://github-actions:${{ secrets.GH_TOKEN }}@github.com/jamelachahbar/AzureCostOptimizer.git
+          echo "Remote URL set to: https://github-actions:${{ secrets.GH_TOKEN }}@github.com/jamelachahbar/AzureCostOptimizer.git"
           git push origin $branchName
 
       - name: Notify Owners via GitHub Issues
         if: ${{ success() }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
         run: |
           for file in output/impacted_resources_*.txt; do
             $owner = (Get-Item $file).BaseName -replace 'impacted_resources_', ''
