@@ -73,7 +73,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          git remote set-url origin https://GITHUB_TOKEN@github.com/jamelachahbar/AzureCostOptimizer.git
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
           git add impacted_resources.txt
