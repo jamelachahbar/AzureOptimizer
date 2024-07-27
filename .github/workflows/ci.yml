@@ -33,10 +33,10 @@ jobs:
           echo "AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
           echo "AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "APPINSIGHTS_INSTRUMENTATIONKEY=${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}" >> $GITHUB_ENV
-          echo "AZURE_STORAGE_ACCOUNT_NAME= ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}" >> $GITHUB_ENV
-          echo "AZURE_STORAGE_FILE_SYSTEM_NAME= ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}" >> $GITHUB_ENV
-          echo "ADLS_DIRECTORY_PATH= ${{ secrets.ADLS_DIRECTORY_PATH  }}" >> $GITHUB_ENV
-          echo "GH_PATNEW= ${{ secrets.GH_PATNEW  }}"
+          echo "AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
+          echo "AZURE_STORAGE_FILE_SYSTEM_NAME=${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME }}" >> $GITHUB_ENV
+          echo "ADLS_DIRECTORY_PATH=${{ secrets.ADLS_DIRECTORY_PATH }}" >> $GITHUB_ENV
+          echo "GH_PATNEW=${{ secrets.GH_PATNEW }}" >> $GITHUB_ENV
 
       - name: Verify environment variables
         run: |
@@ -46,24 +46,23 @@ jobs:
           echo "AZURE_TENANT_ID=$AZURE_TENANT_ID"
           echo "AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET"
           echo "APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY"
-          echo "AZURE_STORAGE_ACCOUNT_NAME= ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}"
-          echo "AZURE_STORAGE_FILE_SYSTEM_NAME= ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}"
-          echo "ADLS_DIRECTORY_PATH= ${{ secrets.ADLS_DIRECTORY_PATH  }}"
-          echo "GH_PATNEW= ${{ secrets.GH_PATNEW  }}"
+          echo "AZURE_STORAGE_ACCOUNT_NAME=$AZURE_STORAGE_ACCOUNT_NAME"
+          echo "AZURE_STORAGE_FILE_SYSTEM_NAME=$AZURE_STORAGE_FILE_SYSTEM_NAME"
+          echo "ADLS_DIRECTORY_PATH=$ADLS_DIRECTORY_PATH"
+          echo "GH_PATNEW=$GH_PATNEW"
 
       - name: Run Azure Cost Optimizer in Dry Mode
         env:
-          CONFIG_FILE: configs/config.yaml
-          AZURE_SUBSCRIPTION_ID: 38c26c07-ccce-4839-b504-cddac8e5b09d
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}
-          AZURE_STORAGE_FILE_SYSTEM_NAME: ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}
-          ADLS_DIRECTORY_PATH: ${{ secrets.ADLS_DIRECTORY_PATH  }}
-          GH_PATNEW: ${{ secrets.GH_PATNEW  }}
-
+          CONFIG_FILE: ${{ env.CONFIG_FILE }}
+          AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
+          AZURE_CLIENT_ID: ${{ env.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
+          AZURE_CLIENT_SECRET: ${{ env.AZURE_CLIENT_SECRET }}
+          APPINSIGHTS_INSTRUMENTATIONKEY: ${{ env.APPINSIGHTS_INSTRUMENTATIONKEY }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ env.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_FILE_SYSTEM_NAME: ${{ env.AZURE_STORAGE_FILE_SYSTEM_NAME }}
+          ADLS_DIRECTORY_PATH: ${{ env.ADLS_DIRECTORY_PATH }}
+          GH_PATNEW: ${{ env.GH_PATNEW }}
         run: |
           echo "Running Python script with mode dry-run"
           python src/main.py --mode dry-run --all-subscriptions
@@ -71,35 +70,37 @@ jobs:
       - name: Configure Git
         if: ${{ success() }}
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+
       - name: Create a new branch and commit changes
         if: ${{ success() }}
+        shell: pwsh
+        env:
+          GH_PATNEW: ${{ secrets.GH_PATNEW }}
         run: |
-          BRANCH_NAME=ACO-$(date +'%Y%m%d%H%M%S')
-          git checkout -b $BRANCH_NAME
+          $branchName = "ACO-$((Get-Date).ToString('yyyyMMddHHmmss'))"
+          git checkout -b $branchName
           git add impacted_resources.txt
           git add cost_trend_*.png
           git commit -m "Add impacted_resources.txt and cost trend charts"
-          git push origin $BRANCH_NAME
+          git remote set-url origin https://github-actions:${{ secrets.GH_PATNEW }}@github.com/jamelachahbar/AzureCostOptimizer.git
+          git push origin $branchName
+
       - name: Notify Owners via GitHub Issues
-        if: success()
+        if: ${{ success() }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           for file in output/impacted_resources_*.txt; do
-            OWNER=$(basename "$file" .txt | sed 's/impacted_resources_//')
-            echo "Creating issue for owner: $OWNER"
-            gh issue create --title "Azure Cost Optimization Results for $OWNER" --body-file "$file" --label notification
-            gh pr create --base main --head "$BRANCH_NAME" --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
+            $owner = (Get-Item $file).BaseName -replace 'impacted_resources_', ''
+            echo "Creating issue for owner: $owner"
+            gh issue create --title "Azure Cost Optimization Results for $owner" --body-file $file --label notification
           done
- 
-      # - name: Notify Owner via GitHub Issue.
-      #   if: success()
-      #   uses: peter-evans/create-issue-from-file@v3
-      #   with:
-      #     title: "Azure Cost Optimization Results"
-      #     content-filepath: impacted_resources.txt
-      #     labels: |
-      #       notification
+
+      - name: Create Pull Request
+        if: ${{ success() }}
+        env:
+          GH_PATNEW: ${{ secrets.GH_PATNEW }}
+        run: |
+          gh pr create --base main --head $branchName --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
