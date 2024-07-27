@@ -75,7 +75,7 @@ jobs:
           git config --local user.name "GitHub Action"
           
       - name: Create a new branch and commit changes
-        if: ${{ success() && env.HAS_CHANGES == 'yes'}}
+        if: ${{ success() }}
         run: |
           BRANCH_NAME=ACO-$(date +'%Y%m%d%H%M%S')
           git checkout -b $BRANCH_NAME
