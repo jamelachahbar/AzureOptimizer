@@ -36,6 +36,7 @@ jobs:
           echo "AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "AZURE_STORAGE_FILE_SYSTEM_NAME=${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME }}" >> $GITHUB_ENV
           echo "ADLS_DIRECTORY_PATH=${{ secrets.ADLS_DIRECTORY_PATH }}" >> $GITHUB_ENV
+          echo "GH_TOKEN=$GH_TOKEN" >> $GITHUB_ENV
 
       - name: Verify environment variables
         run: |
@@ -60,7 +61,6 @@ jobs:
           AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}
           AZURE_STORAGE_FILE_SYSTEM_NAME: ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}
           ADLS_DIRECTORY_PATH: ${{ secrets.ADLS_DIRECTORY_PATH  }}
-          GH_TOKEN:  ${{ secrets.GH_TOKEN }}
         run: |
           echo "Running Python script with mode dry-run"
           python src/main.py --mode dry-run --all-subscriptions
