@@ -67,6 +67,7 @@ jobs:
 
       - name: Configure Git
         if: ${{ success() }}
+        shell: pwsh
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
