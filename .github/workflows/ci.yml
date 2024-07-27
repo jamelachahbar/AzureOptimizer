@@ -68,18 +68,27 @@ jobs:
           echo "Running Python script with mode dry-run"
           python src/main.py --mode dry-run --all-subscriptions
 
-
-      - name: Commit and Push impacted_resources.txt and Cost Trend Charts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      - name: Configure Git
+        if: ${{ success() }}
         run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      - name: Create a new branch and commit changes
+        if: ${{ success() && env.HAS_CHANGES == 'yes'}}
+        run: |
+          BRANCH_NAME=ACO-$(date +'%Y%m%d%H%M%S')
+          git checkout -b $BRANCH_NAME
           git add impacted_resources.txt
           git add cost_trend_*.png
           git commit -m "Add impacted_resources.txt and cost trend charts"
-          git remote set-url origin https://github-actions:${GH_PAT}@github.com/jamelachahbar/AzureCostOptimizer.git
-          git push origin add-feature/Owner
+          git push origin $BRANCH_NAME
+      # - name: Create a new issue and a Pull Request
+      #   if: ${{ success() && env.HAS_CHANGES == 'yes'}}
+      #   run: |
+      #     gh issue create --title "Automated changes by Release Copilot" --body "This issue contains automated changes by the Release Copilot workflow." --label "release-copilot"
+      #     gh pr create --base main --head "$BRANCH_NAME" --title "Automated changes by Release Copilot" --body "This PR contains automated changes by the Release Copilot workflow." --label "release-copilot"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}          
       - name: Notify Owner via GitHub Issue.
         if: success()
         uses: peter-evans/create-issue-from-file@v3
