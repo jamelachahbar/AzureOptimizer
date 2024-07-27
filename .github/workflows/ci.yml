@@ -90,15 +90,15 @@ jobs:
 
       - name: Notify Owners via GitHub Issues
         if: ${{ success() }}
+        shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for file in output/impacted_resources_*.txt; do
-            $owner = (Get-Item $file).BaseName -replace 'impacted_resources_', ''
-            echo "Creating issue for owner: $owner"
-            gh issue create --title "Azure Cost Optimization Results for $owner" --body-file $file --label notification
-          done
-
+          Get-ChildItem output/impacted_resources_*.txt | ForEach-Object {
+            $owner = $_.BaseName -replace 'impacted_resources_', ''
+            Write-Output "Creating issue for owner: $owner"
+            gh issue create --title "Azure Cost Optimization Results for $owner" --body-file $_.FullName --label notification
+          }
       - name: Create Pull Request
         if: ${{ success() }}
         env:
