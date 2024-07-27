@@ -88,20 +88,19 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/jamelachahbar/AzureCostOptimizer.git
           git push origin $branchName
 
-      - name: Notify Owners via GitHub Issues
-        if: ${{ success() }}
-        shell: pwsh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check and Create GitHub Issue
         run: |
           if (Test-Path -Path "./impacted_resources.txt") {
             $owner = (Get-Item -Path ./impacted_resources.txt).BaseName -replace 'impacted_resources_', ''
             Write-Output "Creating issue for owner: $owner"
-            gh issue create --title "Azure Cost Optimization Results for $owner" --body-file "./impacted_resources.txt" --label "notification"
+            $title = "Azure Cost Optimization Results for $owner"
+            gh issue create --title "$title" --body-file "./impacted_resources.txt" --label "notification"
           } else {
             Write-Output "File 'impacted_resources.txt' does not exist. Skipping issue creation."
           }
-        
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
       - name: Create Pull Request
         if: ${{ success() }}
         shell: pwsh
