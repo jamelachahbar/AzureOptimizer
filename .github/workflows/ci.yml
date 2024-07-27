@@ -83,13 +83,13 @@ jobs:
           git add cost_trend_*.png
           git commit -m "Add impacted_resources.txt and cost trend charts"
           git push origin $BRANCH_NAME
-      # - name: Create a new issue and a Pull Request
-      #   if: ${{ success() && env.HAS_CHANGES == 'yes'}}
-      #   run: |
-      #     gh issue create --title "Azure Cost Optimization Results" --body "This issue contains automated changes by the Release Copilot workflow." --label "notification"
-      #     gh pr create --base main --head "$BRANCH_NAME" --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Release Copilot workflow." --label "notification"
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GH_PATNEW }}          
+      - name: Create a new issue and a Pull Request
+        if: ${{ success() && env.HAS_CHANGES == 'yes'}}
+        run: |
+          gh issue create --title "Azure Cost Optimization Results" --body "This issue contains automated changes by the Release Copilot workflow." --label "notification"
+          gh pr create --base main --head "$BRANCH_NAME" --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PATNEW }}          
       # - name: Notify Owner via GitHub Issue.
       #   if: success()
       #   uses: peter-evans/create-issue-from-file@v3
