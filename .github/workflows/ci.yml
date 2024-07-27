@@ -97,7 +97,7 @@ jobs:
           if (Test-Path -Path "./impacted_resources.txt") {
             $owner = (Get-Item -Path ./impacted_resources.txt).BaseName -replace 'impacted_resources_', ''
             Write-Output "Creating issue for owner: $owner"
-            gh issue create --title `"Azure Cost Optimization Results for $owner`" --body-file ./impacted_resources.txt --label "notification"
+            gh issue create --title "Azure Cost Optimization Results for $owner" --body-file "./impacted_resources.txt" --label "notification"
           } else {
             Write-Output "File 'impacted_resources.txt' does not exist. Skipping issue creation."
           }
@@ -108,4 +108,4 @@ jobs:
         env:
           GH_PATNEW: ${{ secrets.GH_PATNEW }}
         run: |
-          gh pr create --base main --head $branchName --title `"Automated changes by Azure Cost Optimizer`" --body `"This PR contains automated changes by the Azure Cost Optimizer.`" --label "notification"
+          gh pr create --base main --head $branchName --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
