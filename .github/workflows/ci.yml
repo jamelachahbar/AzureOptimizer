@@ -82,8 +82,7 @@ jobs:
           git add impacted_resources.txt
           git add cost_trend_*.png
           git commit -m "Add impacted_resources.txt and cost trend charts"
-          git remote set-url origin https://github-actions:${{ secrets.GH_TOKEN }}@github.com/jamelachahbar/AzureCostOptimizer.git
-          echo "Remote URL set to: https://github-actions:${{ secrets.GH_TOKEN }}@github.com/jamelachahbar/AzureCostOptimizer.git"
+          git remote set-url origin https://${{ secrets.GH_TOKEN }}@github.com/jamelachahbar/AzureCostOptimizer.git
           git push origin $branchName
 
       - name: Notify Owners via GitHub Issues
