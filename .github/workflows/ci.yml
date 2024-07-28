@@ -86,7 +86,7 @@ jobs:
           git checkout -b $branchName
           git add impacted_resources.txt
           git add cost_trend_*.png
-          git commit -m "Add impacted_resources.txt and cost trend charts"
+          git commit -m "Add impacted_resources.txt and cost trend charts [skip ci]"
           git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/jamelachahbar/AzureCostOptimizer.git
           git push origin $branchName
           gh pr create --base main --head $branchName --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
