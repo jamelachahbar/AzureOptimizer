@@ -1,28 +1,31 @@
-name: Azure Cost Optimization Workflow Dry Run.
+name: Azure Cost Optimization Workflow Dry Run
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-  
 
 jobs:
-   build:
+  build:
     runs-on: windows-latest
     environment: dev
     permissions: write-all
+
     steps:
       - uses: actions/checkout@v2
+
       - name: Get registration token
         id: getRegToken
         run: |
-          curl -X POST -H \"Accept: application/vnd.github.v3+json\"  -H 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' https://api.github.com/repos/myprofile/myrepo/actions/runners/registration-token
+          curl -X POST -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/myprofile/myrepo/actions/runners/registration-token
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
           token: ${{ secrets.GH_TOKEN }}
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -39,7 +42,7 @@ jobs:
           echo "AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "AZURE_STORAGE_FILE_SYSTEM_NAME=${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME }}" >> $GITHUB_ENV
           echo "ADLS_DIRECTORY_PATH=${{ secrets.ADLS_DIRECTORY_PATH }}" >> $GITHUB_ENV
-          echo "GH_TOKEN=$GH_TOKEN" >> $GITHUB_ENV
+          echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> $GITHUB_ENV
 
       - name: Verify environment variables
         run: |
@@ -53,6 +56,7 @@ jobs:
           echo "AZURE_STORAGE_FILE_SYSTEM_NAME=$AZURE_STORAGE_FILE_SYSTEM_NAME"
           echo "ADLS_DIRECTORY_PATH=$ADLS_DIRECTORY_PATH"
           echo "GH_TOKEN=$GH_TOKEN"
+
       - name: Run Azure Cost Optimizer in Dry Mode
         env:
           CONFIG_FILE: configs/config.yaml
@@ -61,22 +65,21 @@ jobs:
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
-          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME  }}
-          AZURE_STORAGE_FILE_SYSTEM_NAME: ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME  }}
-          ADLS_DIRECTORY_PATH: ${{ secrets.ADLS_DIRECTORY_PATH  }}
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_FILE_SYSTEM_NAME: ${{ secrets.AZURE_STORAGE_FILE_SYSTEM_NAME }}
+          ADLS_DIRECTORY_PATH: ${{ secrets.ADLS_DIRECTORY_PATH }}
         run: |
           echo "Running Python script with mode dry-run"
           python src/main.py --mode dry-run --all-subscriptions
 
       - name: Configure Git
-        if: ${{ success() }}
         shell: pwsh
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           git config --global core.autocrlf true
 
-      - name: Create a new branch and commit changes + Create Pull Request
+      - name: Create a new branch, commit changes, and create a Pull Request
         if: ${{ success() }}
         shell: pwsh
         env:
@@ -84,12 +87,16 @@ jobs:
         run: |
           $branchName = "azurecostoptimizer/dry-run-$((Get-Date).ToString('yyyyMMddHHmmss'))"
           git checkout -b $branchName
-          git add impacted_resources.txt
-          git add cost_trend_*.png
-          git commit -m "Add impacted_resources.txt and cost trend charts [skip ci]"
-          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/jamelachahbar/AzureCostOptimizer.git
-          git push origin $branchName
-          gh pr create --base main --head $branchName --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
+          if (git status --porcelain) {
+            git add impacted_resources.txt
+            git add cost_trend_*.png
+            git commit -m "Add impacted_resources.txt and cost trend charts [skip ci]"
+            git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/myprofile/myrepo.git
+            git push origin $branchName
+            gh pr create --base main --head $branchName --title "Automated changes by Azure Cost Optimizer" --body "This PR contains automated changes by the Azure Cost Optimizer." --label "notification"
+          } else {
+            Write-Output "No changes to commit"
+          }
 
       - name: Check and Create GitHub Issue
         run: |
@@ -103,4 +110,4 @@ jobs:
           }
         shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
