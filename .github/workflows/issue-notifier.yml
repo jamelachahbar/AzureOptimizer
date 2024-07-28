@@ -1,4 +1,4 @@
-name: Mention Owner
+name: Notify Owner
 
 on:
   issues:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  mention-owner:
+  notify-owner:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -18,8 +18,21 @@ jobs:
       - name: Extract issue details
         id: extract_details
         run: |
+          echo "Issue body: ${{ github.event.issue.body }}"
           OWNER=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Owner": ")[^"]+')
+          POLICY=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Policy": ")[^"]+')
+          RESOURCE=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Resource": ")[^"]+')
+          ACTIONS=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Actions": ")[^"]+')
+
+          echo "Extracted OWNER: $OWNER"
+          echo "Extracted POLICY: $POLICY"
+          echo "Extracted RESOURCE: $RESOURCE"
+          echo "Extracted ACTIONS: $ACTIONS"
+
           echo "::set-output name=owner::$OWNER"
+          echo "::set-output name=policy::$POLICY"
+          echo "::set-output name=resource::$RESOURCE"
+          echo "::set-output name=actions::$ACTIONS"
 
       - name: Comment on the issue
         uses: peter-evans/create-or-update-comment@v1
@@ -27,6 +40,6 @@ jobs:
           issue-number: ${{ github.event.issue.number }}
           body: |
             @${{ steps.extract_details.outputs.owner }} A new issue has been created with the following details:
-            - **Policy**: $(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Policy": ")[^"]+')
-            - **Resource**: $(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Resource": ")[^"]+')
-            - **Actions**: $(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Actions": ")[^"]+')
+            - **Policy**: ${{ steps.extract_details.outputs.policy }}
+            - **Resource**: ${{ steps.extract_details.outputs.resource }}
+            - **Actions**: ${{ steps.extract_details.outputs.actions }}
