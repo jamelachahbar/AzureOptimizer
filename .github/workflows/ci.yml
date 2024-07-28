@@ -94,6 +94,7 @@ jobs:
           }
 
       - name: Check and Create GitHub Issue
+        id: create_issue
         run: |
           if (Test-Path -Path "./impacted_resources.txt") {
             $owner = (Get-Item -Path ./impacted_resources.txt).BaseName -replace 'impacted_resources_', ''
