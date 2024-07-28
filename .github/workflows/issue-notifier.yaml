@@ -1,0 +1,28 @@
+name: Mention Owner
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  mention-owner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Extract issue details
+        id: extract_details
+        run: |
+          OWNER=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Owner": ")[^"]+')
+          echo "::set-output name=owner::$OWNER"
+
+      - name: Comment on the issue
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            @${{ steps.extract_details.outputs.owner }} A new issue has been created with the following details:
+            - **Policy**: ${{ github.event.issue.body | fromJson | .Policy }}
+            - **Resource**: ${{ github.event.issue.body | fromJson | .Resource }}
+            - **Actions**: ${{ github.event.issue.body | fromJson | .A
