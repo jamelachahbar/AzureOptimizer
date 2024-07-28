@@ -100,13 +100,15 @@ jobs:
             $owner = (Get-Item -Path ./impacted_resources.txt).BaseName -replace 'impacted_resources_', ''
             Write-Output "Creating issue for owner: $owner"
             $title = "Azure Cost Optimization Results for $owner -$((Get-Date).ToString('yyyyMMddHHmmss'))"
-            gh issue create --title "$title" --body-file "./impacted_resources.txt" --label "notification"
+            $issue_url = gh issue create --title "$title" --body-file "./impacted_resources.txt" --label "notification" --json "url" | ConvertFrom-Json
+            Write-Output "::set-output name=issue_url::$issue_url.url"
           } else {
             Write-Output "File 'impacted_resources.txt' does not exist. Skipping issue creation."
           }
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Dispatch Custom Event
         if: steps.create_issue.outputs.issue_url
         uses: peter-evans/repository-dispatch@v1
