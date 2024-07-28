@@ -22,6 +22,13 @@
 {
   "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
   "Policy": "stop-unused-vms",
+  "Resource": "vmwithhibernationmode",
+  "Actions": "stop",
+  "Owner": "jachahbar@microsoft.com"
+}
+{
+  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "Policy": "stop-unused-vms",
   "Resource": "vm-forcedetachdemo1-1",
   "Actions": "stop",
   "Owner": "jachahbar@microsoft.com"
