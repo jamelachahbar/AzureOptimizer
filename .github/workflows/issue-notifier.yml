@@ -1,8 +1,8 @@
 name: Notify Owner
 
 on:
-  issues:
-    types: [opened]
+  repository_dispatch:
+    types: [issue-created]
 
 permissions:
   issues: write
@@ -11,18 +11,39 @@ permissions:
 jobs:
   notify-owner:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Extract and Log Event Payload
+        id: extract_payload
+        run: |
+          echo "Event payload: ${{ toJson(github.event.client_payload) }}"
+          issue_url="${{ github.event.client_payload.issue_url }}"
+          echo "Issue URL: $issue_url"
+          echo "::set-output name=issue_url::$issue_url"
+
+      - name: Get Issue Details
+        id: get_issue
+        uses: actions/github-script@v3
+        with:
+          script: |
+            const issue_url = '${{ steps.extract_payload.outputs.issue_url }}';
+            const issue_number = issue_url.split('/').pop();
+            const response = await github.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number
+            });
+            return response.data;
 
       - name: Extract issue details
         id: extract_details
         run: |
-          echo "Issue body: ${{ github.event.issue.body }}"
-          OWNER=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Owner": ")[^"]+')
-          POLICY=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Policy": ")[^"]+')
-          RESOURCE=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Resource": ")[^"]+')
-          ACTIONS=$(echo "${{ github.event.issue.body }}" | grep -oP '(?<=Actions": ")[^"]+')
+          issue_body="${{ steps.get_issue.outputs.body }}"
+          echo "Issue body: $issue_body"
+          OWNER=$(echo "$issue_body" | grep -oP '(?<=Owner": ")[^"]+')
+          POLICY=$(echo "$issue_body" | grep -oP '(?<=Policy": ")[^"]+')
+          RESOURCE=$(echo "$issue_body" | grep -oP '(?<=Resource": ")[^"]+')
+          ACTIONS=$(echo "$issue_body" | grep -oP '(?<=Actions": ")[^"]+')
 
           echo "Extracted OWNER: $OWNER"
           echo "Extracted POLICY: $POLICY"
@@ -37,7 +58,7 @@ jobs:
       - name: Comment on the issue
         uses: peter-evans/create-or-update-comment@v1
         with:
-          issue-number: ${{ github.event.issue.number }}
+          issue-url: ${{ steps.extract_payload.outputs.issue_url }}
           body: |
             @${{ steps.extract_details.outputs.owner }} A new issue has been created with the following details:
             - **Policy**: ${{ steps.extract_details.outputs.policy }}
