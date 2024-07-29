@@ -33,12 +33,15 @@ jobs:
               repo: context.repo.repo,
               issue_number: issue_number
             });
+            console.log(response.data);
             return response.data;
+        outputs:
+          issue_body: ${{ steps.get_issue.outputs.body }}
 
       - name: Extract issue details
         id: extract_details
         run: |
-          issue_body="${{ steps.get_issue.outputs.body }}"
+          issue_body="${{ steps.get_issue.outputs.issue_body }}"
           echo "Issue body: $issue_body"
           OWNER=$(echo "$issue_body" | grep -oP '(?<=Owner": ")[^"]+')
           POLICY=$(echo "$issue_body" | grep -oP '(?<=Policy": ")[^"]+')
@@ -54,6 +57,7 @@ jobs:
           echo "::set-output name=policy::$POLICY"
           echo "::set-output name=resource::$RESOURCE"
           echo "::set-output name=actions::$ACTIONS"
+        shell: bash
 
       - name: Comment on the issue
         uses: peter-evans/create-or-update-comment@v1
