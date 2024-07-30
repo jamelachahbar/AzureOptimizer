@@ -28,9 +28,10 @@ jobs:
       - name: Get Issue Details
         id: get_issue
         uses: actions/github-script@v3
-        with:
+        with: 
           script: |
-            const issue_number = '${{ steps.extract_payload.outputs.issue_number }}';
+            const issue_url = '${{ steps.extract_payload.outputs.issue_url }}';
+            const issue_number = issue_url.split('/').pop();
             const response = await github.issues.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -41,9 +42,12 @@ jobs:
             return { body: body };
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Output Issue Body
         run: |
           echo "Issue body: ${{ steps.get_issue.outputs.body }}"
           echo "::set-output name=issue_body::${{ steps.get_issue.outputs.body }}"
+
 
       - name: Install jq
         run: sudo apt-get install -y jq
