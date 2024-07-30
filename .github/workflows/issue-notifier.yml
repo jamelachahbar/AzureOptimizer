@@ -38,15 +38,18 @@ jobs:
         outputs:
           issue_body: ${{ steps.get_issue.outputs.body }}
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Extract issue details
         id: extract_details
         run: |
           issue_body="${{ steps.get_issue.outputs.issue_body }}"
           echo "Issue body: $issue_body"
-          OWNER=$(echo "$issue_body" | grep -oP '(?<=Owner": ")[^"]+')
-          POLICY=$(echo "$issue_body" | grep -oP '(?<=Policy": ")[^"]+')
-          RESOURCE=$(echo "$issue_body" | grep -oP '(?<=Resource": ")[^"]+')
-          ACTIONS=$(echo "$issue_body" | grep -oP '(?<=Actions": ")[^"]+')
+          OWNER=$(echo "$issue_body" | jq -r '.[0].Owner')
+          POLICY=$(echo "$issue_body" | jq -r '.[0].Policy')
+          RESOURCE=$(echo "$issue_body" | jq -r '.[0].Resource')
+          ACTIONS=$(echo "$issue_body" | jq -r '.[0].Actions')
 
           echo "Extracted OWNER: $OWNER"
           echo "Extracted POLICY: $POLICY"
