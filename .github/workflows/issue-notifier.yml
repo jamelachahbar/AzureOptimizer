@@ -48,10 +48,11 @@ jobs:
         run: |
           issue_body="${{ steps.get_issue.outputs.result }}"
           echo "Issue body: $issue_body"
-          OWNER=$(echo "$issue_body" | jq -r '.Owner')
-          POLICY=$(echo "$issue_body" | jq -r '.Policy')
-          RESOURCE=$(echo "$issue_body" | jq -r '.Resource')
-          ACTIONS=$(echo "$issue_body" | jq -r '.Actions')
+
+          OWNER=$(echo "$issue_body" | jq -r '.[].Owner' | head -n 1)
+          POLICY=$(echo "$issue_body" | jq -r '.[].Policy' | head -n 1)
+          RESOURCE=$(echo "$issue_body" | jq -r '.[].Resource' | head -n 1)
+          ACTIONS=$(echo "$issue_body" | jq -r '.[].Actions' | head -n 1)
 
           echo "Extracted OWNER: $OWNER"
           echo "Extracted POLICY: $POLICY"
