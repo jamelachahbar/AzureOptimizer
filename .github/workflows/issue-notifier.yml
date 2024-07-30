@@ -34,9 +34,13 @@ jobs:
               issue_number: issue_number
             });
             console.log(response.data);
-            return response.data;
-        outputs:
-          issue_body: ${{ steps.get_issue.outputs.body }}
+            const body = response.data.body;
+            return { body: body };
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Issue body: ${{ steps.get_issue.outputs.body }}"
+          echo "::set-output name=issue_body::${{ steps.get_issue.outputs.body }}"
 
       - name: Install jq
         run: sudo apt-get install -y jq
