@@ -37,13 +37,17 @@ jobs:
               issue_number: issue_number
             });
             console.log(response.data);
-            const body = response.data.body;
-            return { body: body };
+            return response.data.body;
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          result-encoding: string
+        id: fetch_issue_body
+
+      - name: Set Issue Body Output
         run: |
-          echo "Issue body: ${{ steps.get_issue.outputs.body }}"
-          echo "::set-output name=issue_body::${{ steps.get_issue.outputs.body }}"
+          echo "Issue body: ${{ steps.fetch_issue_body.outputs.result }}"
+          echo "::set-output name=issue_body::${{ steps.fetch_issue_body.outputs.result }}"
 
       - name: Install jq
         run: sudo apt-get install -y jq
@@ -51,7 +55,7 @@ jobs:
       - name: Extract issue details
         id: extract_details
         run: |
-          issue_body="${{ steps.get_issue.outputs.issue_body }}"
+          issue_body="${{ steps.fetch_issue_body.outputs.result }}"
           echo "Issue body: $issue_body"
           OWNER=$(echo "$issue_body" | jq -r '.[0].Owner')
           POLICY=$(echo "$issue_body" | jq -r '.[0].Policy')
