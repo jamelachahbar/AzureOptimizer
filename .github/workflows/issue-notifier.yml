@@ -34,13 +34,11 @@ jobs:
               issue_number: issue_number
             });
             return response.data;
-        outputs:
-          issue_body: ${{ steps.get_issue.outputs.body }}
-
+          result-encoding: string
       - name: Extract issue details
         id: extract_details
         run: |
-          issue_body="${{ steps.get_issue.outputs.issue_body }}"
+          issue_body="${{ steps.get_issue.outputs.result }}"
           echo "Issue body: $issue_body"
 
           # Extract each JSON object and add to an array
