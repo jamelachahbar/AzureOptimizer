@@ -39,7 +39,6 @@ jobs:
             return response.data.body;
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        result-encoding: string
 
       - name: Install jq
         run: sudo apt-get install -y jq
@@ -74,4 +73,3 @@ jobs:
             - **Policy**: ${{ steps.extract_details.outputs.policy }}
             - **Resource**: ${{ steps.extract_details.outputs.resource }}
             - **Actions**: ${{ steps.extract_details.outputs.actions }}
-
