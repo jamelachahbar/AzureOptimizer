@@ -1,4 +1,3 @@
-
 name: Notify Owner
 
 on:
@@ -28,26 +27,19 @@ jobs:
       - name: Get Issue Details
         id: get_issue
         uses: actions/github-script@v3
-        with: 
+        with:
           script: |
-            const issue_url = '${{ steps.extract_payload.outputs.issue_url }}';
-            const issue_number = issue_url.split('/').pop();
+            const issue_number = '${{ steps.extract_payload.outputs.issue_number }}';
             const response = await github.issues.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue_number
             });
             console.log(response.data);
-            const body = response.data.body;
-            return { body: body };
+            return response.data.body;
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Output Issue Body
-        run: |
-          echo "Issue body: ${{ steps.get_issue.outputs.body }}"
-          echo "::set-output name=issue_body::${{ steps.get_issue.outputs.body }}"
-
+        result-encoding: string
 
       - name: Install jq
         run: sudo apt-get install -y jq
@@ -55,12 +47,12 @@ jobs:
       - name: Extract issue details
         id: extract_details
         run: |
-          issue_body="${{ steps.get_issue.outputs.issue_body }}"
+          issue_body="${{ steps.get_issue.outputs.result }}"
           echo "Issue body: $issue_body"
-          OWNER=$(echo "$issue_body" | jq -r '.[0].Owner')
-          POLICY=$(echo "$issue_body" | jq -r '.[0].Policy')
-          RESOURCE=$(echo "$issue_body" | jq -r '.[0].Resource')
-          ACTIONS=$(echo "$issue_body" | jq -r '.[0].Actions')
+          OWNER=$(echo "$issue_body" | jq -r '.Owner')
+          POLICY=$(echo "$issue_body" | jq -r '.Policy')
+          RESOURCE=$(echo "$issue_body" | jq -r '.Resource')
+          ACTIONS=$(echo "$issue_body" | jq -r '.Actions')
 
           echo "Extracted OWNER: $OWNER"
           echo "Extracted POLICY: $POLICY"
@@ -82,3 +74,4 @@ jobs:
             - **Policy**: ${{ steps.extract_details.outputs.policy }}
             - **Resource**: ${{ steps.extract_details.outputs.resource }}
             - **Actions**: ${{ steps.extract_details.outputs.actions }}
+
