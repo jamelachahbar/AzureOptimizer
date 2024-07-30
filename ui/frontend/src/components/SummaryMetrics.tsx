@@ -10,7 +10,7 @@ const SummaryMetrics: React.FC<SummaryMetricsProps> = ({ data }) => {
     <Grid container spacing={3}>
       {data.map((metric, index) => (
         <Grid item xs={12} md={4} key={index}>
-          <Paper>
+          <Paper style={{ padding: 16 }}>
             <Typography variant="h6">{metric.title}</Typography>
             <Typography variant="h4">{metric.value}</Typography>
           </Paper>

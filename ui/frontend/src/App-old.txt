@@ -1,0 +1,147 @@
+import React, { useEffect, useState } from 'react';
+import { Container, Grid, Button, CircularProgress, Typography, FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
+import SummaryMetrics from './components/SummaryMetrics';
+import CostChart from './components/CostChart';
+import ExecutionTable from './components/ExecutionTable';
+import ImpactedResourcesTable from './components/ImpactedResourcesTable';
+import { CostData, ExecutionData, ResourceData } from './types';
+
+const App: React.FC = () => {
+  const [summaryMetrics, setSummaryMetrics] = useState<any[]>([]);
+  const [costData, setCostData] = useState<CostData[]>([]);
+  const [executionData, setExecutionData] = useState<ExecutionData[]>([]);
+  const [impactedResources, setImpactedResources] = useState<ResourceData[]>([]);
+  const [isOptimizerRunning, setIsOptimizerRunning] = useState(false);
+  const [mode, setMode] = useState('dry-run'); // Default mode is 'dry-run'
+  const [logs, setLogs] = useState<string[]>([]); // State to hold logs
+
+  const fetchData = async () => {
+    try {
+      const summaryMetricsRes = await fetch('http://127.0.0.1:5000/api/summary-metrics');
+      const summaryMetricsData = await summaryMetricsRes.json();
+      setSummaryMetrics(summaryMetricsData);
+
+      const costDataRes = await fetch('http://127.0.0.1:5000/api/cost-data');
+      const costDataData = await costDataRes.json();
+      setCostData(costDataData);
+
+      const executionDataRes = await fetch('http://127.0.0.1:5000/api/execution-data');
+      const executionDataData = await executionDataRes.json();
+      setExecutionData(executionDataData);
+
+      const impactedResourcesRes = await fetch('http://127.0.0.1:5000/api/impacted-resources');
+      const impactedResourcesData = await impactedResourcesRes.json();
+      setImpactedResources(impactedResourcesData);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setLogs(prevLogs => [...prevLogs, 'Error fetching data.']);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    let interval: NodeJS.Timeout;
+
+    if (isOptimizerRunning) {
+      interval = setInterval(() => {
+        fetch('http://127.0.0.1:5000/api/status')
+          .then(res => res.json())
+          .then(status => {
+            if (status.status !== 'Running') {
+              setIsOptimizerRunning(false);
+              fetchData();
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching status:', err);
+            setLogs(prevLogs => [...prevLogs, 'Error fetching status.']);
+          });
+      }, 5000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isOptimizerRunning]);
+
+  const runOptimizer = async () => {
+    setIsOptimizerRunning(true);
+    setLogs([]); // Clear logs when starting a new run
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/run', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ mode: mode, all_subscriptions: true, use_adls: false })
+      });
+      const text = await response.text();
+      try {
+        const data = JSON.parse(text);
+        console.log('Run Optimizer Response:', data);
+        setLogs(prevLogs => [...prevLogs, `Optimizer started in ${mode} mode.`]);
+      } catch (err) {
+        console.error('Error parsing response as JSON:', text);
+        setLogs(prevLogs => [...prevLogs, 'Error starting optimizer.']);
+      }
+    } catch (err) {
+      console.error('Error running optimizer:', err);
+      setLogs(prevLogs => [...prevLogs, 'Error running optimizer.']);
+    }
+  };
+
+  return (
+    <Container>
+      <Grid container spacing={3} justifyContent="center" alignItems="center" style={{ margin: 20 }}>
+        <Grid item>
+          <FormControl variant="outlined" style={{ minWidth: 120 }}>
+            <InputLabel>Mode</InputLabel>
+            <Select
+              value={mode}
+              onChange={(e) => setMode(e.target.value as string)}
+              label="Mode"
+            >
+              <MenuItem value="dry-run">Dry Run</MenuItem>
+              <MenuItem value="apply">Apply</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item>
+          <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
+            Run Optimizer
+          </Button>
+        </Grid>
+        {isOptimizerRunning && (
+          <Grid item>
+            <CircularProgress />
+            <Typography variant="h6" style={{ marginLeft: 10 }}>Optimizer is running...</Typography>
+          </Grid>
+        )}
+      </Grid>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <SummaryMetrics data={summaryMetrics} />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <CostChart data={costData} />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <ExecutionTable data={executionData} />
+        </Grid>
+        <Grid item xs={12}>
+          <ImpactedResourcesTable data={impactedResources} />
+        </Grid>
+      </Grid>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Typography variant="h6">Optimizer Logs</Typography>
+          <Paper>
+            {logs.map((log, index) => (
+              <Typography key={index} variant="body1">{log}</Typography>
+            ))}
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
+  );
+};
+
+export default App;

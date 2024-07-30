@@ -18,8 +18,8 @@ const ImpactedResourcesTable: React.FC<ImpactedResourcesTableProps> = ({ data })
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((resource) => (
-            <TableRow key={resource.resource}>
+          {data.map((resource, index) => (
+            <TableRow key={index}>
               <TableCell>{resource.resource}</TableCell>
               <TableCell>{resource.action}</TableCell>
               <TableCell>{resource.status}</TableCell>

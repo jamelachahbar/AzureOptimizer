@@ -18,9 +18,9 @@ const ExecutionTable: React.FC<ExecutionTableProps> = ({ data }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((execution) => (
-            <TableRow key={execution.date}>
-              <TableCell>{execution.date}</TableCell>
+          {data.map((execution, index) => (
+            <TableRow key={index}>
+              <TableCell>{new Date(execution.date).toLocaleDateString()}</TableCell>
               <TableCell>{execution.status}</TableCell>
               <TableCell>{execution.details}</TableCell>
             </TableRow>
