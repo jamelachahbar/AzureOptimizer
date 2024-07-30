@@ -23,48 +23,34 @@ jobs:
           echo "Issue Number: $issue_number"
           echo "::set-output name=issue_url::$issue_url"
           echo "::set-output name=issue_number::$issue_number"
+
       - name: Get Issue Details
         id: get_issue
         uses: actions/github-script@v3
-        with: 
+        with:
           script: |
-            const issue_url = '${{ steps.extract_payload.outputs.issue_url }}';
-            const issue_number = issue_url.split('/').pop();
+            const issue_number = '${{ steps.extract_payload.outputs.issue_number }}';
             const response = await github.issues.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue_number
             });
             console.log(response.data);
-            const body = response.data.body;
-            return { body: body };
+            return response.data.body;
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Output Issue Body
-        run: |
-          echo "Issue body: ${{ steps.get_issue.outputs.body }}"
-          echo "::set-output name=issue_body::${{ steps.get_issue.outputs.body }}"
+
       - name: Install jq
         run: sudo apt-get install -y jq
 
-      - name: Extract issue details
-        id: extract_details
+      - name: Extract Owner
+        id: extract_owner
         run: |
-          issue_body="${{ steps.get_issue.outputs.issue_body }}"
+          issue_body="${{ steps.get_issue.outputs.result }}"
           echo "Issue body: $issue_body"
           OWNER=$(echo "$issue_body" | jq -r '.[0].Owner')
-          POLICY=$(echo "$issue_body" | jq -r '.[0].Policy')
-          RESOURCE=$(echo "$issue_body" | jq -r '.[0].Resource')
-          ACTIONS=$(echo "$issue_body" | jq -r '.[0].Actions')
           echo "Extracted OWNER: $OWNER"
-          echo "Extracted POLICY: $POLICY"
-          echo "Extracted RESOURCE: $RESOURCE"
-          echo "Extracted ACTIONS: $ACTIONS"
           echo "::set-output name=owner::$OWNER"
-          echo "::set-output name=policy::$POLICY"
-          echo "::set-output name=resource::$RESOURCE"
-          echo "::set-output name=actions::$ACTIONS"
         shell: bash
 
       - name: Comment on the issue
@@ -72,7 +58,4 @@ jobs:
         with:
           issue-number: ${{ steps.extract_payload.outputs.issue_number }}
           body: |
-            @${{ steps.extract_details.outputs.owner }} A new issue has been created with the following details:
-            - **Policy**: ${{ steps.extract_details.outputs.policy }}
-            - **Resource**: ${{ steps.extract_details.outputs.resource }}
-            - **Actions**: ${{ steps.extract_details.outputs.actions }}
+            @${{ steps.extract_owner.outputs.owner }} A new issue has been created with your assigned tasks.
