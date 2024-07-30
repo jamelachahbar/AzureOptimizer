@@ -18,13 +18,15 @@ jobs:
         run: |
           echo "Event payload: ${{ toJson(github.event.client_payload) }}"
           issue_url="${{ github.event.client_payload.issue_url }}"
+          issue_number=$(echo $issue_url | awk -F'/' '{print $NF}')
           echo "Issue URL: $issue_url"
+          echo "Issue Number: $issue_number"
           echo "::set-output name=issue_url::$issue_url"
-
+          echo "::set-output name=issue_number::$issue_number"
       - name: Get Issue Details
         id: get_issue
         uses: actions/github-script@v3
-        with:
+        with: 
           script: |
             const issue_url = '${{ steps.extract_payload.outputs.issue_url }}';
             const issue_number = issue_url.split('/').pop();
@@ -33,28 +35,32 @@ jobs:
               repo: context.repo.repo,
               issue_number: issue_number
             });
-            return response.data;
-          result-encoding: string
+            console.log(response.data);
+            const body = response.data.body;
+            return { body: body };
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Output Issue Body
+        run: |
+          echo "Issue body: ${{ steps.get_issue.outputs.body }}"
+          echo "::set-output name=issue_body::${{ steps.get_issue.outputs.body }}"
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Extract issue details
         id: extract_details
         run: |
-          issue_body="${{ steps.get_issue.outputs.result }}"
+          issue_body="${{ steps.get_issue.outputs.issue_body }}"
           echo "Issue body: $issue_body"
-
-          # Extract each JSON object and add to an array
-          json_array=$(echo "$issue_body" | jq -s '[.[]]')
-
-          # Extract values using jq from the first object in the array
-          OWNER=$(echo "$json_array" | jq -r '.[0].Owner')
-          POLICY=$(echo "$json_array" | jq -r '.[0].Policy')
-          RESOURCE=$(echo "$json_array" | jq -r '.[0].Resource')
-          ACTIONS=$(echo "$json_array" | jq -r '.[0].Actions')
-
+          OWNER=$(echo "$issue_body" | jq -r '.[0].Owner')
+          POLICY=$(echo "$issue_body" | jq -r '.[0].Policy')
+          RESOURCE=$(echo "$issue_body" | jq -r '.[0].Resource')
+          ACTIONS=$(echo "$issue_body" | jq -r '.[0].Actions')
           echo "Extracted OWNER: $OWNER"
           echo "Extracted POLICY: $POLICY"
           echo "Extracted RESOURCE: $RESOURCE"
           echo "Extracted ACTIONS: $ACTIONS"
-
           echo "::set-output name=owner::$OWNER"
           echo "::set-output name=policy::$POLICY"
           echo "::set-output name=resource::$RESOURCE"
@@ -64,7 +70,7 @@ jobs:
       - name: Comment on the issue
         uses: peter-evans/create-or-update-comment@v1
         with:
-          issue-url: ${{ steps.extract_payload.outputs.issue_url }}
+          issue-number: ${{ steps.extract_payload.outputs.issue_number }}
           body: |
             @${{ steps.extract_details.outputs.owner }} A new issue has been created with the following details:
             - **Policy**: ${{ steps.extract_details.outputs.policy }}
