@@ -1,17 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import {
-  Container,
-  Grid,
-  Button,
-  CircularProgress,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Paper,
-  Box
-} from '@mui/material';
+import { Container, Grid, Button, CircularProgress, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Box, TextField } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableRow, TableContainer } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
@@ -59,34 +47,10 @@ interface AnomalyData {
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#007BFF',
+      main: '#1976d2',
     },
-    background: {
-      default: '#f4f6f8',
-    },
-  },
-  typography: {
-    fontFamily: 'Roboto, sans-serif',
-    h5: {
-      fontWeight: 600,
-    },
-  },
-  components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        head: {
-          backgroundColor: '#007BFF',
-          color: '#FFFFFF',
-          fontWeight: 600,
-        },
-      },
+    secondary: {
+      main: '#dc004e',
     },
   },
 });
@@ -156,6 +120,8 @@ const App: React.FC = () => {
   const [mode, setMode] = useState('dry-run');
   const [logs, setLogs] = useState<string[]>([]);
   const [selectedSubscription, setSelectedSubscription] = useState<string>('All Subscriptions');
+  const [timeout, setTimeout] = useState<number>(60); // default timeout in seconds
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const fetchLogStream = useCallback(() => {
     const eventSource = new EventSource('http://127.0.0.1:5000/api/log-stream');
@@ -172,14 +138,26 @@ const App: React.FC = () => {
     setLogs([]);
     fetchLogStream();
     try {
-      const response = await axios.post('http://127.0.0.1:5000/api/run', { mode: mode, all_subscriptions: selectedSubscription === 'All Subscriptions' });
+      const response = await axios.post('http://127.0.0.1:5000/api/run', { mode: mode, all_subscriptions: true });
       const data = response.data;
       console.log('Run Optimizer Response:', data);
       setLogs(prevLogs => [...prevLogs, `Optimizer started in ${mode} mode.`]);
-      fetchData();
     } catch (error) {
       console.error('Error running optimizer:', error);
       setLogs(prevLogs => [...prevLogs, 'Error running optimizer.']);
+      setErrorMessage('Error running optimizer. Please check the server.');
+      setIsOptimizerRunning(false);
+    }
+  };
+
+  const stopOptimizer = async () => {
+    try {
+      await axios.post('http://127.0.0.1:5000/api/stop');
+      setIsOptimizerRunning(false);
+      setLogs(prevLogs => [...prevLogs, 'Optimizer stopped.']);
+    } catch (error) {
+      console.error('Error stopping optimizer:', error);
+      setLogs(prevLogs => [...prevLogs, 'Error stopping optimizer.']);
     }
   };
 
@@ -195,6 +173,8 @@ const App: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching summary metrics:', error);
+      setErrorMessage('Error fetching data from server. Please make sure the server is running.');
+      setIsOptimizerRunning(false);
     }
 
     try {
@@ -247,10 +227,10 @@ const App: React.FC = () => {
     setSelectedSubscription(event.target.value as string);
   };
 
-  const filteredAnomalyData = anomalyData.filter(data => selectedSubscription === 'All Subscriptions' || data.SubscriptionId === selectedSubscription);
-  const filteredTrendData = trendData.filter(data => selectedSubscription === 'All Subscriptions' || data.SubscriptionId === selectedSubscription);
-  const filteredExecutionData = executionData.filter(data => selectedSubscription === 'All Subscriptions' || data.SubscriptionId === selectedSubscription);
-  const filteredImpactedResources = impactedResources.filter(data => selectedSubscription === 'All Subscriptions' || data.SubscriptionId === selectedSubscription);
+  const filteredAnomalyData = selectedSubscription === 'All Subscriptions' ? anomalyData : anomalyData.filter(data => data.SubscriptionId === selectedSubscription);
+  const filteredTrendData = selectedSubscription === 'All Subscriptions' ? trendData : trendData.filter(data => data.SubscriptionId === selectedSubscription);
+  const filteredExecutionData = selectedSubscription === 'All Subscriptions' ? executionData : executionData.filter(data => data.SubscriptionId === selectedSubscription);
+  const filteredImpactedResources = selectedSubscription === 'All Subscriptions' ? impactedResources : impactedResources.filter(data => data.SubscriptionId === selectedSubscription);
 
   const renderSummaryMetricsTable = () => (
     <Grid container spacing={3}>
@@ -366,8 +346,8 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <Container>
         <Box mt={4} textAlign="center">
-            <Typography variant="h4" gutterBottom>Azure Cost Optimizer Dashboard</Typography>
-          </Box>
+          <Typography variant="h4">Team XYZ - Cost Optimizer</Typography>
+        </Box>
         <Grid container spacing={3} justifyContent="center" alignItems="center" style={{ margin: 20 }}>
           <Grid item>
             <FormControl variant="outlined" style={{ minWidth: 120 }}>
@@ -383,7 +363,34 @@ const App: React.FC = () => {
             </FormControl>
           </Grid>
           <Grid item>
-            <FormControl variant="outlined" style={{ minWidth: 200 }}>
+            <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
+              Run Optimizer
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>
+              Stop Optimizer
+            </Button>
+          </Grid>
+          <Grid item>
+            <TextField
+              label="Timeout (seconds)"
+              type="number"
+              variant="outlined"
+              value={timeout}
+              onChange={(e) => setTimeout(parseInt(e.target.value, 10))}
+            />
+          </Grid>
+          {isOptimizerRunning && (
+            <Grid item>
+              <CircularProgress />
+              <Typography variant="h6" style={{ marginLeft: 10 }}>Optimizer is running...</Typography>
+            </Grid>
+          )}
+        </Grid>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <FormControl variant="outlined" style={{ minWidth: 120 }}>
               <InputLabel>Subscription</InputLabel>
               <Select
                 value={selectedSubscription}
@@ -399,18 +406,12 @@ const App: React.FC = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item>
-            <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
-              Run Optimizer
-            </Button>
-          </Grid>
-          {isOptimizerRunning && (
-            <Grid item>
-              <CircularProgress />
-              <Typography variant="h6" style={{ marginLeft: 10 }}>Optimizer is running...</Typography>
-            </Grid>
-          )}
         </Grid>
+        {errorMessage && (
+          <Box mt={4}>
+            <Typography variant="h6" color="error">{errorMessage}</Typography>
+          </Box>
+        )}
         <Box mt={4}>
           <Typography variant="h5">Summary Metrics</Typography>
           {renderSummaryMetricsTable()}

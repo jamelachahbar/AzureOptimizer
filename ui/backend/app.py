@@ -1,15 +1,13 @@
+from flask import Flask, request, jsonify, Response
+from flask_cors import CORS
 import threading
 import logging
 import time
-from flask import Flask, request, jsonify, Response
-from flask_cors import CORS
-from azure_cost_optimizer.optimizer import main as optimizer_main
+from azure_cost_optimizer.optimizer import main as optimizer_main, stop as optimizer_stop
 
-# Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Initialize logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
@@ -17,17 +15,15 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-# Global variables to store the data
 summary_metrics_data = []
 execution_data_data = []
 impacted_resources_data = []
-optimizer_status = "Idle"  # Track optimizer status
-anomalies_data = []  # Global variable to store anomalies
-trend_data = []  # Global variable to store trend data
-log_messages = []  # Store log messages for SSE
+optimizer_status = "Idle"
+anomalies_data = []
+trend_data = []
+log_messages = []
 
 def stream_logs():
-    """Generator function to stream log messages."""
     global log_messages
     while True:
         if log_messages:
@@ -35,7 +31,6 @@ def stream_logs():
             yield f'data: {message}\n\n'
         time.sleep(1)
 
-# Custom log handler to store log messages
 class SSELogHandler(logging.Handler):
     def emit(self, record):
         global log_messages
@@ -54,27 +49,20 @@ def run_optimizer():
     global optimizer_status
     mode = request.json.get('mode')
     all_subscriptions = request.json.get('all_subscriptions', False)
-    timeout = request.json.get('timeout', 3600)  # Default to 1 hour timeout if not specified
 
     def run_optimizer_in_thread():
         global summary_metrics_data, execution_data_data, impacted_resources_data, anomalies_data, trend_data, optimizer_status
         optimizer_status = "Running"
-        start_time = time.time()
         try:
             result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions)
-            while time.time() - start_time < timeout:
-                result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions)
-                if result is None:
-                    raise ValueError("optimizer_main returned None")
-                summary_metrics_data = result['summary_reports']
-                execution_data_data = result['status_log']
-                impacted_resources_data = result['impacted_resources']
-                trend_data = result['trend_data']
-                anomalies_data = result['anomalies']
-                optimizer_status = "Completed"
-                return
-            optimizer_status = "Timeout"
-            logger.error("Optimizer timeout")
+            if result is None:
+                raise ValueError("optimizer_main returned None")
+            summary_metrics_data = result['summary_reports']
+            execution_data_data = result['status_log']
+            impacted_resources_data = result['impacted_resources']
+            trend_data = result['trend_data']
+            anomalies_data = result['anomalies']
+            optimizer_status = "Completed"
         except Exception as e:
             optimizer_status = f"Error: {str(e)}"
             logger.error(f"Optimizer error: {e}")
@@ -84,11 +72,17 @@ def run_optimizer():
 
     return jsonify({'status': 'Optimizer started'}), 200
 
-# Route to get optimizer status
+@app.route('/api/stop', methods=['POST'])
+def stop_optimizer():
+    global optimizer_status
+    optimizer_stop()
+    optimizer_status = "Stopped"
+    return jsonify({'status': 'Optimizer stopped'}), 200
+
 @app.route('/api/status', methods=['GET'])
 def get_status():
     return jsonify({'status': optimizer_status}), 200
-# Route to get summary metrics
+
 @app.route('/api/summary-metrics', methods=['GET'])
 def get_summary_metrics():
     try:
@@ -96,7 +90,7 @@ def get_summary_metrics():
     except Exception as e:
         logger.error(f"Error fetching summary metrics: {e}")
         return jsonify({'error': 'Error fetching summary metrics'}), 500
-# Route to get execution data
+
 @app.route('/api/execution-data', methods=['GET'])
 def get_execution_data():
     try:
@@ -106,7 +100,6 @@ def get_execution_data():
         logger.error(f"Error fetching execution data: {e}")
         return jsonify({'error': 'Error fetching execution data'}), 500
 
-# Route to get impacted resources
 @app.route('/api/impacted-resources', methods=['GET'])
 def get_impacted_resources():
     try:

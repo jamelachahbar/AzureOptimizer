@@ -1238,6 +1238,13 @@ def process_subscription(subscription, mode, summary_reports, impacted_resources
 
     return trend_data, anomalies
 
+import threading
+
+stop_event = threading.Event()
+
+def stop():
+    stop_event.set()
+
 def main(mode='dry-run', all_subscriptions=True):
     global execution_data
     execution_data = []
@@ -1255,6 +1262,9 @@ def main(mode='dry-run', all_subscriptions=True):
         if all_subscriptions:
             subscriptions = subscription_client.subscriptions.list()
             for subscription in subscriptions:
+                if stop_event.is_set():
+                    logger.info("Optimizer stopped.")
+                    return None
                 trend_data, anomalies = process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date=None, end_date=None)
                 trend_data_all.extend(trend_data)
                 anomalies_all.extend(anomalies)
