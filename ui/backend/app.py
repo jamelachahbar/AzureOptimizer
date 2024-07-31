@@ -3,7 +3,8 @@ from flask_cors import CORS
 import threading
 import logging
 import time
-from azure_cost_optimizer.optimizer import main as optimizer_main, stop as optimizer_stop
+import sys
+from azure_cost_optimizer.optimizer import main as optimizer_main
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -22,6 +23,7 @@ optimizer_status = "Idle"
 anomalies_data = []
 trend_data = []
 log_messages = []
+stop_event = threading.Event()
 
 def stream_logs():
     global log_messages
@@ -49,12 +51,13 @@ def run_optimizer():
     global optimizer_status
     mode = request.json.get('mode')
     all_subscriptions = request.json.get('all_subscriptions', False)
+    stop_event.clear()  # Reset the stop event
 
     def run_optimizer_in_thread():
         global summary_metrics_data, execution_data_data, impacted_resources_data, anomalies_data, trend_data, optimizer_status
         optimizer_status = "Running"
         try:
-            result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions)
+            result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions, stop_event=stop_event)
             if result is None:
                 raise ValueError("optimizer_main returned None")
             summary_metrics_data = result['summary_reports']
@@ -75,9 +78,9 @@ def run_optimizer():
 @app.route('/api/stop', methods=['POST'])
 def stop_optimizer():
     global optimizer_status
-    optimizer_stop()
+    stop_event.set()
     optimizer_status = "Stopped"
-    return jsonify({'status': 'Optimizer stopped'}), 200
+    return jsonify({'status': 'Optimizer stopping'}), 200
 
 @app.route('/api/status', methods=['GET'])
 def get_status():

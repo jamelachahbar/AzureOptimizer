@@ -1237,15 +1237,12 @@ def process_subscription(subscription, mode, summary_reports, impacted_resources
         tc.track_event("SubscriptionProcessingCompleted", {"SubscriptionId": subscription_id})
 
     return trend_data, anomalies
-
 import threading
-
 stop_event = threading.Event()
-
 def stop():
     stop_event.set()
 
-def main(mode='dry-run', all_subscriptions=True):
+def main(mode='dry-run', all_subscriptions=True, stop_event=None):
     global execution_data
     execution_data = []
     summary_reports = []
@@ -1256,26 +1253,32 @@ def main(mode='dry-run', all_subscriptions=True):
     anomalies_all = []
     summary_reports_file = 'summary_reports.json'
     execution_data_file = 'execution_data.json'
+    stop_event=threading.Event()
 
     try:
         start_time = time.time()
+
         if all_subscriptions:
             subscriptions = subscription_client.subscriptions.list()
             for subscription in subscriptions:
                 if stop_event.is_set():
-                    logger.info("Optimizer stopped.")
-                    return None
+                   logger.info("Optimizer stopped.")
+                   return 'Optimizer stopped.'
                 trend_data, anomalies = process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date=None, end_date=None)
                 trend_data_all.extend(trend_data)
                 anomalies_all.extend(anomalies)
         else:
             subscription_id = config['subscription']['id']
             subscription = subscription_client.subscriptions.get(subscription_id)
+            if stop_event and stop_event.is_set():
+                logger.info("Optimizer stopped by user.")
+                return 'Optimizer stopped.'
             trend_data, anomalies = process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date=None, end_date=None)
             trend_data_all.extend(trend_data)
             anomalies_all.extend(anomalies)
         end_time = time.time()
         execution_time = end_time - start_time
+
         tc.track_event("OptimizerExecutionCompleted", {"ExecutionTime": execution_time})
 
         with open(summary_reports_file, 'w') as file:
