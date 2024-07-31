@@ -1,8 +1,9 @@
-import React, { useState, useCallback } from 'react';
-import { Container, Grid, Button, CircularProgress, Typography, FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Container, Grid, Button, CircularProgress, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Box } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableRow, TableContainer } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
+import axios from 'axios';
 
 interface CostData {
   date: string;
@@ -118,86 +119,80 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const runOptimizer = () => {
+  const runOptimizer = async () => {
     setIsOptimizerRunning(true);
     setLogs([]);
-    fetch('http://127.0.0.1:5000/api/run', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ mode: mode, all_subscriptions: true })
-    })
-      .then(async response => {
-        const text = await response.text();
-        try {
-          const data = JSON.parse(text);
-          console.log('Run Optimizer Response:', data);
-          setLogs(prevLogs => [...prevLogs, `Optimizer started in ${mode} mode.`]);
-          fetchLogStream();
-        } catch (err) {
-          console.error('Error parsing response as JSON:', text);
-          setLogs(prevLogs => [...prevLogs, 'Error starting optimizer.']);
-        }
-      })
-      .catch(err => {
-        console.error('Error running optimizer:', err);
-        setLogs(prevLogs => [...prevLogs, 'Error running optimizer.']);
-      });
+    fetchLogStream();
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/api/run', { mode: mode, all_subscriptions: true });
+      const data = response.data;
+      console.log('Run Optimizer Response:', data);
+      setLogs(prevLogs => [...prevLogs, `Optimizer started in ${mode} mode.`]);
+    } catch (error) {
+      console.error('Error running optimizer:', error);
+      setLogs(prevLogs => [...prevLogs, 'Error running optimizer.']);
+    }
   };
 
-  const fetchData = useCallback(() => {
-    setIsOptimizerRunning(true);
-
-    fetch('http://127.0.0.1:5000/api/summary-metrics')
-      .then(res => res.json())
-      .then(data => {
-        if (data.length > 0) {
-          setSummaryMetrics(data);
-          if (!selectedSubscription) {
-            setSelectedSubscription(data[0].SubscriptionId);
-          }
+  const fetchData = useCallback(async () => {
+    try {
+      const summaryResponse = await axios.get('http://127.0.0.1:5000/api/summary-metrics');
+      const summaryData = summaryResponse.data;
+      if (summaryData.length > 0) {
+        setSummaryMetrics(summaryData);
+        if (!selectedSubscription) {
+          setSelectedSubscription(summaryData[0].SubscriptionId);
         }
-      })
-      .catch(err => console.error('Error fetching summary metrics:', err))
-      .finally(() => setIsOptimizerRunning(false));
+      }
+    } catch (error) {
+      console.error('Error fetching summary metrics:', error);
+    }
 
-    fetch('http://127.0.0.1:5000/api/execution-data')
-      .then(res => res.json())
-      .then(data => {
-        if (data.length > 0) {
-          setExecutionData(data);
-        }
-      })
-      .catch(err => console.error('Error fetching execution data:', err));
+    try {
+      const executionResponse = await axios.get('http://127.0.0.1:5000/api/execution-data');
+      const executionData = executionResponse.data;
+      setExecutionData(executionData);
+    } catch (error) {
+      console.error('Error fetching execution data:', error);
+    }
 
-    fetch('http://127.0.0.1:5000/api/impacted-resources')
-      .then(res => res.json())
-      .then(data => {
-        if (data.length > 0) {
-          setImpactedResources(data);
-        }
-      })
-      .catch(err => console.error('Error fetching impacted resources:', err));
+    try {
+      const impactedResourcesResponse = await axios.get('http://127.0.0.1:5000/api/impacted-resources');
+      const impactedResourcesData = impactedResourcesResponse.data;
+      setImpactedResources(impactedResourcesData);
+    } catch (error) {
+      console.error('Error fetching impacted resources:', error);
+    }
 
-    fetch('http://127.0.0.1:5000/api/anomalies')
-      .then(res => res.json())
-      .then(data => {
-        if (data.length > 0) {
-          setAnomalyData(data);
-        }
-      })
-      .catch(err => console.error('Error fetching anomaly data:', err));
+    try {
+      const anomaliesResponse = await axios.get('http://127.0.0.1:5000/api/anomalies');
+      const anomaliesData = anomaliesResponse.data;
+      setAnomalyData(anomaliesData);
+    } catch (error) {
+      console.error('Error fetching anomaly data:', error);
+    }
 
-    fetch('http://127.0.0.1:5000/api/trend-data')
-      .then(res => res.json())
-      .then(data => {
-        if (data.length > 0) {
-          setTrendData(data);
-        }
-      })
-      .catch(err => console.error('Error fetching trend data:', err));
+    try {
+      const trendDataResponse = await axios.get('http://127.0.0.1:5000/api/trend-data');
+      const trendData = trendDataResponse.data;
+      setTrendData(trendData);
+    } catch (error) {
+      console.error('Error fetching trend data:', error);
+    }
   }, [selectedSubscription]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isOptimizerRunning) {
+      interval = setInterval(fetchData, 5000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isOptimizerRunning, fetchData]);
 
   const handleSubscriptionChange = (event: SelectChangeEvent<string>) => {
     setSelectedSubscription(event.target.value as string);
@@ -205,6 +200,116 @@ const App: React.FC = () => {
 
   const filteredAnomalyData = anomalyData.filter(data => data.SubscriptionId === selectedSubscription);
   const filteredTrendData = trendData.filter(data => data.SubscriptionId === selectedSubscription);
+
+  const renderSummaryMetricsTable = () => (
+    <Grid container spacing={3}>
+      {summaryMetrics.map((metric, index) => (
+        <Grid item xs={12} md={4} key={index}>
+          <Paper style={{ padding: 16, wordBreak: 'break-word' }}>
+            <Typography variant="h6">Subscription: {metric.SubscriptionId}</Typography>
+            <Typography variant="body1">Average Daily Cost: {metric.AverageDailyCost}</Typography>
+            <Typography variant="body1">Maximum Daily Cost: {metric.MaximumDailyCost}</Typography>
+            <Typography variant="body1">Minimum Daily Cost: {metric.MinimumDailyCost}</Typography>
+            <Typography variant="body1">Total Cost: {metric.TotalCost}</Typography>
+          </Paper>
+        </Grid>
+      ))}
+    </Grid>
+  );
+
+  const renderCostChart = () => (
+    <ResponsiveContainer width="100%" height={400}>
+      <LineChart data={filteredTrendData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="cost" stroke="#8884d8" activeDot={{ r: 8 }} />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+
+  const renderExecutionTable = () => (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Action</TableCell>
+            <TableCell>Cost</TableCell>
+            <TableCell>Message</TableCell>
+            <TableCell>Resource</TableCell>
+            <TableCell>Status</TableCell>
+            <TableCell>Subscription ID</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {executionData.map((execution, index) => (
+            <TableRow key={index}>
+              <TableCell style={{ wordBreak: 'break-word' }}>{execution.Action}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{execution.Cost}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{execution.Message}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{execution.Resource}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{execution.Status}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{execution.SubscriptionId}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  const renderImpactedResourcesTable = () => (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Resource</TableCell>
+            <TableCell>Action</TableCell>
+            <TableCell>Status</TableCell>
+            <TableCell>Cost</TableCell>
+            <TableCell>Policy</TableCell>
+            <TableCell>Subscription ID</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {impactedResources.map((resource, index) => (
+            <TableRow key={index}>
+              <TableCell style={{ wordBreak: 'break-word' }}>{resource.Resource}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{resource.Action}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{resource.Status}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{resource.Cost}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{resource.Policy}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{resource.SubscriptionId}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  const renderAnomalyTable = () => (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Date</TableCell>
+            <TableCell>Cost</TableCell>
+            <TableCell>Subscription ID</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {filteredAnomalyData.map((anomaly, index) => (
+            <TableRow key={index}>
+              <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.date}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.cost}</TableCell>
+              <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.SubscriptionId}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
 
   return (
     <Container>
@@ -251,144 +356,37 @@ const App: React.FC = () => {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12}>
-          <SummaryMetrics data={summaryMetrics} />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <CostChart data={filteredTrendData} />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <ExecutionTable data={executionData} />
-        </Grid>
-        <Grid item xs={12}>
-          <ImpactedResourcesTable data={impactedResources} />
-        </Grid>
-        <Grid item xs={12}>
-          <AnomalyTable data={filteredAnomalyData} />
-        </Grid>
       </Grid>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Typography variant="h6">Optimizer Logs</Typography>
-          <Paper>
-            {logs.map((log, index) => (
-              <Typography key={index} variant="body1">{log}</Typography>
-            ))}
-          </Paper>
-        </Grid>
-      </Grid>
+      <Box mt={4}>
+        <Typography variant="h5">Summary Metrics</Typography>
+        {renderSummaryMetricsTable()}
+      </Box>
+      <Box mt={4}>
+        <Typography variant="h5">Cost Trend</Typography>
+        {renderCostChart()}
+      </Box>
+      <Box mt={4}>
+        <Typography variant="h5">Execution Data</Typography>
+        {renderExecutionTable()}
+      </Box>
+      <Box mt={4}>
+        <Typography variant="h5">Impacted Resources</Typography>
+        {renderImpactedResourcesTable()}
+      </Box>
+      <Box mt={4}>
+        <Typography variant="h5">Anomalies</Typography>
+        {renderAnomalyTable()}
+      </Box>
+      <Box mt={4}>
+        <Typography variant="h5">Optimizer Logs</Typography>
+        <Paper>
+          {logs.map((log, index) => (
+            <Typography key={index} variant="body1">{log}</Typography>
+          ))}
+        </Paper>
+      </Box>
     </Container>
   );
 };
-
-const SummaryMetrics: React.FC<{ data: SummaryMetric[] }> = ({ data }) => (
-  <Grid container spacing={3}>
-    {data.map((metric, index) => (
-      <Grid item xs={12} md={4} key={index}>
-        <Paper style={{ padding: 16, wordBreak: 'break-word' }}>
-          <Typography variant="h6">Subscription: {metric.SubscriptionId}</Typography>
-          <Typography variant="body1">Average Daily Cost: {metric.AverageDailyCost}</Typography>
-          <Typography variant="body1">Maximum Daily Cost: {metric.MaximumDailyCost}</Typography>
-          <Typography variant="body1">Minimum Daily Cost: {metric.MinimumDailyCost}</Typography>
-          <Typography variant="body1">Total Cost: {metric.TotalCost}</Typography>
-        </Paper>
-      </Grid>
-    ))}
-  </Grid>
-);
-
-const CostChart: React.FC<{ data: CostData[] }> = ({ data }) => (
-  <ResponsiveContainer width="100%" height={400}>
-    <LineChart data={data}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="date" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Line type="monotone" dataKey="cost" stroke="#8884d8" activeDot={{ r: 8 }} />
-    </LineChart>
-  </ResponsiveContainer>
-);
-
-const ExecutionTable: React.FC<{ data: ExecutionData[] }> = ({ data }) => (
-  <TableContainer component={Paper}>
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>Action</TableCell>
-          <TableCell>Cost</TableCell>
-          <TableCell>Message</TableCell>
-          <TableCell>Resource</TableCell>
-          <TableCell>Status</TableCell>
-          <TableCell>Subscription ID</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {data.map((execution) => (
-          <TableRow key={execution.Resource}>
-            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Action}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Cost}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Message}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Resource}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Status}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{execution.SubscriptionId}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
-);
-
-const ImpactedResourcesTable: React.FC<{ data: ResourceData[] }> = ({ data }) => (
-  <TableContainer component={Paper}>
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>Resource</TableCell>
-          <TableCell>Action</TableCell>
-          <TableCell>Status</TableCell>
-          <TableCell>Cost</TableCell>
-          <TableCell>Policy</TableCell>
-          <TableCell>Subscription ID</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {data.map((resource) => (
-          <TableRow key={resource.Resource}>
-            <TableCell style={{ wordBreak: 'break-word' }}>{resource.Resource}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{resource.Action}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{resource.Status}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{resource.Cost}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{resource.Policy}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{resource.SubscriptionId}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
-);
-
-const AnomalyTable: React.FC<{ data: AnomalyData[] }> = ({ data }) => (
-  <TableContainer component={Paper}>
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>Date</TableCell>
-          <TableCell>Cost</TableCell>
-          <TableCell>Subscription ID</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {data.map((anomaly, index) => (
-          <TableRow key={index}>
-            <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.date}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.cost}</TableCell>
-            <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.SubscriptionId}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
-);
 
 export default App;
