@@ -43,7 +43,6 @@ interface AnomalyData {
 }
 
 const App: React.FC = () => {
-  // Mock data initialization
   const [summaryMetrics, setSummaryMetrics] = useState<SummaryMetric[]>([
     {
       AverageDailyCost: 10,
@@ -102,7 +101,7 @@ const App: React.FC = () => {
       cost: 50,
       SubscriptionId: 'mock-subscription-2',
     },
-  ]); // Add state for trend data
+  ]);
 
   const [isOptimizerRunning, setIsOptimizerRunning] = useState(false);
   const [mode, setMode] = useState('dry-run');
@@ -135,7 +134,7 @@ const App: React.FC = () => {
           const data = JSON.parse(text);
           console.log('Run Optimizer Response:', data);
           setLogs(prevLogs => [...prevLogs, `Optimizer started in ${mode} mode.`]);
-          fetchLogStream(); // Start fetching log stream
+          fetchLogStream();
         } catch (err) {
           console.error('Error parsing response as JSON:', text);
           setLogs(prevLogs => [...prevLogs, 'Error starting optimizer.']);
@@ -196,7 +195,7 @@ const App: React.FC = () => {
         if (data.length > 0) {
           setTrendData(data);
         }
-      }) // Fetch trend data
+      })
       .catch(err => console.error('Error fetching trend data:', err));
   }, [selectedSubscription]);
 
@@ -205,7 +204,7 @@ const App: React.FC = () => {
   };
 
   const filteredAnomalyData = anomalyData.filter(data => data.SubscriptionId === selectedSubscription);
-  const filteredTrendData = trendData.filter(data => data.SubscriptionId === selectedSubscription); // Filter trend data
+  const filteredTrendData = trendData.filter(data => data.SubscriptionId === selectedSubscription);
 
   return (
     <Container>
@@ -256,7 +255,7 @@ const App: React.FC = () => {
           <SummaryMetrics data={summaryMetrics} />
         </Grid>
         <Grid item xs={12} md={6}>
-          <CostChart data={filteredTrendData} /> {/* Display trend data */}
+          <CostChart data={filteredTrendData} />
         </Grid>
         <Grid item xs={12} md={6}>
           <ExecutionTable data={executionData} />
@@ -286,7 +285,7 @@ const SummaryMetrics: React.FC<{ data: SummaryMetric[] }> = ({ data }) => (
   <Grid container spacing={3}>
     {data.map((metric, index) => (
       <Grid item xs={12} md={4} key={index}>
-        <Paper>
+        <Paper style={{ padding: 16, wordBreak: 'break-word' }}>
           <Typography variant="h6">Subscription: {metric.SubscriptionId}</Typography>
           <Typography variant="body1">Average Daily Cost: {metric.AverageDailyCost}</Typography>
           <Typography variant="body1">Maximum Daily Cost: {metric.MaximumDailyCost}</Typography>
@@ -327,12 +326,12 @@ const ExecutionTable: React.FC<{ data: ExecutionData[] }> = ({ data }) => (
       <TableBody>
         {data.map((execution) => (
           <TableRow key={execution.Resource}>
-            <TableCell>{execution.Action}</TableCell>
-            <TableCell>{execution.Cost}</TableCell>
-            <TableCell>{execution.Message}</TableCell>
-            <TableCell>{execution.Resource}</TableCell>
-            <TableCell>{execution.Status}</TableCell>
-            <TableCell>{execution.SubscriptionId}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Action}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Cost}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Message}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Resource}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Status}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{execution.SubscriptionId}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -356,12 +355,12 @@ const ImpactedResourcesTable: React.FC<{ data: ResourceData[] }> = ({ data }) =>
       <TableBody>
         {data.map((resource) => (
           <TableRow key={resource.Resource}>
-            <TableCell>{resource.Resource}</TableCell>
-            <TableCell>{resource.Action}</TableCell>
-            <TableCell>{resource.Status}</TableCell>
-            <TableCell>{resource.Cost}</TableCell>
-            <TableCell>{resource.Policy}</TableCell>
-            <TableCell>{resource.SubscriptionId}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{resource.Resource}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{resource.Action}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{resource.Status}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{resource.Cost}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{resource.Policy}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{resource.SubscriptionId}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -382,9 +381,9 @@ const AnomalyTable: React.FC<{ data: AnomalyData[] }> = ({ data }) => (
       <TableBody>
         {data.map((anomaly, index) => (
           <TableRow key={index}>
-            <TableCell>{anomaly.date}</TableCell>
-            <TableCell>{anomaly.cost}</TableCell>
-            <TableCell>{anomaly.SubscriptionId}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.date}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.cost}</TableCell>
+            <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.SubscriptionId}</TableCell>
           </TableRow>
         ))}
       </TableBody>
