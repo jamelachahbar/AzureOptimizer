@@ -58,4 +58,4 @@ jobs:
         with:
           issue-number: ${{ steps.extract_payload.outputs.issue_number }}
           body: |
-            @${{ steps.extract_owner.outputs.owner }} A new issue has been created with your assigned tasks.
+            @$OWNER A new issue has been created with your assigned tasks.
