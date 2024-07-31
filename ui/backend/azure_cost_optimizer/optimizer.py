@@ -63,8 +63,7 @@ monitor_client = MonitorManagementClient(credential, subscription_id=subscriptio
 # Verify that the necessary environment variables are set and log their values
 required_env_vars = [
     "AZURE_CLIENT_ID", "AZURE_TENANT_ID", "AZURE_CLIENT_SECRET",
-    "AZURE_SUBSCRIPTION_ID", "AZURE_STORAGE_ACCOUNT_NAME",
-    "AZURE_STORAGE_FILE_SYSTEM_NAME", "ADLS_DIRECTORY_PATH"
+    "AZURE_SUBSCRIPTION_ID"
 ]
 for var in required_env_vars:
     value = os.getenv(var)
@@ -73,23 +72,7 @@ for var in required_env_vars:
         sys.exit(1)
     logger.info(f"{var}: {value}")
 
-# Read environment variables for storage account and file system
-account_name = os.getenv('AZURE_STORAGE_ACCOUNT_NAME')
-file_system_name = os.getenv('AZURE_STORAGE_FILE_SYSTEM_NAME')
-directory_path = os.getenv('ADLS_DIRECTORY_PATH')
 
-# Check if environment variables are set correctly
-if not account_name or not file_system_name:
-    logger.error("Environment variables AZURE_STORAGE_ACCOUNT_NAME or AZURE_STORAGE_FILE_SYSTEM_NAME are not set.")
-else:
-    logger.info(f"Using storage account: {account_name}")
-    logger.info(f"Using file system: {file_system_name}")
-
-# Authentication and client setup
-service_client = DataLakeServiceClient(
-    account_url=f"https://{account_name}.dfs.core.windows.net",
-    credential=credential
-)
 
 def retry(max_retries=3, delay=5, backoff=2, exceptions=(Exception,)):
     """Retry decorator with exponential backoff and jitter for resilience in case of transient errors."""
@@ -109,112 +92,6 @@ def retry(max_retries=3, delay=5, backoff=2, exceptions=(Exception,)):
             return func(*args, **kwargs)
         return wrapper
     return decorator
-
-def list_files_in_directory(directory_path):
-    """Function to list files in a directory."""
-    try:
-        file_system_client = service_client.get_file_system_client(file_system_name)
-        paths = file_system_client.get_paths(path=directory_path)
-
-        files, folders = [], []
-        for path in paths:
-            if path.is_directory:
-                folders.append(path.name)
-            else:
-                files.append(path.name)
-
-        logger.info(f"Folders in directory {directory_path}: {folders}")
-        logger.info(f"Files in directory {directory_path}: {files}")
-
-        return files
-    except Exception as e:
-        logger.error(f"Error listing files in directory {directory_path}: {e}")
-        return []
-
-def read_parquet_file_from_adls(file_path):
-    """Function to read a Parquet file from ADLS."""
-    try:
-        file_system_client = service_client.get_file_system_client(file_system_name)
-        file_client = file_system_client.get_file_client(file_path)
-
-        download = file_client.download_file()
-        downloaded_bytes = download.readall()
-
-        df = pd.read_parquet(io.BytesIO(downloaded_bytes))
-        return df
-    except Exception as e:
-        logger.error(f"Error reading Parquet file {file_path}: {e}")
-        return pd.DataFrame()
-
-def fetch_cost_data_from_adls(directory_path):
-    """Function to fetch cost data from ADLS and filter for the last 30 days."""
-    try:
-        files = list_files_in_directory(directory_path)
-        all_data = []
-        for file in files:
-            if file.endswith('.parquet'):
-                logger.info(f"Reading file: {file}")
-                df = read_parquet_file_from_adls(file)
-                all_data.append(df)
-
-        if all_data:
-            # Combine all dataframes into one
-            combined_df = pd.concat(all_data, ignore_index=True)
-            combined_df['BilledCost'] = combined_df['BilledCost'].astype(float)
-            
-            # Verify and print current date
-            today = datetime.now().date()
-            thirty_days_ago = today - timedelta(days=30)
-            # print(f"Current Date: {today}")
-            # print(f"30 Days Ago: {thirty_days_ago}")
-            
-            # Ensure ChargePeriodStart is treated as date
-            combined_df['ChargePeriodStart'] = pd.to_datetime(combined_df['ChargePeriodStart']).dt.date
-            # print("Sample data before filtering:")
-            # print(combined_df[['ChargePeriodStart']].head(10))  # Inspect raw dates
-            
-            # Debug: Check unique dates in the data
-            unique_dates = combined_df['ChargePeriodStart'].unique()
-            # print("Unique dates in the data:")
-            # print(unique_dates)
-            
-            # Filter for the last 30 days worth of data
-            filtered_df = combined_df[
-                (combined_df['ChargePeriodStart'] >= thirty_days_ago) &
-                (combined_df['ChargePeriodStart'] <= today)
-            ]
-            
-            # Inspect filtered dates
-            # print("Sample data after filtering:")
-            # print(filtered_df[['ChargePeriodStart']].head(10))
-            
-            # Debug: Check unique dates in the filtered data
-            # filtered_unique_dates = filtered_df['ChargePeriodStart'].unique()
-            # print("Unique dates in the filtered data:")
-            # print(filtered_unique_dates)
-            
-            # Sort the filtered data by ChargePeriodStart
-            filtered_df = filtered_df.sort_values(by='ChargePeriodStart')
-            
-            # # Inspect sorted dates
-            # print("Sample data after sorting:")
-            # print(filtered_df[['ChargePeriodStart']].head(10))
-            
-            # Aggregate costs per ResourceId
-            aggregated_df = filtered_df.groupby('ResourceId')['BilledCost'].sum().reset_index()
-            
-            # Save filtered and aggregated data for verification
-            filtered_df.to_csv('filtered_cost_data.csv', index=False)
-            aggregated_df.to_csv('aggregated_cost_data.csv', index=False)
-            
-            return aggregated_df
-        else:
-            logger.warning("No Parquet files found in the specified directory.")
-            return pd.DataFrame()
-        
-    except Exception as e:
-        logger.error(f"Error fetching cost data from ADLS: {e}")
-        raise
 
 
 def load_policies(policy_file, schema_file):
@@ -544,10 +421,7 @@ def get_last_used_date(resource, days, threshold=5):
     return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
 
 def apply_actions(resource, actions, status_log, dry_run, subscription_id):
-    """Apply actions to a resource and include cost data."""
-    cost_data = fetch_cost_data_from_adls(directory_path)
-    resource_cost = cost_data[cost_data['ResourceId'] == resource.id]['BilledCost'].sum()
-    
+    """Apply actions to a resource and include cost data."""    
     for action in actions:
         action_type = action["type"]
         if dry_run:
@@ -560,7 +434,6 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                     "Action": action_type,
                     "Status": "Dry Run",
                     "Message": action_description,
-                    "Cost": resource_cost
                 }
             )
         else:
@@ -573,7 +446,6 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                         "Action": "stop",
                         "Status": status,
                         "Message": message,
-                        "Cost": resource_cost
                     }
                 )
                 logger.info(f"Action stop applied to VM {resource.name} with status: {status}")
@@ -589,7 +461,6 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                         "Action": "downgrade_disks",
                         "Status": status,
                         "Message": message,
-                        "Cost": resource_cost
                     }
                 )
                 logger.info(f"Action downgrade_disks applied to {resource.name} with status: {status} and message: {message}")
@@ -603,7 +474,6 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                             "Action": "delete",
                             "Status": status,
                             "Message": message,
-                            "Cost": resource_cost
                         }
                     )
                     logger.info(f"Action delete applied to Disk {resource.name} with status: {status} and message: {message}")
@@ -618,7 +488,6 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                             "Action": "delete",
                             "Status": status,
                             "Message": message,
-                            "Cost": resource_cost
                         }
                     )
                     logger.info(f"Action delete applied to Resource Group {resource.name} with status: {status} and message: {message}")
@@ -632,8 +501,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                             "Resource": resource.name,
                             "Action": "delete",
                             "Status": status,
-                            "Message": message,
-                            "Cost": resource_cost
+                            "Message": message
                         }
                     )
                     logger.info(f"Action delete applied to Public IP {resource.name} with status: {status} and message: {message}")
@@ -645,8 +513,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                             "Resource": resource.name,
                             "Action": "delete",
                             "Status": status,
-                            "Message": message,
-                            "Cost": resource_cost
+                            "Message": message
                         }
                     )
                     logger.info(f"Action delete applied to Network Interface {resource.name} with status: {status} and message: {message}")
@@ -671,8 +538,7 @@ def apply_actions(resource, actions, status_log, dry_run, subscription_id):
                             "Resource": resource.name,
                             "Action": "update_sku",
                             "Status": status,
-                            "Message": message,
-                            "Cost": resource_cost
+                            "Message": message
                         }
                     )
                     logger.info(f"Action update_sku applied to Storage Account {resource.name} with status: {status} and message: {message}")
@@ -1138,7 +1004,6 @@ def evaluate_unattached_filter(disk):
 
 def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_impacted_resources, status_log):
     """Apply policies to resources."""
-    cost_data = fetch_cost_data_from_adls(directory_path)
     
     for policy in policies:
         resource_type = policy["resource"]
@@ -1153,15 +1018,13 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             for vm in vms:
                 logger.info(f"Evaluating VM {vm.name}")
                 if not evaluate_exclusions(vm, exclusions) and evaluate_filters(vm, filters):
-                    resource_cost = cost_data[cost_data['ResourceId'] == vm.id]['BilledCost'].sum()
                     apply_actions(vm, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": vm.name,
-                            "Actions": ", ".join([action["type"] for action in actions]),
-                            "Cost": resource_cost
+                            "Actions": ", ".join([action["type"] for action in actions])
                         }
                     )
                     resources_impacted = True
@@ -1179,15 +1042,13 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             for disk in disks:
                 logger.info(f"Evaluating disk {disk.name}")
                 if not evaluate_exclusions(disk, exclusions) and evaluate_filters(disk, filters):
-                    resource_cost = cost_data[cost_data['ResourceId'] == disk.id]['BilledCost'].sum()
                     apply_actions(disk, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": disk.name,
-                            "Actions": ", ".join([action["type"] for action in actions]),
-                            "Cost": resource_cost
+                            "Actions": ", ".join([action["type"] for action in actions])
                         }
                     )
                     resources_impacted = True
@@ -1204,15 +1065,13 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             resource_groups = resource_client.resource_groups.list()
             for resource_group in resource_groups:
                 if not evaluate_exclusions(resource_group, exclusions) and evaluate_filters(resource_group, filters):
-                    resource_cost = cost_data[cost_data['ResourceId'] == resource_group.id]['BilledCost'].sum()
                     apply_actions(resource_group, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": resource_group.name,
-                            "Actions": ", ".join([action["type"] for action in actions]),
-                            "Cost": resource_cost
+                            "Actions": ", ".join([action["type"] for action in actions])
                         }
                     )
                     resources_impacted = True
@@ -1229,15 +1088,13 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             storage_accounts = storage_client.storage_accounts.list()
             for storage_account in storage_accounts:
                 if not evaluate_exclusions(storage_account, exclusions) and evaluate_filters(storage_account, filters):
-                    resource_cost = cost_data[cost_data['ResourceId'] == storage_account.id]['BilledCost'].sum()
                     apply_actions(storage_account, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": storage_account.name,
-                            "Actions": ", ".join([action["type"] for action in actions]),
-                            "Cost": resource_cost
+                            "Actions": ", ".join([action["type"] for action in actions])
                         }
                     )
                     resources_impacted = True
@@ -1254,15 +1111,13 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             public_ips = network_client.public_ip_addresses.list_all()
             for public_ip in public_ips:
                 if not evaluate_exclusions(public_ip, exclusions) and evaluate_filters(public_ip, filters):
-                    resource_cost = cost_data[cost_data['ResourceId'] == public_ip.id]['BilledCost'].sum()
                     apply_actions(public_ip, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": public_ip.name,
-                            "Actions": ", ".join([action["type"] for action in actions]),
-                            "Cost": resource_cost
+                            "Actions": ", ".join([action["type"] for action in actions])
                         }
                     )
                     resources_impacted = True
@@ -1283,7 +1138,6 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                 databases = sql_client.databases.list_by_server(resource_group_name, server.name)
                 for db in databases:
                     logger.info(f"Database: {db.name}, Current DTU: {db.sku.capacity}")
-                    resource_cost = cost_data[cost_data['ResourceId'] == db.id]['BilledCost'].sum()
                     status, message = scale_sql_database(db, policy["actions"][0]["tiers"], status_log, dry_run, subscription_id)
                     if status != "No Change":
                         impacted_resources.append(
@@ -1293,8 +1147,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                                 "Resource": db.name,
                                 "Actions": "scale",
                                 "Status": status,
-                                "Message": message,
-                                "Cost": resource_cost
+                                "Message": message
                             }
                         )
                         resources_impacted = True
@@ -1327,15 +1180,13 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
             nics = network_client.network_interfaces.list_all()
             for nic in nics:
                 if not evaluate_exclusions(nic, exclusions) and evaluate_filters(nic, filters):
-                    resource_cost = cost_data[cost_data['ResourceId'] == nic.id]['BilledCost'].sum()
                     apply_actions(nic, actions, status_log, dry_run, subscription_id)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": nic.name,
-                            "Actions": ", ".join([action["type"] for action in actions]),
-                            "Cost": resource_cost
+                            "Actions": ", ".join([action["type"] for action in actions])
                         }
                     )
                     resources_impacted = True
@@ -1347,8 +1198,7 @@ def apply_policies(policies, dry_run, subscription_id, impacted_resources, non_i
                         "ResourceType": "Network Interface",
                     }
                 )
-
-def process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date, end_date, use_adls=False):
+def process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date, end_date):
     """Process a subscription."""
     global resource_client, cost_management_client, compute_client, storage_client, network_client, sql_client
     
@@ -1363,13 +1213,16 @@ def process_subscription(subscription, mode, summary_reports, impacted_resources
     logger.info(f'Processing subscription: {subscription_id}')
     tc.track_event("SubscriptionProcessingStarted", {"SubscriptionId": subscription_id})
 
+    trend_data = []
+    anomalies = []
+
     try:
         policy_file = config['policies']['policy_file']
         schema_file = config['policies']['schema_file']
         policies = load_policies(policy_file, schema_file)
         cost_data = get_cost_data(f'/subscriptions/{subscription_id}')
         if cost_data:
-            analyze_cost_data(cost_data, subscription_id, summary_reports)
+            trend_data, anomalies = analyze_cost_data(cost_data, subscription_id, summary_reports)
         if mode == 'apply':
             logger.info(f'Applying policies to subscription: {subscription_id}')
             apply_policies(policies, dry_run=False, subscription_id=subscription_id, impacted_resources=impacted_resources, non_impacted_resources=non_impacted_resources, status_log=status_log)
@@ -1383,7 +1236,9 @@ def process_subscription(subscription, mode, summary_reports, impacted_resources
         logger.info(f'Completed processing subscription: {subscription_id}')
         tc.track_event("SubscriptionProcessingCompleted", {"SubscriptionId": subscription_id})
 
-def main(mode='dry-run', all_subscriptions=True, use_adls=False):
+    return trend_data, anomalies
+
+def main(mode='dry-run', all_subscriptions=True):
     global execution_data
     execution_data = []
     summary_reports = []
@@ -1400,13 +1255,13 @@ def main(mode='dry-run', all_subscriptions=True, use_adls=False):
         if all_subscriptions:
             subscriptions = subscription_client.subscriptions.list()
             for subscription in subscriptions:
-                trend_data, anomalies = process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date=None, end_date=None, use_adls=use_adls)
+                trend_data, anomalies = process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date=None, end_date=None)
                 trend_data_all.extend(trend_data)
                 anomalies_all.extend(anomalies)
         else:
             subscription_id = config['subscription']['id']
             subscription = subscription_client.subscriptions.get(subscription_id)
-            trend_data, anomalies = process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date=None, end_date=None, use_adls=use_adls)
+            trend_data, anomalies = process_subscription(subscription, mode, summary_reports, impacted_resources, non_impacted_resources, status_log, start_date=None, end_date=None)
             trend_data_all.extend(trend_data)
             anomalies_all.extend(anomalies)
         end_time = time.time()
@@ -1441,46 +1296,3 @@ def main(mode='dry-run', all_subscriptions=True, use_adls=False):
             'anomalies': [],
             'error': str(e)
         }
-
-if __name__ == "__main__":
-    print(
-        colored(
-            r""" _______                            _______                    _______            _       _                   
-(_______)                          (_______)            _     (_______)       _  (_)     (_)                  
- _______ _____ _   _  ____ _____    _       ___   ___ _| |_    _     _ ____ _| |_ _ ____  _ _____ _____  ____ 
-|  ___  (___  ) | | |/ ___) ___ |  | |     / _ \ /___|_   _)  | |   | |  _ (_   _) |    \| (___  ) ___ |/ ___)
-| |   | |/ __/| |_| | |   | ____|  | |____| |_| |___ | | |_   | |___| | |_| || |_| | | | | |/ __/| ____| |    
-|_|   |_(_____)____/|_|   |_____)   \______)___/(___/   \__)   \_____/|  __/  \__)_|_|_|_|_(_____)_____)_|    
-                                                                      |_|                                     
-    """,
-            "light_blue",
-        )
-    )
-
-    print(colored("Running Azure Cost Optimizer Tool...", "black"))
-    print(colored("Please wait...", "black"))
-    for i in range(10):
-        time.sleep(0.2)
-    print(colored("Azure Cost Optimizer Tool is ready!", "green"))
-    print(colored("=" * 110, "black"))
-    parser = argparse.ArgumentParser(description="Azure Cost Optimization Tool")
-    parser.add_argument(
-        "--mode",
-        choices=["dry-run", "apply"],
-        required=True,
-        help="Mode to run the function (dry-run or apply)",
-    )
-    parser.add_argument(
-        "--all-subscriptions",
-        action="store_true",
-        help="Process all subscriptions in the tenant",
-    )
-    parser.add_argument(
-        "--use-adls",
-        action="store_true",
-        help="Use Azure Data Lake Storage for waste cost data",
-    )
-    args = parser.parse_args()
-    main(args.mode, args.all_subscriptions, args.use_adls)
-    print(colored("Azure Cost Optimizer Tool completed!", "green"))
-    print(colored("=" * 110, "black"))

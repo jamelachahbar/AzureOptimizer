@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Container, Grid, Button, CircularProgress, Typography, FormControl, InputLabel, Select, MenuItem, Paper } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableRow, TableContainer } from '@mui/material';
@@ -28,7 +28,7 @@ interface ResourceData {
   SubscriptionId: string;
 }
 
-interface SummaryMetrics {
+interface SummaryMetric {
   AverageDailyCost: number;
   MaximumDailyCost: number;
   MinimumDailyCost: number;
@@ -44,7 +44,7 @@ interface AnomalyData {
 
 const App: React.FC = () => {
   // Mock data initialization
-  const [summaryMetrics, setSummaryMetrics] = useState<SummaryMetrics[]>([
+  const [summaryMetrics, setSummaryMetrics] = useState<SummaryMetric[]>([
     {
       AverageDailyCost: 10,
       MaximumDailyCost: 20,
@@ -92,16 +92,16 @@ const App: React.FC = () => {
   ]);
 
   const [trendData, setTrendData] = useState<CostData[]>([
-      {
-        date: '2024-07-10',
-        cost: 50,
-        SubscriptionId: 'mock-subscription-1',
-      },
-      {
-        date: '2024-07-10',
-        cost: 50,
-        SubscriptionId: 'mock-subscription-2',
-      },
+    {
+      date: '2024-07-10',
+      cost: 50,
+      SubscriptionId: 'mock-subscription-1',
+    },
+    {
+      date: '2024-07-10',
+      cost: 50,
+      SubscriptionId: 'mock-subscription-2',
+    },
   ]); // Add state for trend data
 
   const [isOptimizerRunning, setIsOptimizerRunning] = useState(false);
@@ -109,44 +109,15 @@ const App: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [selectedSubscription, setSelectedSubscription] = useState<string>('mock-subscription-1');
 
-  useEffect(() => {
-    fetchData();
+  const fetchLogStream = useCallback(() => {
+    const eventSource = new EventSource('http://127.0.0.1:5000/api/log-stream');
+    eventSource.onmessage = (event) => {
+      setLogs((prevLogs) => [...prevLogs, event.data]);
+    };
+    eventSource.onerror = () => {
+      eventSource.close();
+    };
   }, []);
-
-  const fetchData = () => {
-    setIsOptimizerRunning(true);
-    fetch('http://127.0.0.1:5000/api/summary-metrics')
-      .then(res => res.json())
-      .then(data => {
-        setSummaryMetrics(data);
-        if (data.length > 0 && !selectedSubscription) {
-          setSelectedSubscription(data[0].SubscriptionId);
-        }
-      })
-      .catch(err => console.error('Error fetching summary metrics:', err))
-      .finally(() => setIsOptimizerRunning(false));
-
-
-    fetch('http://127.0.0.1:5000/api/execution-data')
-      .then(res => res.json())
-      .then(data => setExecutionData(data))
-      .catch(err => console.error('Error fetching execution data:', err));
-
-    fetch('http://127.0.0.1:5000/api/impacted-resources')
-      .then(res => res.json())
-      .then(data => setImpactedResources(data))
-      .catch(err => console.error('Error fetching impacted resources:', err));
-
-    fetch('http://127.0.0.1:5000/api/anomalies')
-      .then(res => res.json())
-      .then(data => setAnomalyData(data))
-      .catch(err => console.error('Error fetching anomaly data:', err));
-
-    fetch('http://127.0.0.1:5000/api/trend-data')
-      .then(res => res.json())
-      .then(data => setTrendData(data)) // Fetch trend data
-      .catch(err => console.error('Error fetching trend data:', err));
-  };
 
   const runOptimizer = () => {
     setIsOptimizerRunning(true);
@@ -156,7 +127,7 @@ const App: React.FC = () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ mode: mode, all_subscriptions: true, use_adls: false })
+      body: JSON.stringify({ mode: mode, all_subscriptions: true })
     })
       .then(async response => {
         const text = await response.text();
@@ -164,8 +135,7 @@ const App: React.FC = () => {
           const data = JSON.parse(text);
           console.log('Run Optimizer Response:', data);
           setLogs(prevLogs => [...prevLogs, `Optimizer started in ${mode} mode.`]);
-          // Fetch new data after optimizer run
-          fetchData();
+          fetchLogStream(); // Start fetching log stream
         } catch (err) {
           console.error('Error parsing response as JSON:', text);
           setLogs(prevLogs => [...prevLogs, 'Error starting optimizer.']);
@@ -174,9 +144,61 @@ const App: React.FC = () => {
       .catch(err => {
         console.error('Error running optimizer:', err);
         setLogs(prevLogs => [...prevLogs, 'Error running optimizer.']);
-      })
-      .finally(() => setIsOptimizerRunning(false));
+      });
   };
+
+  const fetchData = useCallback(() => {
+    setIsOptimizerRunning(true);
+
+    fetch('http://127.0.0.1:5000/api/summary-metrics')
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          setSummaryMetrics(data);
+          if (!selectedSubscription) {
+            setSelectedSubscription(data[0].SubscriptionId);
+          }
+        }
+      })
+      .catch(err => console.error('Error fetching summary metrics:', err))
+      .finally(() => setIsOptimizerRunning(false));
+
+    fetch('http://127.0.0.1:5000/api/execution-data')
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          setExecutionData(data);
+        }
+      })
+      .catch(err => console.error('Error fetching execution data:', err));
+
+    fetch('http://127.0.0.1:5000/api/impacted-resources')
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          setImpactedResources(data);
+        }
+      })
+      .catch(err => console.error('Error fetching impacted resources:', err));
+
+    fetch('http://127.0.0.1:5000/api/anomalies')
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          setAnomalyData(data);
+        }
+      })
+      .catch(err => console.error('Error fetching anomaly data:', err));
+
+    fetch('http://127.0.0.1:5000/api/trend-data')
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) {
+          setTrendData(data);
+        }
+      }) // Fetch trend data
+      .catch(err => console.error('Error fetching trend data:', err));
+  }, [selectedSubscription]);
 
   const handleSubscriptionChange = (event: SelectChangeEvent<string>) => {
     setSelectedSubscription(event.target.value as string);
@@ -260,7 +282,7 @@ const App: React.FC = () => {
   );
 };
 
-const SummaryMetrics: React.FC<{ data: SummaryMetrics[] }> = ({ data }) => (
+const SummaryMetrics: React.FC<{ data: SummaryMetric[] }> = ({ data }) => (
   <Grid container spacing={3}>
     {data.map((metric, index) => (
       <Grid item xs={12} md={4} key={index}>

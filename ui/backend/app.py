@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 import threading
 import logging
+import time
 from azure_cost_optimizer.optimizer import main as optimizer_main
 
 # Initialize Flask app
@@ -23,20 +24,42 @@ impacted_resources_data = []
 optimizer_status = "Idle"  # Track optimizer status
 anomalies_data = []  # Global variable to store anomalies
 trend_data = []  # Global variable to store trend data
+log_messages = []  # Store log messages for SSE
 
-# Route to run the optimizer
+def stream_logs():
+    """Generator function to stream log messages."""
+    global log_messages
+    while True:
+        if log_messages:
+            message = log_messages.pop(0)
+            yield f'data: {message}\n\n'
+        time.sleep(1)
+
+# Custom log handler to store log messages
+class SSELogHandler(logging.Handler):
+    def emit(self, record):
+        global log_messages
+        log_messages.append(self.format(record))
+
+sse_handler = SSELogHandler()
+sse_handler.setFormatter(formatter)
+logger.addHandler(sse_handler)
+
+@app.route('/api/log-stream')
+def log_stream():
+    return Response(stream_logs(), content_type='text/event-stream')
+
 @app.route('/api/run', methods=['POST'])
 def run_optimizer():
     global optimizer_status
     mode = request.json.get('mode')
     all_subscriptions = request.json.get('all_subscriptions', False)
-    use_adls = request.json.get('use_adls', False)
 
     def run_optimizer_in_thread():
-        global summary_metrics_data, cost_data_data, execution_data_data, impacted_resources_data, anomalies_data, trend_data_all, optimizer_status
+        global summary_metrics_data, execution_data_data, impacted_resources_data, anomalies_data, trend_data, optimizer_status
         optimizer_status = "Running"
         try:
-            result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions, use_adls=use_adls)
+            result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions)
             if result is None:
                 raise ValueError("optimizer_main returned None")
             summary_metrics_data = result['summary_reports']
@@ -53,7 +76,6 @@ def run_optimizer():
     thread.start()
 
     return jsonify({'status': 'Optimizer started'}), 200
-
 # Route to get optimizer status
 @app.route('/api/status', methods=['GET'])
 def get_status():
