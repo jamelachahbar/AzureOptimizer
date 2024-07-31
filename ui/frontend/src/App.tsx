@@ -1,9 +1,22 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Container, Grid, Button, CircularProgress, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Box } from '@mui/material';
+import {
+  Container,
+  Grid,
+  Button,
+  CircularProgress,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Paper,
+  Box
+} from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableRow, TableContainer } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 import axios from 'axios';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 interface CostData {
   date: string;
@@ -42,6 +55,41 @@ interface AnomalyData {
   cost: number;
   SubscriptionId: string;
 }
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#007BFF',
+    },
+    background: {
+      default: '#f4f6f8',
+    },
+  },
+  typography: {
+    fontFamily: 'Roboto, sans-serif',
+    h5: {
+      fontWeight: 600,
+    },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        head: {
+          backgroundColor: '#007BFF',
+          color: '#FFFFFF',
+          fontWeight: 600,
+        },
+      },
+    },
+  },
+});
 
 const App: React.FC = () => {
   const [summaryMetrics, setSummaryMetrics] = useState<SummaryMetric[]>([
@@ -107,7 +155,7 @@ const App: React.FC = () => {
   const [isOptimizerRunning, setIsOptimizerRunning] = useState(false);
   const [mode, setMode] = useState('dry-run');
   const [logs, setLogs] = useState<string[]>([]);
-  const [selectedSubscription, setSelectedSubscription] = useState<string>('mock-subscription-1');
+  const [selectedSubscription, setSelectedSubscription] = useState<string>('All Subscriptions');
 
   const fetchLogStream = useCallback(() => {
     const eventSource = new EventSource('http://127.0.0.1:5000/api/log-stream');
@@ -124,10 +172,11 @@ const App: React.FC = () => {
     setLogs([]);
     fetchLogStream();
     try {
-      const response = await axios.post('http://127.0.0.1:5000/api/run', { mode: mode, all_subscriptions: true });
+      const response = await axios.post('http://127.0.0.1:5000/api/run', { mode: mode, all_subscriptions: selectedSubscription === 'All Subscriptions' });
       const data = response.data;
       console.log('Run Optimizer Response:', data);
       setLogs(prevLogs => [...prevLogs, `Optimizer started in ${mode} mode.`]);
+      fetchData();
     } catch (error) {
       console.error('Error running optimizer:', error);
       setLogs(prevLogs => [...prevLogs, 'Error running optimizer.']);
@@ -141,7 +190,7 @@ const App: React.FC = () => {
       if (summaryData.length > 0) {
         setSummaryMetrics(summaryData);
         if (!selectedSubscription) {
-          setSelectedSubscription(summaryData[0].SubscriptionId);
+          setSelectedSubscription('All Subscriptions');
         }
       }
     } catch (error) {
@@ -198,8 +247,10 @@ const App: React.FC = () => {
     setSelectedSubscription(event.target.value as string);
   };
 
-  const filteredAnomalyData = anomalyData.filter(data => data.SubscriptionId === selectedSubscription);
-  const filteredTrendData = trendData.filter(data => data.SubscriptionId === selectedSubscription);
+  const filteredAnomalyData = anomalyData.filter(data => selectedSubscription === 'All Subscriptions' || data.SubscriptionId === selectedSubscription);
+  const filteredTrendData = trendData.filter(data => selectedSubscription === 'All Subscriptions' || data.SubscriptionId === selectedSubscription);
+  const filteredExecutionData = executionData.filter(data => selectedSubscription === 'All Subscriptions' || data.SubscriptionId === selectedSubscription);
+  const filteredImpactedResources = impactedResources.filter(data => selectedSubscription === 'All Subscriptions' || data.SubscriptionId === selectedSubscription);
 
   const renderSummaryMetricsTable = () => (
     <Grid container spacing={3}>
@@ -244,7 +295,7 @@ const App: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {executionData.map((execution, index) => (
+          {filteredExecutionData.map((execution, index) => (
             <TableRow key={index}>
               <TableCell style={{ wordBreak: 'break-word' }}>{execution.Action}</TableCell>
               <TableCell style={{ wordBreak: 'break-word' }}>{execution.Cost}</TableCell>
@@ -273,7 +324,7 @@ const App: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {impactedResources.map((resource, index) => (
+          {filteredImpactedResources.map((resource, index) => (
             <TableRow key={index}>
               <TableCell style={{ wordBreak: 'break-word' }}>{resource.Resource}</TableCell>
               <TableCell style={{ wordBreak: 'break-word' }}>{resource.Action}</TableCell>
@@ -312,80 +363,84 @@ const App: React.FC = () => {
   );
 
   return (
-    <Container>
-      <Grid container spacing={3} justifyContent="center" alignItems="center" style={{ margin: 20 }}>
-        <Grid item>
-          <FormControl variant="outlined" style={{ minWidth: 120 }}>
-            <InputLabel>Mode</InputLabel>
-            <Select
-              value={mode}
-              onChange={(e) => setMode(e.target.value as string)}
-              label="Mode"
-            >
-              <MenuItem value="dry-run">Dry Run</MenuItem>
-              <MenuItem value="apply">Apply</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item>
-          <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
-            Run Optimizer
-          </Button>
-        </Grid>
-        {isOptimizerRunning && (
+    <ThemeProvider theme={theme}>
+      <Container>
+        <Box mt={4} textAlign="center">
+            <Typography variant="h4" gutterBottom>Azure Cost Optimizer Dashboard</Typography>
+          </Box>
+        <Grid container spacing={3} justifyContent="center" alignItems="center" style={{ margin: 20 }}>
           <Grid item>
-            <CircularProgress />
-            <Typography variant="h6" style={{ marginLeft: 10 }}>Optimizer is running...</Typography>
+            <FormControl variant="outlined" style={{ minWidth: 120 }}>
+              <InputLabel>Mode</InputLabel>
+              <Select
+                value={mode}
+                onChange={(e) => setMode(e.target.value as string)}
+                label="Mode"
+              >
+                <MenuItem value="dry-run">Dry Run</MenuItem>
+                <MenuItem value="apply">Apply</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
-        )}
-      </Grid>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <FormControl variant="outlined" style={{ minWidth: 120 }}>
-            <InputLabel>Subscription</InputLabel>
-            <Select
-              value={selectedSubscription}
-              onChange={handleSubscriptionChange}
-              label="Subscription"
-            >
-              {summaryMetrics.map(metric => (
-                <MenuItem key={metric.SubscriptionId} value={metric.SubscriptionId}>
-                  {metric.SubscriptionId}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Grid item>
+            <FormControl variant="outlined" style={{ minWidth: 200 }}>
+              <InputLabel>Subscription</InputLabel>
+              <Select
+                value={selectedSubscription}
+                onChange={handleSubscriptionChange}
+                label="Subscription"
+              >
+                <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
+                {summaryMetrics.map(metric => (
+                  <MenuItem key={metric.SubscriptionId} value={metric.SubscriptionId}>
+                    {metric.SubscriptionId}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item>
+            <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
+              Run Optimizer
+            </Button>
+          </Grid>
+          {isOptimizerRunning && (
+            <Grid item>
+              <CircularProgress />
+              <Typography variant="h6" style={{ marginLeft: 10 }}>Optimizer is running...</Typography>
+            </Grid>
+          )}
         </Grid>
-      </Grid>
-      <Box mt={4}>
-        <Typography variant="h5">Summary Metrics</Typography>
-        {renderSummaryMetricsTable()}
-      </Box>
-      <Box mt={4}>
-        <Typography variant="h5">Cost Trend</Typography>
-        {renderCostChart()}
-      </Box>
-      <Box mt={4}>
-        <Typography variant="h5">Execution Data</Typography>
-        {renderExecutionTable()}
-      </Box>
-      <Box mt={4}>
-        <Typography variant="h5">Impacted Resources</Typography>
-        {renderImpactedResourcesTable()}
-      </Box>
-      <Box mt={4}>
-        <Typography variant="h5">Anomalies</Typography>
-        {renderAnomalyTable()}
-      </Box>
-      <Box mt={4}>
-        <Typography variant="h5">Optimizer Logs</Typography>
-        <Paper style={{ maxHeight: 300, overflow: 'auto', padding: 16 }}>
-          {logs.map((log, index) => (
-            <Typography key={index} variant="body1">{log}</Typography>
-          ))}
-        </Paper>
-      </Box>
-    </Container>
+        <Box mt={4}>
+          <Typography variant="h5">Summary Metrics</Typography>
+          {renderSummaryMetricsTable()}
+        </Box>
+        <Box mt={4}>
+          <Typography variant="h5">Cost Trend</Typography>
+          {renderCostChart()}
+        </Box>
+        <Box mt={4}>
+          <Typography variant="h5">Execution Data</Typography>
+          {renderExecutionTable()}
+        </Box>
+        <Box mt={4}>
+          <Typography variant="h5">Impacted Resources</Typography>
+          {renderImpactedResourcesTable()}
+        </Box>
+        <Box mt={4}>
+          <Typography variant="h5">Anomalies</Typography>
+          {renderAnomalyTable()}
+        </Box>
+        <Box mt={4}>
+          <Typography variant="h5">Optimizer Logs</Typography>
+          <Paper style={{ maxHeight: 300, overflow: 'auto', padding: 16 }}>
+            {logs.map((log, index) => (
+              <Typography key={index} variant="body1">{log}</Typography>
+            ))}
+          </Paper>
+        </Box>
+      </Container>
+    </ThemeProvider>
   );
 };
 
