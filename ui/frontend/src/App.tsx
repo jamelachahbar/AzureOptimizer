@@ -218,7 +218,7 @@ const App: React.FC = () => {
   );
 
   const renderCostChart = () => (
-    <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={500}>
       <LineChart data={filteredTrendData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
@@ -231,8 +231,8 @@ const App: React.FC = () => {
   );
 
   const renderExecutionTable = () => (
-    <TableContainer component={Paper}>
-      <Table>
+    <TableContainer component={Paper} style={{ maxHeight: 400 }}>
+      <Table stickyHeader>
         <TableHead>
           <TableRow>
             <TableCell>Action</TableCell>
@@ -260,8 +260,8 @@ const App: React.FC = () => {
   );
 
   const renderImpactedResourcesTable = () => (
-    <TableContainer component={Paper}>
-      <Table>
+    <TableContainer component={Paper} style={{ maxHeight: 400 }}>
+      <Table stickyHeader>
         <TableHead>
           <TableRow>
             <TableCell>Resource</TableCell>
@@ -289,8 +289,8 @@ const App: React.FC = () => {
   );
 
   const renderAnomalyTable = () => (
-    <TableContainer component={Paper}>
-      <Table>
+    <TableContainer component={Paper} style={{ maxHeight: 400 }}>
+      <Table stickyHeader>
         <TableHead>
           <TableRow>
             <TableCell>Date</TableCell>
@@ -379,7 +379,7 @@ const App: React.FC = () => {
       </Box>
       <Box mt={4}>
         <Typography variant="h5">Optimizer Logs</Typography>
-        <Paper>
+        <Paper style={{ maxHeight: 300, overflow: 'auto', padding: 16 }}>
           {logs.map((log, index) => (
             <Typography key={index} variant="body1">{log}</Typography>
           ))}
