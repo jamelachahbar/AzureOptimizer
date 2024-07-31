@@ -1,8 +1,8 @@
-from flask import Flask, request, jsonify, Response
-from flask_cors import CORS
 import threading
 import logging
 import time
+from flask import Flask, request, jsonify, Response
+from flask_cors import CORS
 from azure_cost_optimizer.optimizer import main as optimizer_main
 
 # Initialize Flask app
@@ -54,20 +54,27 @@ def run_optimizer():
     global optimizer_status
     mode = request.json.get('mode')
     all_subscriptions = request.json.get('all_subscriptions', False)
+    timeout = request.json.get('timeout', 3600)  # Default to 1 hour timeout if not specified
 
     def run_optimizer_in_thread():
         global summary_metrics_data, execution_data_data, impacted_resources_data, anomalies_data, trend_data, optimizer_status
         optimizer_status = "Running"
+        start_time = time.time()
         try:
             result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions)
-            if result is None:
-                raise ValueError("optimizer_main returned None")
-            summary_metrics_data = result['summary_reports']
-            execution_data_data = result['status_log']
-            impacted_resources_data = result['impacted_resources']
-            trend_data = result['trend_data']
-            anomalies_data = result['anomalies']
-            optimizer_status = "Completed"
+            while time.time() - start_time < timeout:
+                result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions)
+                if result is None:
+                    raise ValueError("optimizer_main returned None")
+                summary_metrics_data = result['summary_reports']
+                execution_data_data = result['status_log']
+                impacted_resources_data = result['impacted_resources']
+                trend_data = result['trend_data']
+                anomalies_data = result['anomalies']
+                optimizer_status = "Completed"
+                return
+            optimizer_status = "Timeout"
+            logger.error("Optimizer timeout")
         except Exception as e:
             optimizer_status = f"Error: {str(e)}"
             logger.error(f"Optimizer error: {e}")
@@ -76,11 +83,11 @@ def run_optimizer():
     thread.start()
 
     return jsonify({'status': 'Optimizer started'}), 200
+
 # Route to get optimizer status
 @app.route('/api/status', methods=['GET'])
 def get_status():
     return jsonify({'status': optimizer_status}), 200
-
 # Route to get summary metrics
 @app.route('/api/summary-metrics', methods=['GET'])
 def get_summary_metrics():
@@ -89,8 +96,6 @@ def get_summary_metrics():
     except Exception as e:
         logger.error(f"Error fetching summary metrics: {e}")
         return jsonify({'error': 'Error fetching summary metrics'}), 500
-
-
 # Route to get execution data
 @app.route('/api/execution-data', methods=['GET'])
 def get_execution_data():
