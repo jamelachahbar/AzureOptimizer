@@ -231,10 +231,10 @@ const App: React.FC = () => {
   const filteredTrendData = selectedSubscription === 'All Subscriptions' ? trendData : trendData.filter(data => data.SubscriptionId === selectedSubscription);
   const filteredExecutionData = selectedSubscription === 'All Subscriptions' ? executionData : executionData.filter(data => data.SubscriptionId === selectedSubscription);
   const filteredImpactedResources = selectedSubscription === 'All Subscriptions' ? impactedResources : impactedResources.filter(data => data.SubscriptionId === selectedSubscription);
-
+  const filteredSummaryMetrics = selectedSubscription === 'All Subscriptions' ? summaryMetrics : summaryMetrics.filter(data => data.SubscriptionId === selectedSubscription);
   const renderSummaryMetricsTable = () => (
     <Grid container spacing={3}>
-      {summaryMetrics.map((metric, index) => (
+      {filteredSummaryMetrics.map((metric, index) => (
         <Grid item xs={12} md={4} key={index}>
           <Paper style={{ padding: 16, wordBreak: 'break-word' }}>
             <Typography variant="h6">Subscription: {metric.SubscriptionId}</Typography>
