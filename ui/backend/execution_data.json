@@ -22,13 +22,6 @@
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmwithhibernationmode",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vmwithhibernationmode in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vm-forcedetachdemo1-1",
         "Action": "stop",
         "Status": "Dry Run",

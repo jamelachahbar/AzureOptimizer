@@ -1,12 +1,33 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Container, Grid, Button, CircularProgress, Typography, FormControl, InputLabel, Select, MenuItem, Paper, Box, TextField } from '@mui/material';
+import {
+  Container,
+  Grid,
+  Button,
+  CircularProgress,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Paper,
+  Box,
+  TextField,
+  Card,
+  CardContent,
+  TableContainer,
+  Table,
+  SelectChangeEvent,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody
+ 
+} from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Table, TableBody, TableCell, TableHead, TableRow, TableContainer } from '@mui/material';
-import { SelectChangeEvent } from '@mui/material/Select';
 import axios from 'axios';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Card, CardContent } from '@mui/material';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'; // Example icon for financial data visualization
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import { Virtuoso } from 'react-virtuoso'; // Import the Virtuoso component
 
 interface CostData {
   date: string;
@@ -39,17 +60,21 @@ interface SummaryMetric {
   MinimumDailyCost: number;
   TotalCost: number;
 }
+
 interface SummaryMetricsCardProps {
   metric: SummaryMetric;
 }
+
 interface AnomalyData {
   date: string;
   cost: number;
   SubscriptionId: string;
 }
+
 interface DataBySubscription {
   [SubscriptionId: string]: CostData[];
 }
+
 // Define the theme using Material Design 3 guidelines
 const theme = createTheme({
   palette: {
@@ -94,7 +119,7 @@ const App: React.FC = () => {
       MinimumDailyCost: 5,
       SubscriptionId: 'mock-subscription-2',
       TotalCost: 100,
-    }
+    },
   ]);
 
   const [executionData, setExecutionData] = useState<ExecutionData[]>([
@@ -165,10 +190,10 @@ const App: React.FC = () => {
       const response = await axios.post('http://127.0.0.1:5000/api/run', { mode: mode, all_subscriptions: true });
       const data = response.data;
       console.log('Run Optimizer Response:', data);
-      setLogs(prevLogs => [...prevLogs, `Optimizer started in ${mode} mode.`]);
+      setLogs((prevLogs) => [...prevLogs, `Optimizer started in ${mode} mode.`]);
     } catch (error) {
       console.error('Error running optimizer:', error);
-      setLogs(prevLogs => [...prevLogs, 'Error running optimizer.']);
+      setLogs((prevLogs) => [...prevLogs, 'Error running optimizer.']);
       setErrorMessage('Error running optimizer. Please check the server.');
       setIsOptimizerRunning(false);
     }
@@ -178,10 +203,10 @@ const App: React.FC = () => {
     try {
       await axios.post('http://127.0.0.1:5000/api/stop');
       setIsOptimizerRunning(false);
-      setLogs(prevLogs => [...prevLogs, 'Optimizer stopped.']);
+      setLogs((prevLogs) => [...prevLogs, 'Optimizer stopped.']);
     } catch (error) {
       console.error('Error stopping optimizer:', error);
-      setLogs(prevLogs => [...prevLogs, 'Error stopping optimizer.']);
+      setLogs((prevLogs) => [...prevLogs, 'Error stopping optimizer.']);
     }
   };
 
@@ -251,15 +276,27 @@ const App: React.FC = () => {
     setSelectedSubscription(event.target.value as string);
   };
 
-  const filteredAnomalyData = selectedSubscription === 'All Subscriptions' ? anomalyData : anomalyData.filter(data => data.SubscriptionId === selectedSubscription);
-  const filteredTrendData = selectedSubscription === 'All Subscriptions' ? trendData : trendData.filter(data => data.SubscriptionId === selectedSubscription);
-  const filteredExecutionData = selectedSubscription === 'All Subscriptions' ? executionData : executionData.filter(data => data.SubscriptionId === selectedSubscription);
-  const filteredImpactedResources = selectedSubscription === 'All Subscriptions' ? impactedResources : impactedResources.filter(data => data.SubscriptionId === selectedSubscription);
+  const filteredAnomalyData =
+    selectedSubscription === 'All Subscriptions'
+      ? anomalyData
+      : anomalyData.filter((data) => data.SubscriptionId === selectedSubscription);
+  const filteredTrendData =
+    selectedSubscription === 'All Subscriptions'
+      ? trendData
+      : trendData.filter((data) => data.SubscriptionId === selectedSubscription);
+  const filteredExecutionData =
+    selectedSubscription === 'All Subscriptions'
+      ? executionData
+      : executionData.filter((data) => data.SubscriptionId === selectedSubscription);
+  const filteredImpactedResources =
+    selectedSubscription === 'All Subscriptions'
+      ? impactedResources
+      : impactedResources.filter((data) => data.SubscriptionId === selectedSubscription);
   // Filter metrics based on selected subscription
-  const filteredSummaryMetrics = selectedSubscription === 'All Subscriptions'
-    ? summaryMetrics
-    : summaryMetrics.filter(metric => metric.SubscriptionId === selectedSubscription);
-
+  const filteredSummaryMetrics =
+    selectedSubscription === 'All Subscriptions'
+      ? summaryMetrics
+      : summaryMetrics.filter((metric) => metric.SubscriptionId === selectedSubscription);
 
   // Define the summaryMetrics card component
   const SummaryMetricsCard: React.FC<SummaryMetricsCardProps> = ({ metric }) => {
@@ -289,27 +326,29 @@ const App: React.FC = () => {
       </Card>
     );
   };
-  
+
   const renderCostChart = (trendData: CostData[], selectedSubscription: string) => {
     // Initialize dataBySubscription with the appropriate type
     const dataBySubscription: DataBySubscription = {};
-  
+
     if (selectedSubscription === 'All Subscriptions') {
-      trendData.forEach(data => {
+      trendData.forEach((data) => {
         if (!dataBySubscription[data.SubscriptionId]) {
           dataBySubscription[data.SubscriptionId] = [];
         }
         dataBySubscription[data.SubscriptionId].push(data);
       });
     } else {
-      dataBySubscription[selectedSubscription] = trendData.filter(data => data.SubscriptionId === selectedSubscription);
+      dataBySubscription[selectedSubscription] = trendData.filter(
+        (data) => data.SubscriptionId === selectedSubscription
+      );
     }
     // Determine the min and max cost for the Y-axis scale
-    const costs = trendData.map(data => data.cost);
+    const costs = trendData.map((data) => data.cost);
     const minY = Math.min(...costs);
-    const maxY = Math.max(...costs);  
+    const maxY = Math.max(...costs);
     // Prepare lines for each subscription
-    const lines = Object.keys(dataBySubscription).map(subscriptionId => (
+    const lines = Object.keys(dataBySubscription).map((subscriptionId) => (
       <Line
         key={subscriptionId}
         type="monotone"
@@ -320,7 +359,7 @@ const App: React.FC = () => {
         activeDot={{ r: 8 }}
       />
     ));
-  
+
     return (
       <ResponsiveContainer width="100%" height={500}>
         <LineChart>
@@ -336,37 +375,64 @@ const App: React.FC = () => {
     );
   };
 
+  // Utility function to generate colors (could be enhanced to ensure better colors or use a set array of colors)
+  function generateRandomColor() {
+    const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+    return randomColor;
+  }
 
-// Utility function to generate colors (could be enhanced to ensure better colors or use a set array of colors)
-function generateRandomColor() {
-  const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
-  return randomColor;
-}
+  // Define a function to determine row styles based on status
+  const getRowStyle = (status: string) => {
+    switch (status) {
+      case 'Success':
+        return { backgroundColor: 'lightgreen' };
+      case 'Failed':
+        return { backgroundColor: 'red' };
+      case 'Dry Run':
+        return { backgroundColor: 'lightyellow' };
+      default:
+        return {};
+    }
+  };
+
   const renderExecutionTable = () => (
-    <TableContainer component={Paper} style={{ maxHeight: 400 }}>
-      <Table stickyHeader>
-        <TableHead>
-          <TableRow>
-            <TableCell>Action</TableCell>
-            <TableCell>Message</TableCell>
-            <TableCell>Resource</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Subscription ID</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredExecutionData.map((execution, index) => (
-            <TableRow key={index}>
-              <TableCell style={{ margin:10  }}>{execution.Action}</TableCell>
-              <TableCell style={{ wordBreak: 'break-word' }}>{execution.Message}</TableCell>
-              <TableCell style={{ wordBreak: 'break-word' }}>{execution.Resource}</TableCell>
-              <TableCell style={{ }}>{execution.Status}</TableCell>
-              <TableCell style={{ wordBreak: 'break-word' }}>{execution.SubscriptionId}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Paper style={{ height: 400, width: '100%' }}>
+      <div style={{
+        display: 'flex',
+        position: 'relative',
+        top: 0,
+        backgroundColor: '#fff',
+        zIndex: 1,
+        padding: '8px 16px',
+        borderBottom: '1px solid #e0e0e0',
+      }}>
+        <Typography style={{ flex: 1, fontWeight: 'bold' }}>Action</Typography>
+        <Typography style={{ flex: 1, fontWeight: 'bold' }}>Message</Typography>
+        <Typography style={{ flex: 1, fontWeight: 'bold' }}>Resource</Typography>
+        <Typography style={{ flex: 1, fontWeight: 'bold' }}>Status</Typography>
+        <Typography style={{ flex: 1, fontWeight: 'bold' }}>Subscription ID</Typography>
+      </div>
+      <Virtuoso
+        data={filteredExecutionData}
+        itemContent={(index, execution) => (
+          <div
+            style={{
+              display: 'flex',
+              padding: '8px 10px',
+              borderBottom: '1px solid #e0e0e0',
+              ...getRowStyle(execution.Status),
+            }}
+          >
+            <Typography style={{ flex: 1 }}>{execution.Action}</Typography>
+            <Typography style={{ flex: 1 }}>{execution.Message}</Typography>
+            <Typography style={{ flex: 1 }}>{execution.Resource}</Typography>
+            <Typography style={{ flex: 1 }}>{execution.Status}</Typography>
+            <Typography style={{ flex: 1 }}>{execution.SubscriptionId}</Typography>
+          </div>
+        )}
+        style={{ height: '100%' }}
+      />
+    </Paper>
   );
 
   const renderImpactedResourcesTable = () => (
@@ -425,23 +491,29 @@ function generateRandomColor() {
           <Grid item>
             <FormControl variant="outlined" style={{ minWidth: 120 }}>
               <InputLabel>Mode</InputLabel>
-              <Select
-                value={mode}
-                onChange={(e) => setMode(e.target.value as string)}
-                label="Mode"
-              >
+              <Select value={mode} onChange={(e) => setMode(e.target.value as string)} label="Mode">
                 <MenuItem value="dry-run">Dry Run</MenuItem>
                 <MenuItem value="apply">Apply</MenuItem>
               </Select>
             </FormControl>
           </Grid>
           <Grid item>
-            <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={runOptimizer}
+              disabled={isOptimizerRunning}
+            >
               Run Optimizer
             </Button>
           </Grid>
           <Grid item>
-            <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={stopOptimizer}
+              disabled={!isOptimizerRunning}
+            >
               Stop Optimizer
             </Button>
           </Grid>
@@ -457,12 +529,14 @@ function generateRandomColor() {
           {isOptimizerRunning && (
             <Grid item>
               <CircularProgress />
-              <Typography variant="h6" style={{ marginLeft: 10 }}>Optimizer is running...</Typography>
+              <Typography variant="h6" style={{ marginLeft: 10 }}>
+                Optimizer is running...
+              </Typography>
             </Grid>
           )}
         </Grid>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid item xs={2} mb={2}>
             <FormControl variant="outlined" style={{ minWidth: 120 }}>
               <InputLabel id="subscription-select-label">Subscription</InputLabel>
               <Select
@@ -473,7 +547,9 @@ function generateRandomColor() {
               >
                 <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
                 {summaryMetrics.map((metric) => (
-                  <MenuItem key={metric.SubscriptionId} value={metric.SubscriptionId}>{metric.SubscriptionId}</MenuItem>
+                  <MenuItem key={metric.SubscriptionId} value={metric.SubscriptionId}>
+                    {metric.SubscriptionId}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -481,7 +557,9 @@ function generateRandomColor() {
         </Grid>
         {errorMessage && (
           <Box mt={4}>
-            <Typography variant="h6" color="error">{errorMessage}</Typography>
+            <Typography variant="h6" color="error">
+              {errorMessage}
+            </Typography>
           </Box>
         )}
         <Grid container spacing={2}>
@@ -494,25 +572,35 @@ function generateRandomColor() {
 
         <Box mt={4}>
           <Typography variant="h5">Cost Trend</Typography>
-          {renderCostChart( filteredTrendData, selectedSubscription)}
+          {renderCostChart(filteredTrendData, selectedSubscription)}
         </Box>
-        <Box mt={4}>
-          <Typography variant="h5">Execution Data</Typography>
+        <Box mt={4} mb={4}>
+          <Typography variant="h5" mb={1}>
+            Execution Data
+          </Typography>
           {renderExecutionTable()}
         </Box>
-        <Box mt={4}>
-          <Typography variant="h5">Impacted Resources</Typography>
+        <Box mt={4} mb={4}>
+          <Typography variant="h5" mb={1}>
+            Impacted Resources
+          </Typography>
           {renderImpactedResourcesTable()}
         </Box>
-        <Box mt={4}>
-          <Typography variant="h5">Anomalies</Typography>
+        <Box mt={4} mb={4}>
+          <Typography variant="h5" mb={1}>
+            Anomalies
+          </Typography>
           {renderAnomalyTable()}
         </Box>
-        <Box mt={4}>
-          <Typography variant="h5">Optimizer Logs</Typography>
+        <Box mt={4} mb={4}>
+          <Typography variant="h5" mb={1}>
+            Optimizer Logs
+          </Typography>
           <Paper style={{ maxHeight: 300, overflow: 'auto', padding: 16 }}>
             {logs.map((log, index) => (
-              <Typography key={index} variant="body1">{log}</Typography>
+              <Typography key={index} variant="body1">
+                {log}
+              </Typography>
             ))}
           </Paper>
         </Box>

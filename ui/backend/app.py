@@ -129,6 +129,11 @@ def get_anomalies():
     except Exception as e:
         logger.error(f"Error fetching anomalies data: {e}")
         return jsonify({'error': 'Error fetching anomalies data'}), 500
+@app.route('/api/update-policy', methods=['POST'])
+def update_policy():
+    policy_data = request.json
+    # Implement the logic to update policy enabled state
+    return jsonify({'status': 'Policy updated'}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
