@@ -8,10 +8,10 @@
     },
     {
         "SubscriptionId": "c916841c-459e-4bbd-aff7-c235ae45f0dd",
-        "TotalCost": 244.17699476766458,
-        "AverageDailyCost": 7.876677250569825,
+        "TotalCost": 244.17699583166458,
+        "AverageDailyCost": 7.876677284892406,
         "MaximumDailyCost": 25.1058726665755,
-        "MinimumDailyCost": 0.130047754
+        "MinimumDailyCost": 0.130048818
     },
     {
         "SubscriptionId": "9d923c47-1aa2-4fc9-856f-16ca53e97b76",

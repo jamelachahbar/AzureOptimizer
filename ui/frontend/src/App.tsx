@@ -405,6 +405,7 @@ const App: React.FC = () => {
         zIndex: 1,
         padding: '8px 16px',
         borderBottom: '1px solid #e0e0e0',
+        marginBottom: -10,
       }}>
         <Typography style={{ flex: 1, fontWeight: 'bold' }}>Action</Typography>
         <Typography style={{ flex: 1, fontWeight: 'bold' }}>Message</Typography>
@@ -430,7 +431,7 @@ const App: React.FC = () => {
             <Typography style={{ flex: 1 }}>{execution.SubscriptionId}</Typography>
           </div>
         )}
-        style={{ height: '100%' }}
+        style={{ height: '100%', width: '100%' }}
       />
     </Paper>
   );
