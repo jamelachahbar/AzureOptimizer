@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableRow, TableContainer } from
 import { SelectChangeEvent } from '@mui/material/Select';
 import axios from 'axios';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { Card, CardContent } from '@mui/material';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'; // Example icon for financial data visualization
 
 interface CostData {
   date: string;
@@ -31,19 +33,22 @@ interface ResourceData {
 }
 
 interface SummaryMetric {
+  SubscriptionId: string;
   AverageDailyCost: number;
   MaximumDailyCost: number;
   MinimumDailyCost: number;
-  SubscriptionId: string;
   TotalCost: number;
 }
-
+interface SummaryMetricsCardProps {
+  metric: SummaryMetric;
+}
 interface AnomalyData {
   date: string;
   cost: number;
   SubscriptionId: string;
 }
 
+// Define the theme using Material Design 3 guidelines
 const theme = createTheme({
   palette: {
     primary: {
@@ -51,6 +56,23 @@ const theme = createTheme({
     },
     secondary: {
       main: '#dc004e',
+    },
+    background: {
+      default: '#f4f4f4',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#333333',
+      secondary: '#666666',
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+        },
+      },
     },
   },
 });
@@ -231,23 +253,41 @@ const App: React.FC = () => {
   const filteredTrendData = selectedSubscription === 'All Subscriptions' ? trendData : trendData.filter(data => data.SubscriptionId === selectedSubscription);
   const filteredExecutionData = selectedSubscription === 'All Subscriptions' ? executionData : executionData.filter(data => data.SubscriptionId === selectedSubscription);
   const filteredImpactedResources = selectedSubscription === 'All Subscriptions' ? impactedResources : impactedResources.filter(data => data.SubscriptionId === selectedSubscription);
-  const filteredSummaryMetrics = selectedSubscription === 'All Subscriptions' ? summaryMetrics : summaryMetrics.filter(data => data.SubscriptionId === selectedSubscription);
-  const renderSummaryMetricsTable = () => (
-    <Grid container spacing={3}>
-      {filteredSummaryMetrics.map((metric, index) => (
-        <Grid item xs={12} md={4} key={index}>
-          <Paper style={{ padding: 16, wordBreak: 'break-word' }}>
-            <Typography variant="h6">Subscription: {metric.SubscriptionId}</Typography>
-            <Typography variant="body1">Average Daily Cost: {metric.AverageDailyCost}</Typography>
-            <Typography variant="body1">Maximum Daily Cost: {metric.MaximumDailyCost}</Typography>
-            <Typography variant="body1">Minimum Daily Cost: {metric.MinimumDailyCost}</Typography>
-            <Typography variant="body1">Total Cost: {metric.TotalCost}</Typography>
-          </Paper>
-        </Grid>
-      ))}
-    </Grid>
-  );
+  // Filter metrics based on selected subscription
+  const filteredSummaryMetrics = selectedSubscription === 'All Subscriptions'
+    ? summaryMetrics
+    : summaryMetrics.filter(metric => metric.SubscriptionId === selectedSubscription);
 
+
+  // Define the summaryMetrics card component
+  const SummaryMetricsCard: React.FC<SummaryMetricsCardProps> = ({ metric }) => {
+    console.log('Metric data:', metric);
+    return (
+      <Card sx={{ minWidth: 275, boxShadow: 3, '&:hover': { boxShadow: 6 } }}>
+        <CardContent>
+          <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+            Subscription: {metric.SubscriptionId}
+          </Typography>
+          <Box display="flex" alignItems="center">
+            <AccountBalanceWalletIcon color="primary" sx={{ mr: 1 }} />
+            <Typography variant="h5" component="div">
+              ${metric.AverageDailyCost}
+            </Typography>
+          </Box>
+          <Typography sx={{ mb: 1.5 }} color="text.secondary">
+            Max Daily: ${metric.MaximumDailyCost}
+          </Typography>
+          <Typography sx={{ mb: 1.5 }} color="text.secondary">
+            Min Daily: ${metric.MinimumDailyCost}
+          </Typography>
+          <Typography variant="body2">
+            Total Cost: <b>${metric.TotalCost}</b>
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  };
+  
   const renderCostChart = () => (
     <ResponsiveContainer width="100%" height={500}>
       <LineChart data={filteredTrendData}>
@@ -267,7 +307,6 @@ const App: React.FC = () => {
         <TableHead>
           <TableRow>
             <TableCell>Action</TableCell>
-            <TableCell>Cost</TableCell>
             <TableCell>Message</TableCell>
             <TableCell>Resource</TableCell>
             <TableCell>Status</TableCell>
@@ -277,11 +316,10 @@ const App: React.FC = () => {
         <TableBody>
           {filteredExecutionData.map((execution, index) => (
             <TableRow key={index}>
-              <TableCell style={{ wordBreak: 'break-word' }}>{execution.Action}</TableCell>
-              <TableCell style={{ wordBreak: 'break-word' }}>{execution.Cost}</TableCell>
+              <TableCell style={{ margin:10  }}>{execution.Action}</TableCell>
               <TableCell style={{ wordBreak: 'break-word' }}>{execution.Message}</TableCell>
               <TableCell style={{ wordBreak: 'break-word' }}>{execution.Resource}</TableCell>
-              <TableCell style={{ wordBreak: 'break-word' }}>{execution.Status}</TableCell>
+              <TableCell style={{ }}>{execution.Status}</TableCell>
               <TableCell style={{ wordBreak: 'break-word' }}>{execution.SubscriptionId}</TableCell>
             </TableRow>
           ))}
@@ -296,9 +334,6 @@ const App: React.FC = () => {
         <TableHead>
           <TableRow>
             <TableCell>Resource</TableCell>
-            <TableCell>Action</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Cost</TableCell>
             <TableCell>Policy</TableCell>
             <TableCell>Subscription ID</TableCell>
           </TableRow>
@@ -307,9 +342,6 @@ const App: React.FC = () => {
           {filteredImpactedResources.map((resource, index) => (
             <TableRow key={index}>
               <TableCell style={{ wordBreak: 'break-word' }}>{resource.Resource}</TableCell>
-              <TableCell style={{ wordBreak: 'break-word' }}>{resource.Action}</TableCell>
-              <TableCell style={{ wordBreak: 'break-word' }}>{resource.Status}</TableCell>
-              <TableCell style={{ wordBreak: 'break-word' }}>{resource.Cost}</TableCell>
               <TableCell style={{ wordBreak: 'break-word' }}>{resource.Policy}</TableCell>
               <TableCell style={{ wordBreak: 'break-word' }}>{resource.SubscriptionId}</TableCell>
             </TableRow>
@@ -346,7 +378,7 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <Container>
         <Box mt={4} textAlign="center">
-          <Typography variant="h4">Team XYZ - Cost Optimizer</Typography>
+          <Typography variant="h4">Team CSU Azure Infra - Cost Optimizer</Typography>
         </Box>
         <Grid container spacing={3} justifyContent="center" alignItems="center" style={{ margin: 20 }}>
           <Grid item>
@@ -391,17 +423,16 @@ const App: React.FC = () => {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <FormControl variant="outlined" style={{ minWidth: 120 }}>
-              <InputLabel>Subscription</InputLabel>
+              <InputLabel id="subscription-select-label">Subscription</InputLabel>
               <Select
+                labelId="subscription-select-label"
                 value={selectedSubscription}
-                onChange={handleSubscriptionChange}
                 label="Subscription"
+                onChange={handleSubscriptionChange}
               >
                 <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
-                {summaryMetrics.map(metric => (
-                  <MenuItem key={metric.SubscriptionId} value={metric.SubscriptionId}>
-                    {metric.SubscriptionId}
-                  </MenuItem>
+                {summaryMetrics.map((metric) => (
+                  <MenuItem key={metric.SubscriptionId} value={metric.SubscriptionId}>{metric.SubscriptionId}</MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -412,10 +443,14 @@ const App: React.FC = () => {
             <Typography variant="h6" color="error">{errorMessage}</Typography>
           </Box>
         )}
-        <Box mt={4}>
-          <Typography variant="h5">Summary Metrics</Typography>
-          {renderSummaryMetricsTable()}
-        </Box>
+        <Grid container spacing={2}>
+          {filteredSummaryMetrics.map((metric, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <SummaryMetricsCard metric={metric} />
+            </Grid>
+          ))}
+        </Grid>
+
         <Box mt={4}>
           <Typography variant="h5">Cost Trend</Typography>
           {renderCostChart()}
