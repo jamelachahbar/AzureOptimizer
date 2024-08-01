@@ -5,6 +5,8 @@ import logging
 import time
 import sys
 from azure_cost_optimizer.optimizer import main as optimizer_main
+import matplotlib
+matplotlib.use('Agg')  # Use a non-interactive backend
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})

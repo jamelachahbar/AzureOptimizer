@@ -47,7 +47,9 @@ interface AnomalyData {
   cost: number;
   SubscriptionId: string;
 }
-
+interface DataBySubscription {
+  [SubscriptionId: string]: CostData[];
+}
 // Define the theme using Material Design 3 guidelines
 const theme = createTheme({
   palette: {
@@ -288,19 +290,58 @@ const App: React.FC = () => {
     );
   };
   
-  const renderCostChart = () => (
-    <ResponsiveContainer width="100%" height={500}>
-      <LineChart data={filteredTrendData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="cost" stroke="#8884d8" activeDot={{ r: 8 }} />
-      </LineChart>
-    </ResponsiveContainer>
-  );
+  const renderCostChart = (trendData: CostData[], selectedSubscription: string) => {
+    // Initialize dataBySubscription with the appropriate type
+    const dataBySubscription: DataBySubscription = {};
+  
+    if (selectedSubscription === 'All Subscriptions') {
+      trendData.forEach(data => {
+        if (!dataBySubscription[data.SubscriptionId]) {
+          dataBySubscription[data.SubscriptionId] = [];
+        }
+        dataBySubscription[data.SubscriptionId].push(data);
+      });
+    } else {
+      dataBySubscription[selectedSubscription] = trendData.filter(data => data.SubscriptionId === selectedSubscription);
+    }
+    // Determine the min and max cost for the Y-axis scale
+    const costs = trendData.map(data => data.cost);
+    const minY = Math.min(...costs);
+    const maxY = Math.max(...costs);  
+    // Prepare lines for each subscription
+    const lines = Object.keys(dataBySubscription).map(subscriptionId => (
+      <Line
+        key={subscriptionId}
+        type="monotone"
+        dataKey="cost"
+        data={dataBySubscription[subscriptionId]}
+        name={`Subscription ${subscriptionId}`}
+        stroke={generateRandomColor()} // Ensure this function returns a consistent color for the same subscription ID
+        activeDot={{ r: 8 }}
+      />
+    ));
+  
+    return (
+      <ResponsiveContainer width="100%" height={500}>
+        <LineChart>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" />
+          {/* <YAxis domain={[minY, maxY]} /> */}
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          {lines}
+        </LineChart>
+      </ResponsiveContainer>
+    );
+  };
 
+
+// Utility function to generate colors (could be enhanced to ensure better colors or use a set array of colors)
+function generateRandomColor() {
+  const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+  return randomColor;
+}
   const renderExecutionTable = () => (
     <TableContainer component={Paper} style={{ maxHeight: 400 }}>
       <Table stickyHeader>
@@ -453,7 +494,7 @@ const App: React.FC = () => {
 
         <Box mt={4}>
           <Typography variant="h5">Cost Trend</Typography>
-          {renderCostChart()}
+          {renderCostChart( filteredTrendData, selectedSubscription)}
         </Box>
         <Box mt={4}>
           <Typography variant="h5">Execution Data</Typography>

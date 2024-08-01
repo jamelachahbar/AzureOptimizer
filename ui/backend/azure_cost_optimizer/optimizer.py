@@ -31,6 +31,8 @@ from azure.mgmt.sql.models import Sku, Database
 from azure.storage.filedatalake import DataLakeServiceClient
 from applicationinsights import TelemetryClient
 from azure.mgmt.compute.models import StorageAccountTypes
+import matplotlib.pyplot as plt
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -148,7 +150,7 @@ def analyze_cost_data(cost_data, subscription_id, summary_reports):
             date = date.tz_localize("UTC").tz_convert(cet)
 
             if date.date() < now_cet.date():
-                data.append({"date": date, "cost": item[0]})
+                data.append({"date": date, "cost": item[0],"SubscriptionId": subscription_id})
         except Exception as e:
             logger.error(f"Error parsing date: {e}, Item: {item}")
 
