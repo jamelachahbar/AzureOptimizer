@@ -26,13 +26,22 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { Virtuoso } from 'react-virtuoso'; // Import the Virtuoso component
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
 interface CostData {
   date: string;
   cost: number;
   SubscriptionId: string;
+}
+interface ProcessedData {
+  [date: string]: {
+    date: string;
+    costs: SubscriptionCosts;
+  };
+}
+interface SubscriptionCosts {
+  [subscriptionId: string]: number;
 }
 
 interface ExecutionData {
@@ -75,7 +84,6 @@ interface DataBySubscription {
   [SubscriptionId: string]: CostData[];
 }
 
-// Define the theme using Material Design 3 guidelines
 const theme = createTheme({
   palette: {
     primary: {
@@ -97,12 +105,55 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 12,
+          padding: '8px 16px',
+          margin: '0 8px',
+          fontSize: '1rem',
+        },
+        containedPrimary: {
+          color: '#ffffff',
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+          transition: '0.3s',
+          '&:hover': {
+            boxShadow: '0 16px 32px rgba(0,0,0,0.2)',
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          margin: '8px',
+        },
+      },
+    },
+    MuiTableHead: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#e0e0e0',
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        head: {
+          fontWeight: 'bold',
+        },
+        body: {
+          fontSize: '0.875rem',
         },
       },
     },
   },
 });
+
 
 const App: React.FC = () => {
   const [summaryMetrics, setSummaryMetrics] = useState<SummaryMetric[]>([
@@ -308,7 +359,7 @@ const App: React.FC = () => {
             Subscription: {metric.SubscriptionId}
           </Typography>
           <Box display="flex" alignItems="center">
-            <AccountBalanceWalletIcon color="primary" sx={{ mr: 1 }} />
+            <FontAwesomeIcon icon={faMoneyBillWave} size="lg" style={{ marginRight: 8, color: '#1976d2' }} />
             <Typography variant="h5" component="div">
               ${metric.AverageDailyCost}
             </Typography>
@@ -359,17 +410,39 @@ const App: React.FC = () => {
         activeDot={{ r: 8 }}
       />
     ));
-
+    const rawData: CostData[] = trendData;
+    const processedData = rawData.reduce<ProcessedData>((acc, curr) => {
+      const { SubscriptionId, cost, date } = curr;
+    
+      if (!acc[date]) {
+        acc[date] = { date, costs: {} };
+      }
+    
+      if (!acc[date].costs[SubscriptionId]) {
+        acc[date].costs[SubscriptionId] = 0; // Ensure initialization
+      }
+    
+      acc[date].costs[SubscriptionId] += cost;
+    
+      return acc;
+    }, {});
+    const chartData = Object.values(processedData).map(entry => ({
+      date: entry.date,
+      ...entry.costs // Spread operator to flatten the costs into the same object
+    }));
+        
+    // Process the data to group costs by date
     return (
-      <ResponsiveContainer width="100%" height={500}>
-        <LineChart>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
-          {/* <YAxis domain={[minY, maxY]} /> */}
           <YAxis />
           <Tooltip />
           <Legend />
-          {lines}
+          {Object.keys(chartData[0]).filter(key => key !== 'date').map(key => (
+            <Line key={key} type="monotone" dataKey={key} stroke={generateRandomColor()} />
+          ))}
         </LineChart>
       </ResponsiveContainer>
     );
