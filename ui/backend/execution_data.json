@@ -3,156 +3,63 @@
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "VM-LINUX-01",
         "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: VM-LINUX-01 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+        "Status": "No Action",
+        "Message": "VM VM-LINUX-01 is already deallocated."
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmtest",
         "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vmtest in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+        "Status": "No Action",
+        "Message": "VM vmtest is already deallocated."
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmencrypted1",
         "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vmencrypted1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+        "Status": "No Action",
+        "Message": "VM vmencrypted1 is already deallocated."
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmwithhibernationmode",
         "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vmwithhibernationmode in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+        "Status": "No Action",
+        "Message": "VM vmwithhibernationmode is already deallocated."
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vm-forcedetachdemo1-1",
         "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vm-forcedetachdemo1-1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+        "Status": "No Action",
+        "Message": "VM vm-forcedetachdemo1-1 is already deallocated."
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vm-forcedetachdemo1-2",
         "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vm-forcedetachdemo1-2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+        "Status": "No Action",
+        "Message": "VM vm-forcedetachdemo1-2 is already deallocated."
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vm-forcedetachdemo1-3",
         "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vm-forcedetachdemo1-3 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+        "Status": "Failed",
+        "Message": "Failed to deallocate VM: (ResourceGroupNotFound) Resource group 'RG-TUBDEMOS' could not be found.\nCode: ResourceGroupNotFound\nMessage: Resource group 'RG-TUBDEMOS' could not be found."
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmacoademospot",
         "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vmacoademospot in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+        "Status": "Failed",
+        "Message": "Failed to deallocate VM: (ResourceGroupNotFound) Resource group 'RG-TUBDEMOS' could not be found.\nCode: ResourceGroupNotFound\nMessage: Resource group 'RG-TUBDEMOS' could not be found."
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "centosfreetest",
         "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: centosfreetest in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "dbstorage6xgnebmgwml4c",
-        "Action": "update_sku",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: update_sku on Resource: dbstorage6xgnebmgwml4c in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "costopttestdb",
-        "Action": "scale",
-        "Status": "No Change",
-        "Message": "Current DTU is already optimal. No scaling required.",
-        "Cost": 0
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "onpremdgwsql",
-        "Action": "scale",
-        "Status": "No Change",
-        "Message": "Current DTU is already optimal. No scaling required.",
-        "Cost": 0
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "VM-LINUX-01",
-        "Action": "downgrade_disks",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: downgrade_disks on Resource: VM-LINUX-01 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "Sample-VM",
-        "Action": "downgrade_disks",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: downgrade_disks on Resource: Sample-VM in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmtest",
-        "Action": "downgrade_disks",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: downgrade_disks on Resource: vmtest in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmencrypted1",
-        "Action": "downgrade_disks",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: downgrade_disks on Resource: vmencrypted1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmwithhibernationmode",
-        "Action": "downgrade_disks",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: downgrade_disks on Resource: vmwithhibernationmode in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vm-forcedetachdemo1-1",
-        "Action": "downgrade_disks",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: downgrade_disks on Resource: vm-forcedetachdemo1-1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vm-forcedetachdemo1-2",
-        "Action": "downgrade_disks",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: downgrade_disks on Resource: vm-forcedetachdemo1-2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vm-forcedetachdemo1-3",
-        "Action": "downgrade_disks",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: downgrade_disks on Resource: vm-forcedetachdemo1-3 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmacoademospot",
-        "Action": "downgrade_disks",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: downgrade_disks on Resource: vmacoademospot in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "centosfreetest",
-        "Action": "downgrade_disks",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: downgrade_disks on Resource: centosfreetest in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+        "Status": "Failed",
+        "Message": "Failed to deallocate VM: (ResourceGroupNotFound) Resource group 'TESTCENTOS79_GROUP' could not be found.\nCode: ResourceGroupNotFound\nMessage: Resource group 'TESTCENTOS79_GROUP' could not be found."
     }
 ]
