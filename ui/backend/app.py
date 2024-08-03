@@ -3,7 +3,8 @@ from flask_cors import CORS
 import threading
 import logging
 import time
-import sys
+import yaml
+import os
 from azure_cost_optimizer.optimizer import main as optimizer_main
 import matplotlib
 matplotlib.use('Agg')  # Use a non-interactive backend
@@ -26,6 +27,28 @@ anomalies_data = []
 trend_data = []
 log_messages = []
 stop_event = threading.Event()
+
+POLICIES_FILE = os.path.join('policies', 'policies.yaml')
+
+def load_policies():
+    """Load policies from the YAML file."""
+    if os.path.exists(POLICIES_FILE):
+        with open(POLICIES_FILE, 'r') as file:
+            policies = yaml.safe_load(file) or {'policies': []}
+            # Ensure all policies have an 'enabled' key
+            for policy in policies['policies']:
+                if 'enabled' not in policy:
+                    policy['enabled'] = True  # Default to enabled
+            return policies
+    else:
+        logger.error(f"Policies file not found at {POLICIES_FILE}")
+        return {'policies': []}
+
+def save_policies(policies):
+    """Save policies to the YAML file."""
+    with open(POLICIES_FILE, 'w') as file:
+        yaml.safe_dump(policies, file)
+    logger.info(f"Policies saved to {POLICIES_FILE}")
 
 def stream_logs():
     global log_messages
@@ -129,11 +152,36 @@ def get_anomalies():
     except Exception as e:
         logger.error(f"Error fetching anomalies data: {e}")
         return jsonify({'error': 'Error fetching anomalies data'}), 500
-@app.route('/api/update-policy', methods=['POST'])
-def update_policy():
-    policy_data = request.json
-    # Implement the logic to update policy enabled state
-    return jsonify({'status': 'Policy updated'}), 200
+
+@app.route('/api/policies', methods=['GET'])
+def get_policies():
+    try:
+        policies = load_policies()
+        return jsonify(policies), 200
+    except Exception as e:
+        logger.error(f"Error fetching policies: {e}")
+        return jsonify({'error': 'Error fetching policies'}), 500
+
+@app.route('/api/toggle-policy', methods=['POST'])
+def toggle_policy():
+    try:
+        data = request.json
+        policy_name = data['policy_name']
+        enabled = data['enabled']
+        
+        policies = load_policies()
+        
+        for policy in policies['policies']:
+            if policy['name'] == policy_name:
+                policy['enabled'] = enabled
+                break
+        
+        save_policies(policies)
+        
+        return jsonify({"message": "Policy updated"}), 200
+    except Exception as e:
+        logger.error(f"Error toggling policy: {e}")
+        return jsonify({'error': 'Error toggling policy'}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

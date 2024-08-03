@@ -29,6 +29,16 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Virtuoso } from 'react-virtuoso'; // Import the Virtuoso component
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
+
+import PolicyCard from './components/PolicyCard'; // Import the PolicyCard component
+
+interface Policy {
+  name: string;
+  description: string;
+  enabled: boolean;
+}
+
+
 interface CostData {
   date: string;
   cost: number;
@@ -156,6 +166,7 @@ const theme = createTheme({
 
 
 const App: React.FC = () => {
+ 
   const [summaryMetrics, setSummaryMetrics] = useState<SummaryMetric[]>([
     {
       AverageDailyCost: 10,
@@ -222,6 +233,55 @@ const App: React.FC = () => {
   const [selectedSubscription, setSelectedSubscription] = useState<string>('All Subscriptions');
   const [timeout, setTimeout] = useState<number>(60); // default timeout in seconds
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPolicies = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/policies');
+        setPolicies(response.data.policies);
+      } catch (error) {
+        console.error('Error fetching policies:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPolicies();
+  }, []);
+  const handleToggle = async (policyName: string) => {
+    console.log('Toggling policy:', policyName);
+
+    // First find the policy and determine its new state
+    const policy = policies.find(policy => policy.name === policyName);
+    if (!policy) return; // If for some reason the policy is not found, exit early
+
+    const newEnabledState = !policy.enabled;
+
+    // Update the frontend state
+    setPolicies((prevPolicies) =>
+      prevPolicies.map((p) =>
+        p.name === policyName ? { ...p, enabled: newEnabledState } : p
+      )
+    );
+
+    try {
+      // Send the toggle change to the server
+      await axios.post('http://localhost:5000/api/toggle-policy', {
+        policy_name: policyName,
+        enabled: newEnabledState,
+      });
+    } catch (error) {
+      console.error('Error updating policy:', error);
+      // Optionally roll back the toggle on error
+      setPolicies((prevPolicies) =>
+        prevPolicies.map((p) =>
+          p.name === policyName ? { ...p, enabled: !newEnabledState } : p
+        )
+      );
+    }
+};
 
   const fetchLogStream = useCallback(() => {
     const eventSource = new EventSource('http://127.0.0.1:5000/api/log-stream');
@@ -555,12 +615,15 @@ const App: React.FC = () => {
     </TableContainer>
   );
 
+
+
   return (
     <ThemeProvider theme={theme}>
       <Container>
         <Box mt={4} textAlign="center">
           <Typography variant="h4">Team CSU Azure Infra - Cost Optimizer</Typography>
         </Box>
+   
         <Grid container spacing={3} justifyContent="center" alignItems="center" style={{ margin: 20 }}>
           <Grid item>
             <FormControl variant="outlined" style={{ minWidth: 120 }}>
@@ -609,6 +672,7 @@ const App: React.FC = () => {
             </Grid>
           )}
         </Grid>
+     
         <Grid container spacing={3}>
           <Grid item xs={2} mb={2}>
             <FormControl variant="outlined" style={{ minWidth: 120 }}>
@@ -636,6 +700,18 @@ const App: React.FC = () => {
             </Typography>
           </Box>
         )}
+        <Grid container spacing={2}>
+
+            {policies.map((policy) => (
+              <Grid item xs={12} sm={6} marginLeft={100} md={4} key={policy.name}>
+                <PolicyCard
+                  policy={policy}
+                  onToggle={() => handleToggle(policy.name)}
+                />
+              </Grid>
+            ))}
+        </Grid>
+
         <Grid container spacing={2}>
           {filteredSummaryMetrics.map((metric, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>

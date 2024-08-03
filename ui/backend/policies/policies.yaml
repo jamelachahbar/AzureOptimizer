@@ -1,113 +1,109 @@
 policies:
-  - name: stop-unused-vms
-    description: Stop VMs that have not been used in the last x days and have an average CPU below the set threshold, and have a specific tag(optional)
-    resource: azure.vm
-    filters:
-      - type: last_used
-        days: 30
-        threshold: 10
-      # - type: tag
-      #   key: environment
-      #   value: dev
-    actions:
-      - type: stop
-    # exclusions:
-    #   - type: tag
-    #     key: exclude
-    #     value: "true"
-  - name: delete-unused-disks
-    description: Delete disks that are not attached to any VMs
-    resource: azure.disk
-    filters:
-      - type: unattached
-    # tag is not required, but can be used to filter disks with specific tags
-      # - type: tag
-      #   key: costopt
-      #   value: "true"
-    actions:
-      - type: delete
-  - name: delete-unattached-public-ips
-    description: Delete unattached public IPs
-    resource: azure.publicip
-    filters:
-      - type: unattached
-    actions:
-      - type: delete
-  - name: delete-resources-in-group
-    description: Delete all resources in a resource group if the group contains the tag kill:dev
-    resource: azure.resourcegroup
-    filters:
-      - type: tag
-        key: kill
-        value: dev
-    actions:
-      - type: delete
-    exclusions:
-      - type: tag
-        key: exclude
-        value: "true"
-  - name: update-storage-account-sku
-    description: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
-    resource: "azure.storage"
-    filters:
-      - type: "sku"
-        values: ["Standard_GRS", "Standard_RAGRS", "Standard_ZRS", "Standard_GZRS"]
-      # - type: "tag"
-      #   key: costopt
-      #   value: "true"
-    actions:
-      - type: "update_sku"
-        sku: "Standard_LRS"
-  - name: delete-empty-backend-pool-app-gateways
-    resource: azure.applicationgateway
-    filters:
-      - type: tag
-        key: Environment
-        value: dev
-    actions:
-      - type: delete
-  - name: scale-sql-database-dtu
-    description: Scale SQL databases during off-peak hours
-    resource: azure.sql
-    filters:
-      - type: tag
-        key: environment
-        value: dev
-    actions:
-      - type: scale_dtu
-        tiers:
-          - name: Basic
-            min_dtu: 5
-            max_dtu: 5
-            off_peak_dtu: 5
-            peak_dtu: 5
-          #   off_peak_start: "20:00"
-          #   off_peak_end: "06:00"
-          - name: Standard
-            min_dtu: 10
-            max_dtu: 100
-            off_peak_dtu: 20
-            peak_dtu: 20
-            # off_peak_start: "18:00"
-            # off_peak_end: "06:00"
-          - name: Premium
-            min_dtu: 25
-            max_dtu: 1000
-            off_peak_dtu: 25
-            peak_dtu: 1000
-          #   off_peak_start: "20:00"
-          #   off_peak_end: "06:00"
-          
-  - name: "Unattached Network Interface Cards"
-    resource: "azure.nic"
-    filters:
-      - type: "unattached"
-    actions:
-      - type: "delete"
-    exclusions: []
-  - name: DowngradeDisksOfStoppedVMs
-    resource: azure.vm
-    filters:
-      - type: stopped
-    actions:
-      - type: downgrade_disks
+- actions:
+  - type: stop
+  description: Stop VMs that have not been used in the last x days and have an average
+    CPU below the set threshold, and have a specific tag(optional)
+  enabled: false
+  filters:
+  - days: 30
+    threshold: 10
+    type: last_used
+  name: stop-unused-vms
+  resource: azure.vm
+- actions:
+  - type: delete
+  description: Delete disks that are not attached to any VMs
+  enabled: false
+  filters:
+  - type: unattached
+  name: delete-unused-disks
+  resource: azure.disk
+- actions:
+  - type: delete
+  description: Delete unattached public IPs
+  enabled: true
+  filters:
+  - type: unattached
+  name: delete-unattached-public-ips
+  resource: azure.publicip
+- actions:
+  - type: delete
+  description: Delete all resources in a resource group if the group contains the
+    tag kill:dev
+  enabled: true
+  exclusions:
+  - key: exclude
+    type: tag
+    value: 'true'
+  filters:
+  - key: kill
+    type: tag
+    value: dev
+  name: delete-resources-in-group
+  resource: azure.resourcegroup
+- actions:
+  - sku: Standard_LRS
+    type: update_sku
+  description: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
+  enabled: true
+  filters:
+  - type: sku
+    values:
+    - Standard_GRS
+    - Standard_RAGRS
+    - Standard_ZRS
+    - Standard_GZRS
+  name: update-storage-account-sku
+  resource: azure.storage
+- actions:
+  - type: delete
+  enabled: true
+  filters:
+  - key: Environment
+    type: tag
+    value: dev
+  name: delete-empty-backend-pool-app-gateways
+  resource: azure.applicationgateway
+- actions:
+  - tiers:
+    - max_dtu: 5
+      min_dtu: 5
+      name: Basic
+      off_peak_dtu: 5
+      peak_dtu: 5
+    - max_dtu: 100
+      min_dtu: 10
+      name: Standard
+      off_peak_dtu: 20
+      peak_dtu: 20
+    - max_dtu: 1000
+      min_dtu: 25
+      name: Premium
+      off_peak_dtu: 25
+      peak_dtu: 1000
+    type: scale_dtu
+  description: Scale SQL databases during off-peak hours
+  enabled: true
+  filters:
+  - key: environment
+    type: tag
+    value: dev
+  name: scale-sql-database-dtu
+  resource: azure.sql
+- actions:
+  - type: delete
+  description: Delete unattached network interface cards
+  enabled: true
+  exclusions: []
+  filters:
+  - type: unattached
+  name: Unattached Network Interface Cards
+  resource: azure.nic
+- actions:
+  - type: downgrade_disks
+  description: Downgrade disks of stopped VMs
+  enabled: false
+  filters:
+  - type: stopped
+  name: DowngradeDisksOfStoppedVMs
+  resource: azure.vm

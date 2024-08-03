@@ -103,7 +103,7 @@ def load_policies(policy_file, schema_file):
     with open(schema_file, "r") as file:
         schema = json.load(file)
     jsonschema.validate(instance=policies, schema=schema)
-    return policies["policies"]
+    return [policy for policy in policies["policies"] if policy.get('enabled', False)]
 
 @retry(max_retries=5, delay=10, backoff=2, exceptions=(Exception,))
 def get_cost_data(scope):

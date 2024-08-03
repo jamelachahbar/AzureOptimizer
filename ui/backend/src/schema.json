@@ -98,7 +98,7 @@
             }
           }
         },
-        "required": ["name", "resource", "filters", "actions"]
+        "required": ["name", "resource", "filters", "actions", "enabled"]
       }
     }
   },
