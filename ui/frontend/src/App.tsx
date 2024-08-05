@@ -26,7 +26,20 @@ import {
    FormGroup
  
 } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Sector
+} from 'recharts';
 import axios from 'axios';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Virtuoso } from 'react-virtuoso'; // Import the Virtuoso component
@@ -94,6 +107,9 @@ interface AnomalyData {
 interface DataBySubscription {
   [SubscriptionId: string]: CostData[];
 }
+
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AA00FF', '#FF4444'];
 
 const theme = createTheme({
   palette: {
@@ -165,7 +181,82 @@ const theme = createTheme({
   },
 });
 
+// Function to render custom active shape for the pie chart
+const renderActiveShape = (props: any) => {
+  const RADIAN = Math.PI / 180;
+  const {
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    startAngle,
+    endAngle,
+    fill,
+    payload,
+    percent,
+    value
+  } = props;
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
+  const sx = cx + (outerRadius + 10) * cos;
+  const sy = cy + (outerRadius + 10) * sin;
+  const mx = cx + (outerRadius + 30) * cos;
+  const my = cy + (outerRadius + 30) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+  const ey = my;
+  const textAnchor = cos >= 0 ? "start" : "end";
 
+  return (
+    <g>
+      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
+        {payload.name}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 10}
+        fill={fill}
+      />
+      <path
+        d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
+        stroke={fill}
+        fill="none"
+      />
+      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="#0088FE" />
+      <text
+        x={ex + (cos >= 0 ? 1 : -1) * 12}
+        y={ey}
+        textAnchor={textAnchor}
+        fill="#333"
+      >{`# of resources ${value}`}</text>
+      <text
+        x={ex + (cos >= 0 ? 1 : -1) * 12}
+        y={ey}
+        dy={16}
+        textAnchor={textAnchor}
+        fill="#999"
+      >
+        {`(Rate ${(percent * 100).toFixed(2)}%)`}
+      </text>
+    </g>
+  );
+};
+
+
+// App component definition with functional component
 const App: React.FC = () => {
  
   const [summaryMetrics, setSummaryMetrics] = useState<SummaryMetric[]>([
@@ -202,7 +293,23 @@ const App: React.FC = () => {
       Action: 'Stop',
       Status: 'Success',
       Cost: 10,
-      Policy: 'Mock Policy',
+      Policy: 'stop-unused-vms',
+      SubscriptionId: 'mock-subscription-1',
+    },
+    {
+      Resource: 'mock-vm-1',
+      Action: 'Stop',
+      Status: 'Success',
+      Cost: 20,
+      Policy: 'stop-unused-vms',
+      SubscriptionId: 'mock-subscription-1',
+    },
+    {
+      Resource: 'mock-vm-1',
+      Action: 'Downgrade Disk',
+      Status: 'Success',
+      Cost: 20,
+      Policy: 'downgrade-disk',
       SubscriptionId: 'mock-subscription-1',
     },
   ]);
@@ -236,6 +343,7 @@ const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
 
   useEffect(() => {
     const fetchPolicies = async () => {
@@ -392,6 +500,12 @@ const App: React.FC = () => {
     setSelectedSubscription(event.target.value as string);
   };
 
+
+
+  const onPieEnter = useCallback((_: any, index: number) => {
+    setActiveIndex(index);
+  }, []);
+
   // const filteredAnomalyData =
   //   selectedSubscription === 'All Subscriptions'
   //     ? anomalyData
@@ -522,6 +636,10 @@ const App: React.FC = () => {
         </LineChart>
       </ResponsiveContainer>
     );
+
+
+  
+  
   };
 
   // Utility function to generate colors (could be enhanced to ensure better colors or use a set array of colors)
@@ -609,6 +727,121 @@ const App: React.FC = () => {
     </TableContainer>
   );
 
+  const getImpactedResourcesByPolicy = () => {
+    const policyCountMap: { [key: string]: number } = {};
+
+    impactedResources.forEach((resource) => {
+      policyCountMap[resource.Policy] = (policyCountMap[resource.Policy] || 0) + 1;
+    });
+
+    return Object.entries(policyCountMap).map(([policy, count]) => ({
+      name: policy,
+      value: count,
+    }));
+  };
+
+  const renderPolicyPieChart = () => {
+    const data = getImpactedResourcesByPolicy();
+
+    return (
+      <ResponsiveContainer width={450} height={300}>
+        <PieChart>
+          <Pie
+            activeIndex={activeIndex}
+            activeShape={renderActiveShape}
+            data={data}
+            cx="70%"
+            cy="50%"
+            innerRadius="60%"
+            outerRadius="80%"
+            fill="#8884d8"
+            dataKey="value"
+            animationBegin={0}
+            onMouseEnter={onPieEnter}
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+    );
+  };
+
+
+
+  const renderActiveShape = (props: any) => {
+    const RADIAN = Math.PI / 180;
+    const {
+      cx,
+      cy,
+      midAngle,
+      innerRadius,
+      outerRadius,
+      startAngle,
+      endAngle,
+      fill,
+      payload,
+      percent,
+      value,
+    } = props;
+    const sin = Math.sin(-RADIAN * midAngle);
+    const cos = Math.cos(-RADIAN * midAngle);
+    const sx = cx + (outerRadius + 10) * cos;
+    const sy = cy + (outerRadius + 10) * sin;
+    const mx = cx + (outerRadius + 30) * cos;
+    const my = cy + (outerRadius + 30) * sin;
+    const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+    const ey = my;
+    const textAnchor = cos >= 0 ? 'start' : 'end';
+
+    return (
+      <g>
+        <text x={cx} y={cy} dy={10} textAnchor="middle" fill={fill}>
+          {payload.name}
+        </text>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          innerRadius={outerRadius + 10}
+          outerRadius={outerRadius + 15}
+          fill={fill}
+        />
+        <path
+          d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
+          stroke={fill}
+          fill="none"
+        />
+        <circle cx={ex} cy={ey} r={3} fill={fill} stroke="none" />
+        <text
+          x={ex + (cos >= 0 ? 1 : -1) * 12}
+          y={ey}
+          textAnchor={textAnchor}
+          fill="#333"
+        >{`${value}`}</text>
+        <text
+          x={ex + (cos >= 0 ? 1 : -1) * 10}
+          y={ey}
+          dy={16}
+          textAnchor={textAnchor}
+          fill="#999"
+        >
+          {`(Rate ${(percent * 100).toFixed(2)}%)`}
+        </text>
+      </g>
+    );
+  };
   // const renderAnomalyTable = () => (
   //   <TableContainer component={Paper} style={{ maxHeight: 400 }}>
   //     <Table stickyHeader>
@@ -632,8 +865,6 @@ const App: React.FC = () => {
   //   </TableContainer>
   // );
 
-
-
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="xl">
@@ -641,8 +872,8 @@ const App: React.FC = () => {
           Team CSU Azure Infra - Cost Optimizer
         </Typography>
 
-        {/* Controls Row */}
-        <Grid container spacing={3} display={'flex'} alignContent={'center'} alignItems={'center'} justifyContent={'center'}>
+{/* Controls Row */}
+        <Grid container spacing={1} display={'flex'} alignContent={'center'} alignItems={'center'} justifyContent={'center'}>
           <Grid item>
             <FormControl variant="outlined" sx={{ minWidth: 120 }}>
               <InputLabel>Subscription</InputLabel>
@@ -684,40 +915,41 @@ const App: React.FC = () => {
           {/* <Grid item>
             <TextField label="Timeout (seconds)" type="number" variant="outlined" value={timeout}
               onChange={(e) => setTimeout(parseInt(e.target.value, 10))} sx={{ minWidth: 120 }} />
-          </Grid> */}
-
+          </Grid> */} 
+            
         </Grid>
+{/* Summary Metrics Row */}
+        <Grid container xl={36} spacing={4} sx={{ 
+          mt: 2,
+          display: 'flex'
 
-        {errorMessage && (
-          <Box mt={4}>
-            <Typography variant="h6" color="error">
-              {errorMessage}
-            </Typography>
-          </Box>
-        )}
-        {/* Summary Metrics Row */}
-        <Grid container spacing={3} sx={{ mt: 4 }}>
+         }}>
           {filteredSummaryMetrics.map((metric, index) => (
             <Grid item key={index}>
               <SummaryMetricsCard metric={metric} />
             </Grid>
           ))}
         </Grid>
-          
-        {/* Data Display Area */}
-        <Grid container xl={24} spacing={3} sx={{ 
-          mt: 4,
+          {errorMessage && (
+          <Box mt={4}>
+                      <Typography variant="h6" color="error">
+                        {errorMessage}
+                      </Typography>
+          </Box>)}
+
+            
+{/* Data Display Area */}
+        <Grid container xl={36} spacing={4} sx={{ 
+          mt: 2,
           display: 'flex'         
           }}>
-        
-        {/* Cost Trend and Policies Side by Side */}
-          <Grid item xl={6} md={4}>
+{/* Render Policies */}
+          <Grid item xl={6} md={4} marginRight={8}>
             <Typography variant="h5">Policies</Typography>
-          
             <TableContainer component={Paper
             } style={{ maxHeight: 400, overflow: 'auto' }
             }>
-              <Table>
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
                     <TableCell>Policy Name</TableCell>
@@ -755,16 +987,22 @@ const App: React.FC = () => {
               </Table>
             </TableContainer>
           </Grid>
-          <Grid item xl={6} md={6}>
+
+          {/* Pie Chart for Impacted Resources by Policy */}
+          <Grid item xl={4}>
+              {renderPolicyPieChart()}
+          </Grid>
+{/* Render Cost Trend Chart */}
+          <Grid item xl={12}>
             <Typography variant="h5">Cost Trend</Typography>
             {renderCostChart(filteredTrendData, selectedSubscription)}
           </Grid>
 
-          {/* Other Data Tables */}
-          <Grid item xl={12} md={6}>
+{/* Other Data Tables */}
+          {/* <Grid item xl={12} md={6}>
             <Typography variant="h5" mb={2}>Impacted Resources</Typography>
             {renderImpactedResourcesTable()}
-          </Grid>
+          </Grid> */}
           <Grid item xl={12} md={6}>
             <Typography variant="h5" mb={2}>Execution Data</Typography>
             {renderExecutionTable()}
@@ -776,7 +1014,8 @@ const App: React.FC = () => {
           </Grid> */}
 
         </Grid>
-        {/* Data Display Area */}
+
+{/* Data Display Area */}
         <Grid container spacing={3} sx={{ 
           mt: 6,
           padding: 2,
@@ -788,10 +1027,12 @@ const App: React.FC = () => {
                 {logs.map((log, index) => (
                   <Typography key={index} variant="body1">{log}</Typography>
                 ))}
+ 
               </Paper>
-            </Grid>
           </Grid>
+        </Grid>
       </Container>
+
     </ThemeProvider>
   );
 };
