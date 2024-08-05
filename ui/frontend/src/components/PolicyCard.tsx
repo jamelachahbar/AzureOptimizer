@@ -17,9 +17,9 @@ interface PolicyCardProps {
 
 const PolicyCard: React.FC<PolicyCardProps> = ({ policy, onToggle }) => {
   return (
-    <Card sx={{ minWidth: 275, boxShadow: 3, '&:hover': { boxShadow: 6 } }}>
-      <CardContent>
-        <Typography variant="h6">{policy.name}</Typography>
+    <Card sx={{ margin: 2, justifyContent:'flex-start' ,maxWidth: 400, maxHeight: 250,boxShadow: 3, textWrap:'pretty', flexWrap:'wrap', '&:hover': { boxShadow: 6 } }}>
+      <CardContent >
+        <Typography variant="h5">{policy.name}</Typography>
         <Typography variant="body2" color="text.secondary">
           {policy.description}
         </Typography>

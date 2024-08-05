@@ -20,7 +20,10 @@ import {
   TableHead,
   TableRow,
   TableCell,
-  TableBody
+  TableBody,
+   Switch,
+   FormControlLabel,
+   FormGroup
  
 } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -250,7 +253,7 @@ const App: React.FC = () => {
 
     fetchPolicies();
   }, []);
-  const handleToggle = async (policyName: string) => {
+  const handleToggle = async (policyName: string, enabled: boolean) => {
     console.log('Toggling policy:', policyName);
 
     // First find the policy and determine its new state
@@ -493,7 +496,7 @@ const App: React.FC = () => {
         
     // Process the data to group costs by date
     return (
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" maxHeight={400}>
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
@@ -529,7 +532,7 @@ const App: React.FC = () => {
   };
 
   const renderExecutionTable = () => (
-    <Paper style={{ height: 400, width: '100%' }}>
+    <Paper style={{ minHeight: 400, width: '100%' }}>
       <div style={{
         display: 'flex',
         position: 'relative',
@@ -539,6 +542,7 @@ const App: React.FC = () => {
         padding: '8px 16px',
         borderBottom: '1px solid #e0e0e0',
         marginBottom: -10,
+        wordWrap: 'break-word'
       }}>
         <Typography style={{ flex: 1, fontWeight: 'bold' }}>Action</Typography>
         <Typography style={{ flex: 1, fontWeight: 'bold' }}>Message</Typography>
@@ -570,7 +574,7 @@ const App: React.FC = () => {
   );
 
   const renderImpactedResourcesTable = () => (
-    <TableContainer component={Paper} style={{ maxHeight: 400 }}>
+    <TableContainer component={Paper} style={{ maxHeight: 800 }}>
       <Table stickyHeader>
         <TableHead>
           <TableRow>
@@ -619,14 +623,26 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container>
-        <Box mt={4} textAlign="center">
-          <Typography variant="h4">Team CSU Azure Infra - Cost Optimizer</Typography>
-        </Box>
-   
-        <Grid container spacing={3} justifyContent="center" alignItems="center" style={{ margin: 20 }}>
+      <Container maxWidth="xl">
+        <Typography variant="h4" sx={{ mb: 4, textAlign: 'center' }}>
+          Team CSU Azure Infra - Cost Optimizer
+        </Typography>
+
+        {/* Controls Row */}
+        <Grid container spacing={3} display={'flex'} alignContent={'center'} alignItems={'center'} justifyContent={'center'}>
           <Grid item>
-            <FormControl variant="outlined" style={{ minWidth: 120 }}>
+            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
+              <InputLabel>Subscription</InputLabel>
+              <Select value={selectedSubscription} onChange={handleSubscriptionChange} label="Subscription">
+                <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
+                {summaryMetrics.map((metric, index) => (
+                  <MenuItem key={index} value={metric.SubscriptionId}>
+                    {metric.SubscriptionId}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
               <InputLabel>Mode</InputLabel>
               <Select value={mode} onChange={(e) => setMode(e.target.value as string)} label="Mode">
                 <MenuItem value="dry-run">Dry Run</MenuItem>
@@ -635,64 +651,22 @@ const App: React.FC = () => {
             </FormControl>
           </Grid>
           <Grid item>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={runOptimizer}
-              disabled={isOptimizerRunning}
-            >
+            <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
               Run Optimizer
             </Button>
           </Grid>
           <Grid item>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={stopOptimizer}
-              disabled={!isOptimizerRunning}
-            >
+            <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>
               Stop Optimizer
             </Button>
           </Grid>
-          <Grid item>
-            <TextField
-              label="Timeout (seconds)"
-              type="number"
-              variant="outlined"
-              value={timeout}
-              onChange={(e) => setTimeout(parseInt(e.target.value, 10))}
-            />
-          </Grid>
-          {isOptimizerRunning && (
-            <Grid item>
-              <CircularProgress />
-              <Typography variant="h6" style={{ marginLeft: 10 }}>
-                Optimizer is running...
-              </Typography>
-            </Grid>
-          )}
+          {/* <Grid item>
+            <TextField label="Timeout (seconds)" type="number" variant="outlined" value={timeout}
+              onChange={(e) => setTimeout(parseInt(e.target.value, 10))} sx={{ minWidth: 120 }} />
+          </Grid> */}
+
         </Grid>
-     
-        <Grid container spacing={3}>
-          <Grid item xs={2} mb={2}>
-            <FormControl variant="outlined" style={{ minWidth: 120 }}>
-              <InputLabel id="subscription-select-label">Subscription</InputLabel>
-              <Select
-                labelId="subscription-select-label"
-                value={selectedSubscription}
-                label="Subscription"
-                onChange={handleSubscriptionChange}
-              >
-                <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
-                {summaryMetrics.map((metric) => (
-                  <MenuItem key={metric.SubscriptionId} value={metric.SubscriptionId}>
-                    {metric.SubscriptionId}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
+
         {errorMessage && (
           <Box mt={4}>
             <Typography variant="h6" color="error">
@@ -700,60 +674,102 @@ const App: React.FC = () => {
             </Typography>
           </Box>
         )}
-        <Grid container spacing={2}>
-
-            {policies.map((policy) => (
-              <Grid item xs={12} sm={6} marginLeft={100} md={4} key={policy.name}>
-                <PolicyCard
-                  policy={policy}
-                  onToggle={() => handleToggle(policy.name)}
-                />
-              </Grid>
-            ))}
-        </Grid>
-
-        <Grid container spacing={2}>
+        {/* Summary Metrics Row */}
+        <Grid container spacing={3} sx={{ mt: 4 }}>
           {filteredSummaryMetrics.map((metric, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
+            <Grid item key={index}>
               <SummaryMetricsCard metric={metric} />
             </Grid>
           ))}
         </Grid>
+          
+        {/* Data Display Area */}
+        <Grid container xl={24} spacing={3} sx={{ 
+          mt: 4,
+          display: 'flex'         
+          }}>
+        
+        {/* Cost Trend and Policies Side by Side */}
+          <Grid item xl={6} md={4}>
+            <Typography variant="h5">Policies</Typography>
+          
+            <TableContainer component={Paper
+            } style={{ maxHeight: 400, overflow: 'auto' }
+            }>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Policy Name</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell align="center">Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {policies.map((policy) => (
+                    <TableRow
+                      key={policy.name}
+                      sx={{
+                        // backgroundColor: policy.enabled ? '#C8E6C9' : '#CCCCCC', // Light green for enabled, light red for disabled
+                      }}
+                    >
+                      <TableCell>{policy.name}</TableCell>
+                      <TableCell>{policy.description}</TableCell>
+                      <TableCell align="center">
+                        <FormGroup>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={policy.enabled}
+                                onChange={() => handleToggle(policy.name, policy.enabled)}
+                                color="success"
+                              />
+                            }
+                            label={policy.enabled ? 'Enabled' : 'Disabled'}
+                          />
+                        </FormGroup>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+          <Grid item xl={6} md={6}>
+            <Typography variant="h5">Cost Trend</Typography>
+            {renderCostChart(filteredTrendData, selectedSubscription)}
+          </Grid>
 
-        <Box mt={4}>
-          <Typography variant="h5">Cost Trend</Typography>
-          {renderCostChart(filteredTrendData, selectedSubscription)}
-        </Box>
-        <Box mt={4} mb={4}>
-          <Typography variant="h5" mb={1}>
-            Execution Data
-          </Typography>
-          {renderExecutionTable()}
-        </Box>
-        <Box mt={4} mb={4}>
-          <Typography variant="h5" mb={1}>
-            Impacted Resources
-          </Typography>
-          {renderImpactedResourcesTable()}
-        </Box>
-        <Box mt={4} mb={4}>
-          <Typography variant="h5" mb={1}>
-            Anomalies
-          </Typography>
-          {renderAnomalyTable()}
-        </Box>
-        <Box mt={4} mb={4}>
-          <Typography variant="h5" mb={1}>
-            Optimizer Logs
-          </Typography>
-          <Paper style={{ maxHeight: 300, overflow: 'auto', padding: 16 }}>
-            {logs.map((log, index) => (
-              <Typography key={index} variant="body1">
-                {log}
-              </Typography>
-            ))}
-          </Paper>
-        </Box>
+          {/* Other Data Tables */}
+          <Grid item xl={12} md={6}>
+            <Typography variant="h5" mb={2}>Impacted Resources</Typography>
+            {renderImpactedResourcesTable()}
+          </Grid>
+          <Grid item xl={12} md={6}>
+            <Typography variant="h5" mb={2}>Execution Data</Typography>
+            {renderExecutionTable()}
+          </Grid>
+ 
+          {/* <Grid item xl={12} md={6} >
+            <Typography variant="h5" mb={2}>Anomalies</Typography>
+            {renderAnomalyTable()}
+          </Grid> */}
+
+        </Grid>
+        {/* Data Display Area */}
+        <Grid container spacing={3} sx={{ 
+          mt: 6,
+          padding: 2,
+          display: 'flex',
+         }}>
+          <Grid item xs={12} md={6}>
+              <Typography variant="h5" mb={2}>Optimizer Logs</Typography>
+              <Paper style={{ maxHeight: 300, overflow: 'auto' }}>
+                {logs.map((log, index) => (
+                  <Typography key={index} variant="body1">{log}</Typography>
+                ))}
+              </Paper>
+            </Grid>
+          </Grid>
       </Container>
     </ThemeProvider>
   );
