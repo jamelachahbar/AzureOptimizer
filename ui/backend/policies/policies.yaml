@@ -30,7 +30,7 @@ policies:
   - type: delete
   description: Delete all resources in a resource group if the group contains the
     tag kill:dev
-  enabled: true
+  enabled: false
   exclusions:
   - key: exclude
     type: tag
@@ -45,7 +45,7 @@ policies:
   - sku: Standard_LRS
     type: update_sku
   description: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
-  enabled: true
+  enabled: false
   filters:
   - type: sku
     values:
@@ -57,7 +57,7 @@ policies:
   resource: azure.storage
 - actions:
   - type: delete
-  enabled: true
+  enabled: false
   filters:
   - key: Environment
     type: tag
@@ -102,7 +102,7 @@ policies:
 - actions:
   - type: downgrade_disks
   description: Downgrade disks of stopped VMs
-  enabled: true
+  enabled: false
   filters:
   - type: stopped
   name: DowngradeDisksOfStoppedVMs

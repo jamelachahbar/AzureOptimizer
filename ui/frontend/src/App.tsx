@@ -654,11 +654,19 @@ const App: React.FC = () => {
             <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
               Run Optimizer
             </Button>
+            {/* // optimizer running indicator */}
+            {isOptimizerRunning && <CircularProgress size={24}  sx={{ ml: 1 }
+            
+            }          
+            />
+
+            }
           </Grid>
           <Grid item>
             <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>
               Stop Optimizer
             </Button>
+
           </Grid>
           {/* <Grid item>
             <TextField label="Timeout (seconds)" type="number" variant="outlined" value={timeout}
