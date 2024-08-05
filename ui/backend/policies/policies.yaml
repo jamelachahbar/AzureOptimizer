@@ -13,7 +13,7 @@ policies:
 - actions:
   - type: delete
   description: Delete disks that are not attached to any VMs
-  enabled: true
+  enabled: false
   filters:
   - type: unattached
   name: delete-unused-disks

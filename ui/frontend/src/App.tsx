@@ -390,10 +390,10 @@ const App: React.FC = () => {
     setSelectedSubscription(event.target.value as string);
   };
 
-  const filteredAnomalyData =
-    selectedSubscription === 'All Subscriptions'
-      ? anomalyData
-      : anomalyData.filter((data) => data.SubscriptionId === selectedSubscription);
+  // const filteredAnomalyData =
+  //   selectedSubscription === 'All Subscriptions'
+  //     ? anomalyData
+  //     : anomalyData.filter((data) => data.SubscriptionId === selectedSubscription);
   const filteredTrendData =
     selectedSubscription === 'All Subscriptions'
       ? trendData
@@ -532,7 +532,7 @@ const App: React.FC = () => {
   };
 
   const renderExecutionTable = () => (
-    <Paper style={{ minHeight: 400, width: '100%' }}>
+    <Paper style={{ height: 400, width: '100%' }}>
       <div style={{
         display: 'flex',
         position: 'relative',
@@ -542,7 +542,6 @@ const App: React.FC = () => {
         padding: '8px 16px',
         borderBottom: '1px solid #e0e0e0',
         marginBottom: -10,
-        wordWrap: 'break-word'
       }}>
         <Typography style={{ flex: 1, fontWeight: 'bold' }}>Action</Typography>
         <Typography style={{ flex: 1, fontWeight: 'bold' }}>Message</Typography>
@@ -570,6 +569,7 @@ const App: React.FC = () => {
         )}
         style={{ height: '100%', width: '100%' }}
       />
+
     </Paper>
   );
 
@@ -596,28 +596,28 @@ const App: React.FC = () => {
     </TableContainer>
   );
 
-  const renderAnomalyTable = () => (
-    <TableContainer component={Paper} style={{ maxHeight: 400 }}>
-      <Table stickyHeader>
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Cost</TableCell>
-            <TableCell>Subscription ID</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredAnomalyData.map((anomaly, index) => (
-            <TableRow key={index}>
-              <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.date}</TableCell>
-              <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.cost}</TableCell>
-              <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.SubscriptionId}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+  // const renderAnomalyTable = () => (
+  //   <TableContainer component={Paper} style={{ maxHeight: 400 }}>
+  //     <Table stickyHeader>
+  //       <TableHead>
+  //         <TableRow>
+  //           <TableCell>Date</TableCell>
+  //           <TableCell>Cost</TableCell>
+  //           <TableCell>Subscription ID</TableCell>
+  //         </TableRow>
+  //       </TableHead>
+  //       <TableBody>
+  //         {filteredAnomalyData.map((anomaly, index) => (
+  //           <TableRow key={index}>
+  //             <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.date}</TableCell>
+  //             <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.cost}</TableCell>
+  //             <TableCell style={{ wordBreak: 'break-word' }}>{anomaly.SubscriptionId}</TableCell>
+  //           </TableRow>
+  //         ))}
+  //       </TableBody>
+  //     </Table>
+  //   </TableContainer>
+  // );
 
 
 
