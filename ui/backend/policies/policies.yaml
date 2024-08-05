@@ -93,7 +93,7 @@ policies:
 - actions:
   - type: delete
   description: Delete unattached network interface cards
-  enabled: false
+  enabled: true
   exclusions: []
   filters:
   - type: unattached

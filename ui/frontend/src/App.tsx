@@ -33,8 +33,6 @@ import { Virtuoso } from 'react-virtuoso'; // Import the Virtuoso component
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
 
-import PolicyCard from './components/PolicyCard'; // Import the PolicyCard component
-
 interface Policy {
   name: string;
   description: string;
@@ -367,7 +365,11 @@ const App: React.FC = () => {
     try {
       const trendDataResponse = await axios.get('http://127.0.0.1:5000/api/trend-data');
       const trendData = trendDataResponse.data;
-      setTrendData(trendData);
+      if (trendData && Array.isArray(trendData)) {
+        setTrendData(trendData);
+      } else {
+      setTrendData([]);
+      }
     } catch (error) {
       console.error('Error fetching trend data:', error);
     }
@@ -443,8 +445,10 @@ const App: React.FC = () => {
 
   const renderCostChart = (trendData: CostData[], selectedSubscription: string) => {
     // Initialize dataBySubscription with the appropriate type
-    const dataBySubscription: DataBySubscription = {};
-
+    const dataBySubscription: DataBySubscription = {};  
+    if (!trendData || trendData.length === 0) {
+      return <Typography>No data available</Typography>;
+    }
     if (selectedSubscription === 'All Subscriptions') {
       trendData.forEach((data) => {
         if (!dataBySubscription[data.SubscriptionId]) {
@@ -456,7 +460,13 @@ const App: React.FC = () => {
       dataBySubscription[selectedSubscription] = trendData.filter(
         (data) => data.SubscriptionId === selectedSubscription
       );
+    
+      // Ensure dataBySubscription[selectedSubscription] is always initialized
+      if (!dataBySubscription[selectedSubscription]) {
+        dataBySubscription[selectedSubscription] = [];
+      }
     }
+    
     // Determine the min and max cost for the Y-axis scale
     const costs = trendData.map((data) => data.cost);
     const minY = Math.min(...costs);
@@ -493,7 +503,10 @@ const App: React.FC = () => {
       date: entry.date,
       ...entry.costs // Spread operator to flatten the costs into the same object
     }));
-        
+     // Ensure that chartData is not empty before rendering the chart
+    if (chartData.length === 0) {
+      return <Typography>No chart data available</Typography>;
+    }     
     // Process the data to group costs by date
     return (
       <ResponsiveContainer width="100%" maxHeight={400}>
