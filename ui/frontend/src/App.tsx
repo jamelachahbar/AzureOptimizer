@@ -635,11 +635,7 @@ const App: React.FC = () => {
           ))}
         </LineChart>
       </ResponsiveContainer>
-    );
-
-
-  
-  
+    );  
   };
 
   // Utility function to generate colors (could be enhanced to ensure better colors or use a set array of colors)
@@ -647,7 +643,6 @@ const App: React.FC = () => {
     const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
     return randomColor;
   }
-
   // Define a function to determine row styles based on status
   const getRowStyle = (status: string) => {
     switch (status) {
@@ -661,13 +656,12 @@ const App: React.FC = () => {
         return {};
     }
   };
-
   const renderExecutionTable = () => (
-    <Paper style={{ height: 400, width: '100%' }}>
+    <Paper style={{ height:500}}>
       <div style={{
         display: 'flex',
         position: 'relative',
-        top: 0,
+        top:0,
         backgroundColor: '#fff',
         zIndex: 1,
         padding: '8px 16px',
@@ -698,14 +692,14 @@ const App: React.FC = () => {
             <Typography style={{ flex: 1 }}>{execution.SubscriptionId}</Typography>
           </div>
         )}
-        style={{ height: '100%', width: '100%' }}
+        style={{ maxHeight: 500, width: '100%' }}
       />
 
     </Paper>
   );
 
   const renderImpactedResourcesTable = () => (
-    <TableContainer component={Paper} style={{ maxHeight: 800 }}>
+    <TableContainer component={Paper} style={{ maxHeight: 400 }}>
       <Table stickyHeader>
         <TableHead>
           <TableRow>
@@ -744,16 +738,18 @@ const App: React.FC = () => {
     const data = getImpactedResourcesByPolicy();
 
     return (
-      <ResponsiveContainer width={450} height={300}>
+      <ResponsiveContainer 
+      
+      >
         <PieChart>
           <Pie
             activeIndex={activeIndex}
             activeShape={renderActiveShape}
             data={data}
-            cx="70%"
+            cx="50%"
             cy="50%"
             innerRadius="60%"
-            outerRadius="80%"
+            outerRadius="70%"
             fill="#8884d8"
             dataKey="value"
             animationBegin={0}
@@ -873,7 +869,7 @@ const App: React.FC = () => {
         </Typography>
 
 {/* Controls Row */}
-        <Grid container spacing={1} display={'flex'} alignContent={'center'} alignItems={'center'} justifyContent={'center'}>
+        <Grid container spacing={2} display={'flex'} alignContent={'center'} alignItems={'center'} justifyContent={'center'} marginBottom={2}>
           <Grid item>
             <FormControl variant="outlined" sx={{ minWidth: 120 }}>
               <InputLabel>Subscription</InputLabel>
@@ -886,6 +882,8 @@ const App: React.FC = () => {
                 ))}
               </Select>
             </FormControl>
+            </Grid>
+            <Grid item>
             <FormControl variant="outlined" sx={{ minWidth: 120 }}>
               <InputLabel>Mode</InputLabel>
               <Select value={mode} onChange={(e) => setMode(e.target.value as string)} label="Mode">
@@ -900,10 +898,8 @@ const App: React.FC = () => {
             </Button>
             {/* // optimizer running indicator */}
             {isOptimizerRunning && <CircularProgress size={24}  sx={{ ml: 1 }
-            
             }          
             />
-
             }
           </Grid>
           <Grid item>
@@ -918,11 +914,20 @@ const App: React.FC = () => {
           </Grid> */} 
             
         </Grid>
-{/* Summary Metrics Row */}
-        <Grid container xl={36} spacing={4} sx={{ 
-          mt: 2,
-          display: 'flex'
 
+{/* Error message when server returns error */}
+        {errorMessage && (
+          <Box mt={4}>
+            <Typography variant="h6" color="error">
+              {errorMessage}
+            </Typography>
+          </Box>)}
+
+{/* Summary Metrics Row */}
+        <Typography variant="h5">Summary Metrics</Typography>
+        <Grid container xl={36} spacing={4} sx={{ 
+          marginBottom:2,
+          display: 'flex'
          }}>
           {filteredSummaryMetrics.map((metric, index) => (
             <Grid item key={index}>
@@ -930,21 +935,14 @@ const App: React.FC = () => {
             </Grid>
           ))}
         </Grid>
-          {errorMessage && (
-          <Box mt={4}>
-                      <Typography variant="h6" color="error">
-                        {errorMessage}
-                      </Typography>
-          </Box>)}
 
-            
 {/* Data Display Area */}
-        <Grid container xl={36} spacing={4} sx={{ 
-          mt: 2,
-          display: 'flex'         
+        <Grid container xl={36} sx={{ 
+          display: 'flex'
           }}>
 {/* Render Policies */}
-          <Grid item xl={6} md={4} marginRight={8}>
+          <Grid item xl={6} marginRight={8}
+          >
             <Typography variant="h5">Policies</Typography>
             <TableContainer component={Paper
             } style={{ maxHeight: 400, overflow: 'auto' }
@@ -989,7 +987,8 @@ const App: React.FC = () => {
           </Grid>
 
           {/* Pie Chart for Impacted Resources by Policy */}
-          <Grid item xl={4}>
+          <Grid item xl={4}
+          >
               {renderPolicyPieChart()}
           </Grid>
 {/* Render Cost Trend Chart */}
@@ -999,10 +998,10 @@ const App: React.FC = () => {
           </Grid>
 
 {/* Other Data Tables */}
-          {/* <Grid item xl={12} md={6}>
+          <Grid item xl={12} md={6}>
             <Typography variant="h5" mb={2}>Impacted Resources</Typography>
             {renderImpactedResourcesTable()}
-          </Grid> */}
+          </Grid>
           <Grid item xl={12} md={6}>
             <Typography variant="h5" mb={2}>Execution Data</Typography>
             {renderExecutionTable()}
@@ -1012,10 +1011,9 @@ const App: React.FC = () => {
             <Typography variant="h5" mb={2}>Anomalies</Typography>
             {renderAnomalyTable()}
           </Grid> */}
-
         </Grid>
 
-{/* Data Display Area */}
+{/* Data Display Area for Optimizer Logs */}
         <Grid container spacing={3} sx={{ 
           mt: 6,
           padding: 2,
@@ -1027,12 +1025,10 @@ const App: React.FC = () => {
                 {logs.map((log, index) => (
                   <Typography key={index} variant="body1">{log}</Typography>
                 ))}
- 
               </Paper>
           </Grid>
         </Grid>
       </Container>
-
     </ThemeProvider>
   );
 };
