@@ -13,7 +13,7 @@ policies:
 - actions:
   - type: delete
   description: Delete disks that are not attached to any VMs
-  enabled: false
+  enabled: true
   filters:
   - type: unattached
   name: delete-unused-disks
@@ -93,7 +93,7 @@ policies:
 - actions:
   - type: delete
   description: Delete unattached network interface cards
-  enabled: false
+  enabled: true
   exclusions: []
   filters:
   - type: unattached
@@ -102,7 +102,7 @@ policies:
 - actions:
   - type: downgrade_disks
   description: Downgrade disks of stopped VMs
-  enabled: false
+  enabled: true
   filters:
   - type: stopped
   name: DowngradeDisksOfStoppedVMs

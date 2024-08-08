@@ -181,80 +181,6 @@ const theme = createTheme({
   },
 });
 
-// Function to render custom active shape for the pie chart
-const renderActiveShape = (props: any) => {
-  const RADIAN = Math.PI / 180;
-  const {
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    startAngle,
-    endAngle,
-    fill,
-    payload,
-    percent,
-    value
-  } = props;
-  const sin = Math.sin(-RADIAN * midAngle);
-  const cos = Math.cos(-RADIAN * midAngle);
-  const sx = cx + (outerRadius + 10) * cos;
-  const sy = cy + (outerRadius + 10) * sin;
-  const mx = cx + (outerRadius + 30) * cos;
-  const my = cy + (outerRadius + 30) * sin;
-  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-  const ey = my;
-  const textAnchor = cos >= 0 ? "start" : "end";
-
-  return (
-    <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
-        {payload.name}
-      </text>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-      />
-      <Sector
-        cx={cx}
-        cy={cy}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        innerRadius={outerRadius + 6}
-        outerRadius={outerRadius + 10}
-        fill={fill}
-      />
-      <path
-        d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
-        stroke={fill}
-        fill="none"
-      />
-      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="#0088FE" />
-      <text
-        x={ex + (cos >= 0 ? 1 : -1) * 12}
-        y={ey}
-        textAnchor={textAnchor}
-        fill="#333"
-      >{`# of resources ${value}`}</text>
-      <text
-        x={ex + (cos >= 0 ? 1 : -1) * 12}
-        y={ey}
-        dy={16}
-        textAnchor={textAnchor}
-        fill="#999"
-      >
-        {`(Rate ${(percent * 100).toFixed(2)}%)`}
-      </text>
-    </g>
-  );
-};
-
 
 // App component definition with functional component
 const App: React.FC = () => {
@@ -272,6 +198,62 @@ const App: React.FC = () => {
       MaximumDailyCost: 20,
       MinimumDailyCost: 5,
       SubscriptionId: 'mock-subscription-2',
+      TotalCost: 100,
+    },
+    {
+      AverageDailyCost: 10,
+      MaximumDailyCost: 45,
+      MinimumDailyCost: 5,
+      SubscriptionId: 'mock-subscription-3',
+      TotalCost: 100,
+    },
+    {
+      AverageDailyCost: 10,
+      MaximumDailyCost: 30,
+      MinimumDailyCost: 5,
+      SubscriptionId: 'mock-subscription-4',
+      TotalCost: 100,
+    },
+    {
+      AverageDailyCost: 10,
+      MaximumDailyCost: 20,
+      MinimumDailyCost: 5,
+      SubscriptionId: 'mock-subscription-5',
+      TotalCost: 100,
+    },
+    {
+      AverageDailyCost: 10,
+      MaximumDailyCost: 20,
+      MinimumDailyCost: 5,
+      SubscriptionId: 'mock-subscription-6',
+      TotalCost: 100,
+    },
+    {
+      AverageDailyCost: 10,
+      MaximumDailyCost: 45,
+      MinimumDailyCost: 5,
+      SubscriptionId: 'mock-subscription-7',
+      TotalCost: 100,
+    },
+    {
+      AverageDailyCost: 10,
+      MaximumDailyCost: 30,
+      MinimumDailyCost: 5,
+      SubscriptionId: 'mock-subscription-8',
+      TotalCost: 100,
+    },
+    {
+      AverageDailyCost: 8,
+      MaximumDailyCost: 45,
+      MinimumDailyCost: 5,
+      SubscriptionId: 'mock-subscription-9',
+      TotalCost: 100,
+    },
+    {
+      AverageDailyCost: 10,
+      MaximumDailyCost: 40,
+      MinimumDailyCost: 5,
+      SubscriptionId: 'mock-subscription-10',
       TotalCost: 100,
     },
   ]);
@@ -329,8 +311,38 @@ const App: React.FC = () => {
       SubscriptionId: 'mock-subscription-1',
     },
     {
+      date: '2024-07-11',
+      cost: 50,
+      SubscriptionId: 'mock-subscription-1',
+    },
+    {
+      date: '2024-07-12',
+      cost: 60,
+      SubscriptionId: 'mock-subscription-1',
+    },
+    {
+      date: '2024-07-13',
+      cost: 100,
+      SubscriptionId: 'mock-subscription-1',
+    },
+    {
       date: '2024-07-10',
       cost: 50,
+      SubscriptionId: 'mock-subscription-2',
+    },
+    {
+      date: '2024-07-11',
+      cost: 60,
+      SubscriptionId: 'mock-subscription-2',
+    },
+    {
+      date: '2024-07-12',
+      cost: 34,
+      SubscriptionId: 'mock-subscription-2',
+    },
+    {
+      date: '2024-07-13',
+      cost: 80,
       SubscriptionId: 'mock-subscription-2',
     },
   ]);
@@ -662,7 +674,7 @@ const App: React.FC = () => {
         display: 'flex',
         position: 'relative',
         top:0,
-        backgroundColor: '#fff',
+        backgroundColor: '#f4f4f4',
         zIndex: 1,
         padding: '8px 16px',
         borderBottom: '1px solid #e0e0e0',
@@ -783,13 +795,15 @@ const App: React.FC = () => {
     } = props;
     const sin = Math.sin(-RADIAN * midAngle);
     const cos = Math.cos(-RADIAN * midAngle);
+    //  which means the text is placed outside the pie chart
     const sx = cx + (outerRadius + 10) * cos;
+    // which means the text is placed outside the pie chart
     const sy = cy + (outerRadius + 10) * sin;
     const mx = cx + (outerRadius + 30) * cos;
     const my = cy + (outerRadius + 30) * sin;
-    const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+    const ex = mx + (cos >= 0 ? 1 : 0) * 22;
     const ey = my;
-    const textAnchor = cos >= 0 ? 'start' : 'end';
+    const textAnchor = cos >= 5 ? 'start' : 'end';
 
     return (
       <g>
@@ -810,8 +824,8 @@ const App: React.FC = () => {
           cy={cy}
           startAngle={startAngle}
           endAngle={endAngle}
-          innerRadius={outerRadius + 10}
-          outerRadius={outerRadius + 15}
+          innerRadius={outerRadius + 8}
+          outerRadius={outerRadius + 10}
           fill={fill}
         />
         <path
@@ -833,7 +847,7 @@ const App: React.FC = () => {
           textAnchor={textAnchor}
           fill="#999"
         >
-          {`(Rate ${(percent * 100).toFixed(2)}%)`}
+          {`${(percent * 100).toFixed(2)}%`}
         </text>
       </g>
     );
@@ -863,8 +877,14 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider theme={theme}>
+
+      {/*  Add sidebar menu with material ui component*/}
       <Container maxWidth="xl">
-        <Typography variant="h4" sx={{ mb: 4, textAlign: 'center' }}>
+       {/* add logo here and should stay at top left corner and be local to the repo and located in the public folder of my react app newacologo1.png and make it responsive */}
+        {/* <img src="/newacologo1.png" alt="logo" style={{ position: 'fixed', width: 120, height: 100, top: 0, left: 0}}/> */}
+      </Container>  
+      <Container maxWidth="xl">
+        <Typography variant="h4" sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
           Team CSU Azure Infra - Cost Optimizer
         </Typography>
 
@@ -922,28 +942,14 @@ const App: React.FC = () => {
               {errorMessage}
             </Typography>
           </Box>)}
-
-{/* Summary Metrics Row */}
-        <Typography variant="h5">Summary Metrics</Typography>
-        <Grid container xl={36} spacing={4} sx={{ 
-          marginBottom:2,
-          display: 'flex'
-         }}>
-          {filteredSummaryMetrics.map((metric, index) => (
-            <Grid item key={index}>
-              <SummaryMetricsCard metric={metric} />
-            </Grid>
-          ))}
-        </Grid>
-
 {/* Data Display Area */}
-        <Grid container xl={36} sx={{ 
+<Grid container xl={36} sx={{ 
           display: 'flex'
           }}>
 {/* Render Policies */}
-          <Grid item xl={6} marginRight={8}
+          <Grid item xl={6} marginRight={8} mb={2}
           >
-            <Typography variant="h5">Policies</Typography>
+            <Typography variant="h5" mb={2}>Policies</Typography>
             <TableContainer component={Paper
             } style={{ maxHeight: 400, overflow: 'auto' }
             }>
@@ -987,10 +993,25 @@ const App: React.FC = () => {
           </Grid>
 
           {/* Pie Chart for Impacted Resources by Policy */}
-          <Grid item xl={4}
+          <Grid item xl={4} marginLeft={8}
           >
+            
               {renderPolicyPieChart()}
           </Grid>
+{/* Summary Metrics Row */}
+        <Typography variant="h5" mb={2}>Summary Metrics</Typography>
+        <Grid container xl={36} spacing={2} sx={{ 
+          marginBottom:2,
+          display: 'flex'
+         }}>
+          {filteredSummaryMetrics.map((metric, index) => (
+            <Grid item key={index} alignContent={'flex-start'}>
+              <SummaryMetricsCard metric={metric} />
+            </Grid>
+          ))}
+        </Grid>
+
+
 {/* Render Cost Trend Chart */}
           <Grid item xl={12}>
             <Typography variant="h5">Cost Trend</Typography>
