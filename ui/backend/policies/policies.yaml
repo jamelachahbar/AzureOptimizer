@@ -3,7 +3,7 @@ policies:
   - type: stop
   description: Stop VMs that have not been used in the last x days and have an average
     CPU below the set threshold, and have a specific tag(optional)
-  enabled: false
+  enabled: true
   filters:
   - days: 30
     threshold: 10

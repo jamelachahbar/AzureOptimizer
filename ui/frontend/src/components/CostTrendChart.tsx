@@ -109,6 +109,7 @@ const CostTrendChart: React.FC<CostTrendChartProps> = ({ trendData, selectedSubs
                             dataKey={subscriptionId}
                             stroke={generateRandomColor()}
                             activeDot={{ r: 8 }}
+                            animationEasing='ease-in-out'
                         />
                     ))}
 

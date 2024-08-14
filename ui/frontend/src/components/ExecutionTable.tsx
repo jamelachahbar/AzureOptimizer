@@ -31,12 +31,14 @@ const ExecutionTable: React.FC<ExecutionTableProps> = ({ executionData, selected
             case 'Dry Run':
                 return { backgroundColor: 'lightyellow' };
             default:
-                return {};
+                return {
+                    backgroundColor: 'white',
+                };
         }
     };
 
     return (
-        <Paper style={{ height: 500 }}>
+        <Paper variant="elevation" style={{ height: 500 }}>
             <div
                 style={{
                     display: 'flex',
@@ -47,6 +49,10 @@ const ExecutionTable: React.FC<ExecutionTableProps> = ({ executionData, selected
                     padding: '8px 16px',
                     borderBottom: '1px solid #e0e0e0',
                     marginBottom: -10,
+                    wordWrap: 'break-word',
+                    textWrap: 'pretty',
+                    overflowWrap: 'break-word',
+                    gridRow: 'auto',
                 }}
             >
                 <Typography style={{ flex: 1, fontWeight: 'bold' }}>Action</Typography>
@@ -57,12 +63,19 @@ const ExecutionTable: React.FC<ExecutionTableProps> = ({ executionData, selected
             </div>
             <Virtuoso
                 data={filteredExecutionData}
-                itemContent={(index, execution) => (
+                itemContent={(_index, execution) => (
                     <div
                         style={{
                             display: 'flex',
+                            flex: 1,
                             padding: '8px 10px',
                             borderBottom: '1px solid #e0e0e0',
+                            wordWrap: 'break-word',
+                            textWrap: 'pretty',
+                            textAlign: 'left',
+                            gridAutoRows: 'auto',
+                            alignContent: "stretch",
+                            overflow: 'hidden', 
                             ...getRowStyle(execution.Status),
                         }}
                     >
@@ -73,7 +86,7 @@ const ExecutionTable: React.FC<ExecutionTableProps> = ({ executionData, selected
                         <Typography style={{ flex: 1 }}>{execution.SubscriptionId}</Typography>
                     </div>
                 )}
-                style={{ maxHeight: 500, width: '100%' }}
+                style={{ maxHeight: 500, width: '100%', overflow: 'scroll' }}
             />
         </Paper>
     );

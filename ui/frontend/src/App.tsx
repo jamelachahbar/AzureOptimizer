@@ -10,7 +10,6 @@ import {
   Select,
   MenuItem,
   Box,
-
   SelectChangeEvent,
 
  
@@ -605,8 +604,8 @@ const App: React.FC = () => {
         </Grid>
 
 {/* Render Cost Trend Chart */}
-  <Grid item xl={12}>
-            <Typography variant="h5">Cost Trend</Typography>
+  <Grid item xl={12} md={6} padding={2} >
+            <Typography variant="h5" mb={2}>Cost Trend</Typography>
             <CostTrendChart trendData={trendData} selectedSubscription={selectedSubscription} />
    </Grid>
 
@@ -632,9 +631,8 @@ const App: React.FC = () => {
   </Grid>
 
 {/* Data Display Area for Optimizer Logs */}
-  <Grid container spacing={3} sx={{ 
+  <Grid container spacing={2} sx={{ 
           mt: 6,
-          padding: 2,
           display: 'flex',
          }}>
     <Grid item xs={12} md={12}>

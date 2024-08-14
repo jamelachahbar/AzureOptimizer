@@ -16,6 +16,7 @@ interface SummaryMetricsCardProps {
 }
 
 const SummaryMetricsCard: React.FC<SummaryMetricsCardProps> = ({ metric }) => {
+    
     return (
         <Card sx={{ minWidth: 275, boxShadow: 3, '&:hover': { boxShadow: 6 } }}>
             <CardContent>
