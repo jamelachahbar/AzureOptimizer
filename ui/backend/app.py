@@ -7,10 +7,15 @@ import yaml
 import os
 from azure_cost_optimizer.optimizer import main as optimizer_main
 import matplotlib
+import openai
+from openai import OpenAI
+
+# Configure OpenAI GPT-4 API (or Azure OpenAI) using your API keys and endpoint
+openai.api_key = os.getenv("OPENAI_API_KEY")
 matplotlib.use('Agg')  # Use a non-interactive backend
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -70,6 +75,17 @@ logger.addHandler(sse_handler)
 @app.route('/api/log-stream')
 def log_stream():
     return Response(stream_logs(), content_type='text/event-stream')
+
+from azure.identity import DefaultAzureCredential
+from azure.mgmt.advisor import AdvisorManagementClient
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # Load .env file
+subscription_ids = os.getenv('AZURE_SUBSCRIPTION_ID').split(',')  # This will allow for multiple IDs
+
+# Set up the credentials
+credential = DefaultAzureCredential()
 
 @app.route('/api/run', methods=['POST'])
 def run_optimizer():
@@ -182,6 +198,94 @@ def toggle_policy():
     except Exception as e:
         logger.error(f"Error toggling policy: {e}")
         return jsonify({'error': 'Error toggling policy'}), 500
+
+def analyze_recommendations(recommendations):
+    """
+    Process a list of Azure Advisor recommendations to generate actionable advice.
+    Each recommendation is assumed to be a dictionary with various details.
+    """
+    advice_list = []
+
+    for recommendation in recommendations:
+        impact = recommendation.get('impact', 'medium')
+        category = recommendation.get('category')
+        short_description = recommendation.get('shortDescription', {}).get('problem', 'No problem description')
+
+        if impact.lower() == 'high':
+            advice = f"Urgent attention required: {short_description}."
+        elif impact.lower() == 'medium':
+            advice = f"Consider addressing: {short_description}."
+        else:
+            advice = f"Low priority: {short_description}."
+
+        advice_list.append({
+            "category": category,
+            "advice": advice,
+            "impact": impact
+        })
+
+    return advice_list
+
+def get_cost_recommendations(subscription_id):
+    client = AdvisorManagementClient(credential, subscription_id)
+    recommendations = client.recommendations.list()
+    cost_recommendations = [rec.as_dict() for rec in recommendations if rec.category == 'Cost']
+    return cost_recommendations
+
+client = OpenAI()
+
+def generate_advice_with_llm(recommendations):
+    """
+    Use OpenAI's GPT to generate actionable advice based on a list of Azure Advisor recommendations.
+    This function constructs a detailed prompt that describes each recommendation and asks the AI to
+    provide specific, actionable advice on how to address each recommendation for cost optimization,
+    performance improvements, and security enhancements.
+    """
+    # Start the prompt with an introduction to the context and what is expected from the AI.
+    prompt = """
+    As an expert consultant, your task is to analyze the following Azure Advisor recommendations and provide
+    specific, actionable advice on how to address each recommendation. Focus on cost optimization only. Here are the recommendations:
+    """
+
+    # Append each recommendation details to the prompt.
+    for rec in recommendations:
+        prompt += f"""
+        - Category: {rec['category']}
+        - Impact: {rec['impact']}
+        - Description: {rec['shortDescription']['problem']}
+        - Recommendation: {rec['shortDescription']['solution']}
+        """
+
+    prompt += "\nPlease provide detailed advice for each recommendation above."
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",  # Specify the model, e.g., "gpt-4", "text-davinci-003"
+            messages=[
+                {
+                    "role": "system", 
+                    "content": "You are a skilled Azure consultant."}, 
+                {
+                    "role": "user", 
+                    "content": prompt}
+                    ]
+        )
+        return response['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
+
+@app.route('/api/analyze-recommendations', methods=['POST'])
+def analyze_recommendations_route():
+    data = request.get_json()
+    subscription_id = data.get('subscription_id')
+    if not subscription_id:
+        return jsonify({'error': 'Missing subscription ID'}), 400
+
+    try:
+        recommendations = get_cost_recommendations(subscription_id)
+        return jsonify({"advice": recommendations}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
