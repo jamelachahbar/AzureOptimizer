@@ -513,9 +513,9 @@ const App: React.FC = () => {
           Team CSU Azure Infra - Cost Optimizer
         </Typography>
 
-      <Container maxWidth="sm">
+      <Container maxWidth="xl">
           {/* Add LLMInteraction component  */}
-          {/* <LLMInteraction /> */}
+          <LLMInteraction />
       </Container>
 
 {/* Controls Row */}
