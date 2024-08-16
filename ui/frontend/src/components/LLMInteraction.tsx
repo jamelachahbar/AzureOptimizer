@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Button, Box, Typography, List, ListItem, Divider, CircularProgress, Grid, Paper
+  Button, Box, Typography, List, Paper, CircularProgress, Grid
 } from '@mui/material';
 import axios from 'axios';
 
@@ -14,7 +14,7 @@ interface Recommendation {
   impact: string;
   short_description: ShortDescription;
   extended_properties?: Record<string, string>;
-  advice: string;  // New field to capture AI-generated advice
+  advice: string;
 }
 
 const LLMInteraction: React.FC = () => {
@@ -45,6 +45,49 @@ const LLMInteraction: React.FC = () => {
     }
   };
 
+  // Function to render the AI advice with basic formatting
+  const renderFormattedAdvice = (advice: string) => {
+    const lines = advice.split('\n').map((line, index) => {
+      // Handle bold text
+      if (line.includes('**')) {
+        const parts = line.split('**');
+        return (
+          <Typography key={index} variant="body2">
+            {parts.map((part, i) =>
+              i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+            )}
+          </Typography>
+        );
+      }
+
+      // Handle bullet points
+      if (line.trim().startsWith('- ')) {
+        return (
+          <Typography key={index} variant="body2" component="li" style={{ marginLeft: '20px' }}>
+            {line.trim().slice(2)}
+          </Typography>
+        );
+      }
+
+      // Handle numbered lists
+      if (line.trim().match(/^\d+\./)) {
+        return (
+          <Typography key={index} variant="body2" component="li" style={{ marginLeft: '20px' }}>
+            {line.trim()}
+          </Typography>
+        );
+      }
+
+      return (
+        <Typography key={index} variant="body2">
+          {line}
+        </Typography>
+      );
+    });
+
+    return <>{lines}</>;
+  };
+
   return (
     <Box p={2} m={2} border={1} borderRadius={2} borderColor="grey.300">
       <Typography variant="h5" gutterBottom>
@@ -59,7 +102,7 @@ const LLMInteraction: React.FC = () => {
       >
         {isLoading ? <CircularProgress size={24} /> : 'Fetch and Analyze Recommendations'}
       </Button>
-      
+
       {recommendations.length > 0 && (
         <>
           <Typography variant="h6" mb={2}>
@@ -87,8 +130,11 @@ const LLMInteraction: React.FC = () => {
                         <strong>Solution:</strong> {rec.short_description.solution || "No solution available"}
                       </Typography>
                       <Typography variant="body2" sx={{ mt: 2 }}>
-                        <strong>AI Advice:</strong> {rec.advice || "No advice available"}
+                        <strong>AI Advice:</strong>
                       </Typography>
+                      <Box ml={2}>
+                        {renderFormattedAdvice(rec.advice || "No advice available")}
+                      </Box>
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
                       {rec.extended_properties && (
