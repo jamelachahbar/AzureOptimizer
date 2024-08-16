@@ -81,10 +81,10 @@ const LLMInteraction: React.FC = () => {
                         <strong>Impact:</strong> {rec.impact}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Problem:</strong> {rec.short_description.problem}
+                        <strong>Problem:</strong> {rec.short_description.problem || "No problem description available"}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Solution:</strong> {rec.short_description.solution}
+                        <strong>Solution:</strong> {rec.short_description.solution || "No solution available"}
                       </Typography>
                       <Typography variant="body2" sx={{ mt: 2 }}>
                         <strong>AI Advice:</strong> {rec.advice || "No advice available"}

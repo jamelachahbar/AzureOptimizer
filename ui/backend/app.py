@@ -202,8 +202,6 @@ def toggle_policy():
         return jsonify({'error': 'Error toggling policy'}), 500
 
 
-
-
 credential = DefaultAzureCredential()
 
 def get_cost_recommendations(subscription_id):
@@ -299,12 +297,17 @@ def analyze_recommendations_route():
         # Convert the advice into a structured format for the frontend
         structured_advice = []
         for rec, adv in zip(recommendations, advice):  # Assuming the AI advice is split by double newline
+            # Safely access shortDescription, problem, and solution
+            short_description = rec.get('short_description', {})
+            problem = short_description.get('problem', 'No problem description provided.')
+            solution = short_description.get('solution', 'No solution description provided.')
+
             structured_advice.append({
                 "category": rec.get("category", "Unknown"),
                 "impact": rec.get("impact", "Unknown"),
                 "short_description": {
-                    "problem": rec.get("shortDescription", {}).get("problem", "No problem description"),
-                    "solution": rec.get("shortDescription", {}).get("solution", "No solution description"),
+                    "problem": problem,  # Corrected here
+                    "solution": solution,  # Corrected here
                 },
                 "extended_properties": rec.get("extended_properties", {}),
                 "advice": adv  # AI generated advice for this specific recommendation
