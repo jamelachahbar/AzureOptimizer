@@ -1,22 +1,22 @@
 [
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "TotalCost": 3768.5348622619354,
-        "AverageDailyCost": 125.61782874206452,
+        "TotalCost": 3730.213310482737,
+        "AverageDailyCost": 124.34044368275791,
         "MaximumDailyCost": 185.671801135037,
-        "MinimumDailyCost": 100.302160063714
+        "MinimumDailyCost": 93.3802631506726
     },
     {
         "SubscriptionId": "c916841c-459e-4bbd-aff7-c235ae45f0dd",
-        "TotalCost": 340.97337357106477,
-        "AverageDailyCost": 11.365779119035492,
+        "TotalCost": 354.3159312794648,
+        "AverageDailyCost": 11.810531042648826,
         "MaximumDailyCost": 25.1058726665755,
         "MinimumDailyCost": 4.04320111565548
     },
     {
         "SubscriptionId": "9d923c47-1aa2-4fc9-856f-16ca53e97b76",
-        "TotalCost": 447.4429375514236,
-        "AverageDailyCost": 14.914764585047454,
+        "TotalCost": 468.6314371823859,
+        "AverageDailyCost": 15.62104790607953,
         "MaximumDailyCost": 29.4391785262224,
         "MinimumDailyCost": 0.003712
     }

@@ -236,12 +236,13 @@ def generate_advice_with_llm(recommendations):
         # Generate the prompt
         prompt = f"""
         As an expert consultant, your task is to analyze the following Azure Advisor recommendation and provide
-        specific, actionable advice on how to address it. Focus on cost optimization only. Here is the recommendation:
+        specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and don't make it too long. Here is the recommendation:
         
         - Category: {rec.get('category', 'Unknown')}
         - Impact: {rec.get('impact', 'Unknown')}
         - Problem: {problem}
         - Solution: {solution}
+        - Extended Properties: {rec.get('extended_properties', 'Unknown')}
 
         Please provide detailed advice on how to address this recommendation.
         """
@@ -249,11 +250,12 @@ def generate_advice_with_llm(recommendations):
         try:
             logger.info(f"Sending prompt to OpenAI: {prompt}")
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a skilled Azure consultant who knows everything about FinOps and Cost Optimization."},
                     {"role": "user", "content": prompt}
                 ]
+
             )
             logger.info(f"Received response from OpenAI: {response}")
 
