@@ -8,6 +8,13 @@
 {
   "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
   "Policy": "stop-unused-vms",
+  "Resource": "Sample-VM",
+  "Actions": "stop",
+  "Owner": "jachahbar@microsoft.com"
+}
+{
+  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "Policy": "stop-unused-vms",
   "Resource": "vmtest",
   "Actions": "stop",
   "Owner": "jachahbar@microsoft.com"
@@ -51,13 +58,6 @@
   "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
   "Policy": "stop-unused-vms",
   "Resource": "vmacoademospot",
-  "Actions": "stop",
-  "Owner": "jachahbar@microsoft.com"
-}
-{
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "stop-unused-vms",
-  "Resource": "centosfreetest",
   "Actions": "stop",
   "Owner": "jachahbar@microsoft.com"
 }
@@ -128,13 +128,6 @@
   "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
   "Policy": "DowngradeDisksOfStoppedVMs",
   "Resource": "vmacoademospot",
-  "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
-}
-{
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "centosfreetest",
   "Actions": "downgrade_disks",
   "Owner": "jachahbar@microsoft.com"
 }
