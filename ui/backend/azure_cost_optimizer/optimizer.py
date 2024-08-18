@@ -95,15 +95,26 @@ def retry(max_retries=3, delay=5, backoff=2, exceptions=(Exception,)):
         return wrapper
     return decorator
 
-
 def load_policies(policy_file, schema_file):
     """Load and validate policies from the YAML file against the schema."""
     with open(policy_file, "r") as file:
         policies = yaml.safe_load(file)
+    logger.info(f"Loaded {len(policies.get('policies', []))} policies from {policy_file}")
+
     with open(schema_file, "r") as file:
         schema = json.load(file)
-    jsonschema.validate(instance=policies, schema=schema)
-    return [policy for policy in policies["policies"] if policy.get('enabled', False)]
+    logger.info(f"Validating policies against the schema from {schema_file}")
+
+    try:
+        jsonschema.validate(instance=policies, schema=schema)
+        logger.info("Policy validation successful.")
+    except jsonschema.exceptions.ValidationError as e:
+        logger.error(f"Policy validation failed: {e.message}")
+        raise
+
+    enabled_policies = [policy for policy in policies.get("policies", []) if policy.get('enabled', False)]
+    logger.info(f"Returning {len(enabled_policies)} enabled policies.")
+    return enabled_policies
 
 @retry(max_retries=5, delay=10, backoff=2, exceptions=(Exception,))
 def get_cost_data(scope):
@@ -314,6 +325,8 @@ def evaluate_exclusions(resource, exclusions):
 def last_used_filter(resource, days, threshold):
     """Check if a resource was last used within a specified number of days and meets the CPU threshold."""
     last_used_date, avg_cpu = get_last_used_date(resource, days, threshold)
+    print(f"last_used_date: {last_used_date}, avg_cpu: {avg_cpu}")  # Debug statement
+
     if (datetime.now(timezone.utc) - last_used_date).days <= days and avg_cpu < threshold:
         logger.info(f"Resource {resource.name} was last used within {days} days with average CPU usage {avg_cpu:.2f}% which is below the threshold of {threshold}%.")
         return True
@@ -378,7 +391,7 @@ def get_last_used_date(resource, days, threshold=5):
     - threshold: The CPU usage threshold below which the VM is considered as not used (in percentage).
     
     Returns:
-    - The last date the VM was actively used and the average CPU usage.
+    - A tuple of (last used date, average CPU usage).
     """
     resource_id = resource.id
     end_time = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -403,7 +416,7 @@ def get_last_used_date(resource, days, threshold=5):
 
     if not cpu_usages:
         logger.info(f"No CPU usage data available for VM: {resource.name} in the last {days} days.")
-        return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+        return datetime.fromisoformat(start_time.replace("Z", "+00:00")), 0.0  # Return a tuple with default CPU usage
 
     # Log CPU usage data for debugging purposes
     logger.info(f"CPU usage data for VM: {resource.name} in the last {days} days: {cpu_usages}")
@@ -414,13 +427,14 @@ def get_last_used_date(resource, days, threshold=5):
 
     if average_cpu_usage < threshold:
         return datetime.fromisoformat(start_time.replace("Z", "+00:00")), average_cpu_usage
+
     # If the VM was used, find the last time it was above the threshold
     for data in reversed(metrics_data.value[0].timeseries[0].data):
         if data.average and data.average >= threshold:
             return data.time_stamp, average_cpu_usage
 
     # If all CPU usage values are below the threshold, return the start_time
-    return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+    return datetime.fromisoformat(start_time.replace("Z", "+00:00")), average_cpu_usage
 
 def apply_actions(resource, actions, status_log, dry_run, subscription_id):
     """Apply actions to a resource and include cost data."""    
