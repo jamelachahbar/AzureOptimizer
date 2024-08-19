@@ -1,8 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, createContext, useContext } from 'react';
 import {
   Container,
   Grid,
-  Button,
   CircularProgress,
   Typography,
   FormControl,
@@ -11,12 +10,15 @@ import {
   MenuItem,
   Box,
   SelectChangeEvent,
-
- 
+  IconButton,
+  CssBaseline
 } from '@mui/material';
-
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { fa0, faArrowCircleRight, faArrowRotateBackward, faAutomobile, faHome, faHomeLg, faSave, faSurprise, faToolbox, faTools, faWrench } from '@fortawesome/free-solid-svg-icons';
+import Button from '@mui/material/Button';
 import axios from 'axios';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
 import LLMInteraction from './components/LLMInteraction';
 import SummaryMetricsCard from './components/SummaryMetricsCard';
 import CostTrendChart from './components/CostTrendChart';
@@ -25,6 +27,10 @@ import ImpactedResourcesTable from './components/ImpactedResourcesTable';
 import PolicyTable from './components/PolicyTable';
 import PolicyPieChart from './components/PolicyPieChart';
 import OptimizerLogs from './components/OptimizerLogs';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
+// Define the ColorModeContext here
+const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
 interface Policy {
   name: string;
@@ -32,15 +38,10 @@ interface Policy {
   enabled: boolean;
 }
 
-
 interface CostData {
   date: string;
   cost: number;
   SubscriptionId: string;
-}
-
-interface SubscriptionCosts {
-  [subscriptionId: string]: number;
 }
 
 interface ExecutionData {
@@ -75,79 +76,6 @@ interface AnomalyData {
   SubscriptionId: string;
 }
 
-
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AA00FF', '#FF4444'];
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-    background: {
-      default: '#f4f4f4',
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#333333',
-      secondary: '#666666',
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          padding: '8px 16px',
-          margin: '0 8px',
-          fontSize: '1rem',
-        },
-        containedPrimary: {
-          color: '#ffffff',
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-          transition: '0.3s',
-          '&:hover': {
-            boxShadow: '0 16px 32px rgba(0,0,0,0.2)',
-          },
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          margin: '8px',
-        },
-      },
-    },
-    MuiTableHead: {
-      styleOverrides: {
-        root: {
-          backgroundColor: '#e0e0e0',
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        head: {
-          fontWeight: 'bold',
-        },
-        body: {
-          fontSize: '0.875rem',
-        },
-      },
-    },
-  },
-});
 
 
 // App component definition with functional component
@@ -210,20 +138,7 @@ const App: React.FC = () => {
       SubscriptionId: 'mock-subscription-8',
       TotalCost: 100,
     },
-    {
-      AverageDailyCost: 8,
-      MaximumDailyCost: 45,
-      MinimumDailyCost: 5,
-      SubscriptionId: 'mock-subscription-9',
-      TotalCost: 100,
-    },
-    {
-      AverageDailyCost: 10,
-      MaximumDailyCost: 40,
-      MinimumDailyCost: 5,
-      SubscriptionId: 'mock-subscription-10',
-      TotalCost: 100,
-    },
+
   ]);
 
   const [executionData, setExecutionData] = useState<ExecutionData[]>([
@@ -324,6 +239,10 @@ const App: React.FC = () => {
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState<number>(0);
+
+    // Theme mode context and toggle logic
+  const colorMode = useContext(ColorModeContext);
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchPolicies = async () => {
@@ -497,152 +416,277 @@ const App: React.FC = () => {
   //   </TableContainer>
   // );
 
-
-
-  {/* Return the main App component with all the components and data */} 
   return (
-    <ThemeProvider theme={theme}>
-      {/* // Add SideBar component here */}
-      <Container maxWidth="xl">
-       {/* add logo here and should stay at top left corner and be local to the repo and located in the public folder of my react app newacologo1.png and make it responsive */}
-        {/* <img src="/newacologo1.png" alt="logo" style={{ position: 'fixed', width: 120, height: 100, top: 0, left: 0}}/> */}
-      </Container>  
+    <Container maxWidth="xl">
+      <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}
+      marginTop={4}>
+        <Button
+          href='/'
+          startIcon={<FontAwesomeIcon icon={faHomeLg} />}
+          size="small"
+          variant="contained"
+          color="primary"
+        >
+          Home
+        </Button>
+        <IconButton onClick={colorMode.toggleColorMode} color="inherit">
+          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+        </IconButton>
+      </Box>
+
+      <Typography variant="h3" sx={{ mb: 4, textAlign: 'center' }}>
+        Team CSU Azure Infra - Cost Optimizer
+      </Typography>
+      <Typography variant="body1" sx={{ mb: 4, textAlign: 'center' }}>
+        Optimize your Azure infrastructure costs with our cost optimizer tool.
+      </Typography>
 
       <Container maxWidth="xl">
-        <Typography variant="h4" sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
-          Team CSU Azure Infra - Cost Optimizer
-        </Typography>
-
-      <Container maxWidth="xl">
-          {/* Add LLMInteraction component  */}
-          <LLMInteraction />
+        <LLMInteraction />
       </Container>
 
-{/* Controls Row */}
-        <Grid container spacing={2} display={'flex'} alignContent={'center'} alignItems={'center'} justifyContent={'center'} marginBottom={2}>
-          <Grid item>
-            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-              <InputLabel>Subscription</InputLabel>
-              <Select value={selectedSubscription} onChange={handleSubscriptionChange} label="Subscription">
-                <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
-                {summaryMetrics.map((metric, index) => (
-                  <MenuItem key={index} value={metric.SubscriptionId}>
-                    {metric.SubscriptionId}
-                  </MenuItem>
+      <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
+        <Grid item>
+          <FormControl variant="outlined" sx={{ minWidth: 120 }}>
+            <InputLabel>Subscription</InputLabel>
+            <Select value={selectedSubscription} onChange={handleSubscriptionChange} label="Subscription">
+              <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
+              {summaryMetrics.map((metric, index) => (
+                <MenuItem key={index} value={metric.SubscriptionId}>
+                  {metric.SubscriptionId}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item>
+          <FormControl variant="outlined" sx={{ minWidth: 120 }}>
+            <InputLabel>Mode</InputLabel>
+            <Select value={mode} onChange={(e) => setMode(e.target.value as string)} label="Mode">
+              <MenuItem value="dry-run">Dry Run</MenuItem>
+              <MenuItem value="apply">Apply</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item>
+          <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
+            Run Optimizer
+          </Button>
+          {isOptimizerRunning && <CircularProgress size={24} sx={{ ml: 1 }} />}
+        </Grid>
+        <Grid item>
+          <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>
+            Stop Optimizer
+          </Button>
+        </Grid>
+      </Grid>
+
+      {errorMessage && (
+        <Box mt={4}>
+          <Typography variant="h6" color="error">
+            {errorMessage}
+          </Typography>
+        </Box>
+      )}
+    {/* Policies */}
+      <Grid container spacing={2} rowSpacing={2} >
+        <Grid item xs={12} md={6}>
+          <Typography variant="h5" mb={2}>Policies</Typography>
+          <PolicyTable policies={policies} handleToggle={handleTogglePolicy} />
+        </Grid>
+        <Grid item xl={4} marginLeft={8}>
+          <PolicyPieChart impactedResources={impactedResources} />
+        </Grid>
+
+        {/* Summary Metrics Row */}
+        <Typography variant="h5" mb={2}>Summary Metrics</Typography>
+        <Grid container xs={12} spacing={2} rowSpacing={2} sx={{ 
+                marginBottom:2,
+                display: 'flex'
+              }}>
+                {filteredSummaryMetrics.map((metric, index) => (
+                  <Grid item key={index} alignContent={'flex-start'}>
+                    <SummaryMetricsCard metric={metric} />
+                  </Grid>
                 ))}
-              </Select>
-            </FormControl>
-            </Grid>
-            <Grid item>
-            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-              <InputLabel>Mode</InputLabel>
-              <Select value={mode} onChange={(e) => setMode(e.target.value as string)} label="Mode">
-                <MenuItem value="dry-run">Dry Run</MenuItem>
-                <MenuItem value="apply">Apply</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item>
-            <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
-              Run Optimizer
-            </Button>
-            {/* // optimizer running indicator */}
-            {isOptimizerRunning && <CircularProgress size={24}  sx={{ ml: 1 }
-            }          
-            />
-            }
-          </Grid>
-          <Grid item>
-            <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>
-              Stop Optimizer
-            </Button>
-
-          </Grid>
-          {/* <Grid item>
-            <TextField label="Timeout (seconds)" type="number" variant="outlined" value={timeout}
-              onChange={(e) => setTimeout(parseInt(e.target.value, 10))} sx={{ minWidth: 120 }} />
-          </Grid> */} 
-            
-        </Grid>
-
-{/* Error message when server returns error */}
-        {errorMessage && (
-          <Box mt={4}>
-            <Typography variant="h6" color="error">
-              {errorMessage}
-            </Typography>
-          </Box>)}
-
-
-{/* Data Display Area */}
-<Grid container xl={36} sx={{ 
-          display: 'flex'
-          }}>
-
-  {/* Render Policies */}
-  <Grid item xs={12} md={6}>
-              <Typography variant="h5" mb={2}>Policies</Typography>
-              <PolicyTable policies={policies} handleToggle={handleTogglePolicy} />
-    </Grid>
-
-  {/* Pie Chart for Impacted Resources by Policy */}
-  <Grid item xl={4} marginLeft={8}>
-            <PolicyPieChart impactedResources={impactedResources} />
-    </Grid>
-
-  {/* Summary Metrics Row */}
-  <Typography variant="h5" mb={2}>Summary Metrics</Typography>
-  <Grid container xl={36} spacing={2} sx={{ 
-          marginBottom:2,
-          display: 'flex'
-         }}>
-          {filteredSummaryMetrics.map((metric, index) => (
-            <Grid item key={index} alignContent={'flex-start'}>
-              <SummaryMetricsCard metric={metric} />
-            </Grid>
-          ))}
-        </Grid>
-
+              </Grid>
 {/* Render Cost Trend Chart */}
-  <Grid item xl={12} md={6} padding={2} >
-            <Typography variant="h5" mb={2}>Cost Trend</Typography>
-            <CostTrendChart trendData={trendData} selectedSubscription={selectedSubscription} />
-   </Grid>
-
-{/* Other Data Tables */}
-
-  {/* Render Impacted Resources Table */}
-  <Grid item xl={12} md={6}>
-            <Typography variant="h5" mb={2}>Impacted Resources</Typography>
-            <ImpactedResourcesTable impactedResources={impactedResources} selectedSubscription={selectedSubscription} />
-    </Grid>
-  
-  {/* Render Execution Table */}
-  <Grid item xl={12} md={6}>
-            <Typography variant="h5" mb={2}>Execution Data</Typography>
-            <ExecutionTable executionData={executionData} selectedSubscription={selectedSubscription} />
-    </Grid>
- 
-  {/* Render Anomalies Table */}
-          {/* <Grid item xl={12} md={6} >
-            <Typography variant="h5" mb={2}>Anomalies</Typography>
-            {renderAnomalyTable()}
-          </Grid> */}
-  </Grid>
-
-{/* Data Display Area for Optimizer Logs */}
-  <Grid container spacing={2} sx={{ 
-          mt: 6,
-          display: 'flex',
-         }}>
-    <Grid item xs={12} md={12}>
-            <Typography variant="h5" mb={2}>Optimizer Logs</Typography>
-            <OptimizerLogs logs={logs} />
-          </Grid>
+        <Grid item xl={12} md={6} padding={2}>
+          <Typography variant="h5" mb={2}>Cost Trend</Typography>
+          <CostTrendChart trendData={trendData} selectedSubscription={selectedSubscription} />
         </Grid>
+{/* Render Impacted Resources */}
+
+        <Grid item xs={4} md={6}>
+          <Typography variant="h5" mb={2}>Impacted Resources</Typography>
+          <ImpactedResourcesTable impactedResources={impactedResources} selectedSubscription={selectedSubscription} />
+        </Grid>
+{/* Render Execution Table showing status of action */}
+        <Grid item xs={4} md={6}>
+          <Typography variant="h5" mb={2}>Execution Data</Typography>
+          <ExecutionTable executionData={executionData} selectedSubscription={selectedSubscription} />
+        </Grid>
+      </Grid>
+
+      {/* Data Display Area for Optimizer Logs */}
+      <Grid container spacing={2} sx={{ 
+                mt: 6,
+                display: 'flex',
+              }}>
+        <Grid item xs={12} md={12}>
+          <Typography variant="h5" mb={2}>Optimizer Logs</Typography>
+          <OptimizerLogs logs={logs} />
+        </Grid>
+      </Grid>
     </Container>
-     </ThemeProvider>
-    );
+  );
 };
 
-export default App;
+export default function ToggleColorModeApp() {
+  const [mode, setMode] = useState<'light' | 'dark'>('light');
+
+  const colorMode = useMemo(
+    () => ({
+      toggleColorMode: () => {
+        setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+      },
+    }),
+    []
+  );
+
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode,
+          primary: {
+            main: mode === 'light' ? '#1976d2' : '#E7DDFF',
+          },
+          secondary: {
+            main: mode === 'light' ? '#dc004e' : '#6CE9A6',
+          },
+          background: {
+            default: mode === 'light' ? '#f4f4f4' : '#121212',
+            paper: mode === 'light' ? '#ffffff' : '#1f1f1f',
+          },
+          text: {
+            primary: mode === 'light' ? '#333333' : '#ffffff',
+            secondary: mode === 'light' ? '#666666' : '#F8F6FC',
+          },
+        },
+        components: {
+          MuiCssBaseline: {
+            styleOverrides: {
+              body: {
+                backgroundColor: mode === 'light' ? '#FFFFFF' : '#121212',
+              },
+            },
+          },
+          MuiButton: {
+            styleOverrides: {
+              root: {
+                borderRadius: 12,
+                padding: '8px 16px',
+                margin: '0 8px',
+                fontSize: '1rem',
+              },
+              containedPrimary: {
+                color: mode === 'light' ? '#ffffff' : '#121212',
+              },
+            },
+          },
+          MuiTable: {
+            styleOverrides: {
+              root: {
+                borderRadius: 12,
+                boxShadow: mode === 'light' ? '0 8px 16px rgba(0,0,0,0.1)' : '0 8px 16px rgba(0,0,0,0.5)',
+                containedPrimary: {
+                  color: mode === 'light' ? '#ffffff' : '#121212',
+                },
+                containedSecondary: {
+                  color: mode === 'light' ? '#ffffff' : '#E7DDFF',
+                },
+              },
+            },
+          
+          },
+          MuiTableCell: {
+            styleOverrides: {
+              root: {
+                padding: '8px 16px',
+                borderBottom: '1px solid #e0e0e0',
+              },
+              head: {
+                backgroundColor: mode === 'light' ? '#f4f4f4' : '#0088FE',
+              },
+            },
+          },
+          MuiCard: {
+            styleOverrides: {
+              root: {
+                borderRadius: 16,
+                boxShadow: mode === 'light'
+                  ? '0 8px 16px rgba(0,0,0,0.1)'
+                  : '0 8px 16px rgba(0,0,0,0.5)',
+                transition: '0.3s',
+                '&:hover': {
+                  boxShadow: mode === 'light'
+                    ? '0 16px 32px rgba(0,0,0,0.2)'
+                    : '0 16px 32px rgba(0,0,0,0.6)',
+                },
+              },
+            },
+          },
+          MuiTypography: {
+            styleOverrides: {
+              h3: {
+                fontWeight: 'bold',
+                marginBottom: '12px',
+                marginTop: '12px',
+                color: mode === 'light' ? '#333333' : '#F5F2FD',
+              },
+              h5: {
+                fontWeight: 'bold',
+                marginBottom: '12px',
+                marginTop: '12px',
+                color: mode === 'light' ? '#333333' : '#F5F2FD',
+              },
+              h6: {
+                fontWeight: 'bold',
+                marginBottom: '12px',
+                marginTop: '12px',
+                color: mode === 'light' ? '#333333' : '#F5F2FD',
+              },
+              body1: {
+                marginBottom: '12px',
+                color: mode === 'light' ? '#333333' : '#F5F2FD',
+
+              },
+            },
+          },
+          // MuiPaper: {
+          //   styleOverrides: {
+          //     root: {
+          //       boxShadow: mode === 'light'
+          //         ? '0 8px 10px rgba(0,0,0,0.1)'
+          //         : '0 8px 10px rgba(0,0,0,0.5)',
+          //       transition: '0.3s',
+          //       backgroundColor: mode === 'light' ? '#ffffff' : '#1f1f1f',
+          //       color: mode === 'light' ? '#333333' : '#F5F2FD',
+          //     },
+          //   },
+          // },
+        },
+      }),
+    [mode]
+  );
+
+  return (
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <App />
+      </ThemeProvider>
+    </ColorModeContext.Provider>
+  );
+}

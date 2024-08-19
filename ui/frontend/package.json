@@ -13,6 +13,7 @@
         "@fortawesome/fontawesome-svg-core": "^6.6.0",
         "@fortawesome/free-solid-svg-icons": "^6.6.0",
         "@fortawesome/react-fontawesome": "^0.2.2",
+        "@material-ui/styles": "^4.11.5",
         "@mui/icons-material": "^5.16.6",
         "@mui/material": "^5.16.6",
         "axios": "^0.24.0",

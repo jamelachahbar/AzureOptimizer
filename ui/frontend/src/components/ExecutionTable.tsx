@@ -1,6 +1,5 @@
 import React from 'react';
-import { Typography, Paper } from '@mui/material';
-import { Virtuoso } from 'react-virtuoso';
+import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper, Typography } from '@mui/material';
 
 interface ExecutionData {
     Action: string;
@@ -25,70 +24,43 @@ const ExecutionTable: React.FC<ExecutionTableProps> = ({ executionData, selected
     const getRowStyle = (status: string) => {
         switch (status) {
             case 'Success':
-                return { backgroundColor: 'lightgreen' };
+                return { backgroundColor: '#7DDA58' };
             case 'Failed':
-                return { backgroundColor: 'red' };
+                return { backgroundColor: '#E4080A' };
             case 'Dry Run':
-                return { backgroundColor: 'lightyellow' };
+                return { backgroundColor: '#666666' };
             default:
                 return {
-                    backgroundColor: 'white',
+                    // backgroundColor: 'white',
                 };
         }
     };
 
     return (
-        <Paper variant="elevation" style={{ height: 500 }}>
-            <div
-                style={{
-                    display: 'flex',
-                    position: 'relative',
-                    top: 0,
-                    backgroundColor: '#f4f4f4',
-                    zIndex: 1,
-                    padding: '8px 16px',
-                    borderBottom: '1px solid #e0e0e0',
-                    marginBottom: -10,
-                    wordWrap: 'break-word',
-                    textWrap: 'pretty',
-                    overflowWrap: 'break-word',
-                    gridRow: 'auto',
-                }}
-            >
-                <Typography style={{ flex: 1, fontWeight: 'bold' }}>Action</Typography>
-                <Typography style={{ flex: 1, fontWeight: 'bold' }}>Message</Typography>
-                <Typography style={{ flex: 1, fontWeight: 'bold' }}>Resource</Typography>
-                <Typography style={{ flex: 1, fontWeight: 'bold' }}>Status</Typography>
-                <Typography style={{ flex: 1, fontWeight: 'bold' }}>Subscription ID</Typography>
-            </div>
-            <Virtuoso
-                data={filteredExecutionData}
-                itemContent={(_index, execution) => (
-                    <div
-                        style={{
-                            display: 'flex',
-                            flex: 1,
-                            padding: '8px 10px',
-                            borderBottom: '1px solid #e0e0e0',
-                            wordWrap: 'break-word',
-                            textWrap: 'pretty',
-                            textAlign: 'left',
-                            gridAutoRows: 'auto',
-                            alignContent: "stretch",
-                            overflow: 'hidden', 
-                            ...getRowStyle(execution.Status),
-                        }}
-                    >
-                        <Typography style={{ flex: 1 }}>{execution.Action}</Typography>
-                        <Typography style={{ flex: 1 }}>{execution.Message}</Typography>
-                        <Typography style={{ flex: 1 }}>{execution.Resource}</Typography>
-                        <Typography style={{ flex: 1 }}>{execution.Status}</Typography>
-                        <Typography style={{ flex: 1 }}>{execution.SubscriptionId}</Typography>
-                    </div>
-                )}
-                style={{ maxHeight: 500, width: '100%', overflow: 'scroll' }}
-            />
-        </Paper>
+        <TableContainer component={Paper} style={{ maxHeight: 400 }}>
+            <Table stickyHeader>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Action</TableCell>
+                        <TableCell>Message</TableCell>
+                        <TableCell>Resource</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Subscription ID</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {filteredExecutionData.map((execution, index) => (
+                        <TableRow key={index} style={getRowStyle(execution.Status)}>
+                            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Action}</TableCell>
+                            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Message}</TableCell>
+                            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Resource}</TableCell>
+                            <TableCell style={{ wordBreak: 'break-word' }}>{execution.Status}</TableCell>
+                            <TableCell style={{ wordBreak: 'break-word' }}>{execution.SubscriptionId}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </TableContainer>
     );
 };
 

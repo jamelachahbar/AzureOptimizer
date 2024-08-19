@@ -21,7 +21,7 @@ policies:
 - actions:
   - type: delete
   description: Delete unattached public IPs
-  enabled: false
+  enabled: true
   filters:
   - type: unattached
   name: delete-unattached-public-ips
@@ -71,11 +71,11 @@ policies:
       name: Basic
       off_peak_dtu: 5
       peak_dtu: 5
-    - max_dtu: 100
+    - max_dtu: 50
       min_dtu: 10
       name: Standard
       off_peak_dtu: 20
-      peak_dtu: 20
+      peak_dtu: 50
     - max_dtu: 1000
       min_dtu: 25
       name: Premium
@@ -92,8 +92,7 @@ policies:
   resource: azure.sql
 - actions:
   - type: delete
-  description: Delete unattached network interface cards
-  enabled: false
+  enabled: true
   exclusions: []
   filters:
   - type: unattached
@@ -101,7 +100,6 @@ policies:
   resource: azure.nic
 - actions:
   - type: downgrade_disks
-  description: Downgrade disks of stopped VMs
   enabled: true
   filters:
   - type: stopped
