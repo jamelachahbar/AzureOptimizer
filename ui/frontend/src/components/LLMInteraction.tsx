@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import {
   Button, Box, Typography, List, Paper, CircularProgress, Grid
 } from '@mui/material';
@@ -20,22 +20,40 @@ interface Recommendation {
 const LLMInteraction: React.FC = () => {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handleFetchAndAnalyze = async () => {
-    setIsLoading(true);
+    // Start the optimistic update
+    startTransition(() => {
+      setIsLoading(true);
+      setRecommendations([
+        {
+          category: 'Optimistic Category',
+          impact: 'Optimistic Impact',
+          short_description: {
+            problem: 'This is an optimistic problem description.',
+            solution: 'This is an optimistic solution.',
+          },
+          advice: 'This is an optimistic piece of advice.',
+        },
+      ]);
+    });
+
     try {
       const res = await axios.post<{ advice: Recommendation[] }>(
         'http://localhost:5000/api/analyze-recommendations',
         {
-          subscription_id: '38c26c07-ccce-4839-b504-cddac8e5b09d'
+          subscription_id: '38c26c07-ccce-4839-b504-cddac8e5b09d',
         },
         {
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
       console.log('Response Data:', res.data.advice);
+
+      // Update the state with the actual data
       setRecommendations(res.data.advice || []);
     } catch (error) {
       console.error('Error querying AI Assistant:', error);
@@ -97,7 +115,7 @@ const LLMInteraction: React.FC = () => {
         variant="contained"
         color="primary"
         onClick={handleFetchAndAnalyze}
-        disabled={isLoading}
+        disabled={isLoading || isPending}
         sx={{ mb: 4 }}
       >
         {isLoading ? <CircularProgress size={24} /> : 'Fetch and Analyze Recommendations'}
