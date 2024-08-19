@@ -436,14 +436,28 @@ def sku_filter(resource, values):
     return resource.sku.name in values
 
 def get_last_used_date(resource, days, threshold=5):
-    """Get the last used date of a VM based on average CPU usage over a specified number of days."""
+    """
+    Get the last used date of a VM based on average CPU usage over a specified number of days.
+    
+    Parameters:
+    - resource: The VM resource object.
+    - days: The number of days to check for activity.
+    - threshold: The CPU usage threshold below which the VM is considered as not used (in percentage).
+    
+    Returns:
+    - A tuple of (last used date, average CPU usage).
+    """
     resource_id = resource.id
     end_time = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     start_time = (datetime.now(timezone.utc) - timedelta(days=days)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
+    # Initialize monitor client
     monitor_client = MonitorManagementClient(credential, resource_id.split('/')[2])
+    
+    # Format timespan in ISO 8601 format
     timespan = f"{start_time}/{end_time}"
 
+    # Query CPU usage metrics
     metrics_data = monitor_client.metrics.list(
         resource_id,
         timespan=timespan,
@@ -456,21 +470,25 @@ def get_last_used_date(resource, days, threshold=5):
 
     if not cpu_usages:
         logger.info(f"No CPU usage data available for VM: {resource.name} in the last {days} days.")
-        return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+        return datetime.fromisoformat(start_time.replace("Z", "+00:00")), 0.0  # Return a tuple with default CPU usage
 
+    # Log CPU usage data for debugging purposes
     logger.info(f"CPU usage data for VM: {resource.name} in the last {days} days: {cpu_usages}")
 
+    # Check if the average CPU usage is below the threshold
     average_cpu_usage = sum(cpu_usages) / len(cpu_usages)
     logger.info(f"Average CPU usage for VM: {resource.name}: {average_cpu_usage:.2f}%")
 
     if average_cpu_usage < threshold:
         return datetime.fromisoformat(start_time.replace("Z", "+00:00")), average_cpu_usage
 
+    # If the VM was used, find the last time it was above the threshold
     for data in reversed(metrics_data.value[0].timeseries[0].data):
         if data.average and data.average >= threshold:
             return data.time_stamp, average_cpu_usage
 
-    return datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+    # If all CPU usage values are below the threshold, return the start_time
+    return datetime.fromisoformat(start_time.replace("Z", "+00:00")), average_cpu_usage
 
 def apply_actions(resource, actions, status_log, dry_run, subscription_id):
     """Apply actions to a resource."""
