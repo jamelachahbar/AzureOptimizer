@@ -20,11 +20,10 @@ interface SummaryMetricsCardProps {
 
 const SummaryMetricsCard: React.FC<SummaryMetricsCardProps> = ({ metric }) => {
     return (
-        <Card sx={{ margin: 3, justifyContent:'flex-start' ,maxWidth: 400, maxHeight: 300,boxShadow: 3, textWrap:'pretty', flexWrap:'wrap', '&:hover': { boxShadow: 4,
-            transition: 'box-shadow 0.3s'}}}>
-        {/* <Card sx={{ minWidth: 275, boxShadow: 3, borderRadius: 3, '&:hover': { boxShadow: 4,
+
+     <Card sx={{ marginLeft:2, minWidth: 300, boxShadow: 3, borderRadius: 3, '&:hover': { boxShadow: 4,
             transition: 'box-shadow 0.3s'
-         } }}> */}
+         } }}>
             <CardContent>
                 <Box display="flex" alignItems="center">
                     {/* Add icon using the imported PNG image */}
