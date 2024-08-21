@@ -30,23 +30,24 @@ const SummaryMetricsCard: React.FC<SummaryMetricsCardProps> = ({ metric }) => {
                     {/* Add icon using the imported PNG image */}
                     <Box component="img" src={subscriptionsIcon} alt="Subscription Icon" sx={{ width: 32, height: 32}} />
                     <Typography variant="subtitle1" component="div" color="text.secondary" gutterBottom>
-                        Subscription: <b>${metric.SubscriptionId}</b>
+                        Subscription: <b>{metric.SubscriptionId}</b>
                     </Typography>
                 </Box>
                 <Box display="flex" alignItems="center">
                     <FontAwesomeIcon icon={faMoneyBills} size="lg" style={{ marginRight: 8, color: '#1976d2' }} />
                     <Typography variant="h6" component="div">
-                    <b>${metric.AverageDailyCost}</b>
+                    <b>${metric.AverageDailyCost.toFixed(2)}</b>
                     </Typography>
                 </Box>
                 <Typography variant='subtitle2' color="text.secondary">
-                    Max Daily: ${metric.MaximumDailyCost}
+                    Max Daily: ${metric.MaximumDailyCost.toFixed(2)}
                 </Typography>
                 <Typography variant='subtitle2' color="text.secondary">
-                    Min Daily: ${metric.MinimumDailyCost}
+                    Min Daily: ${metric.MinimumDailyCost.toFixed(2)}
                 </Typography>
                 <Typography variant='subtitle2' sx={{ mb: 1.5 }} color="text.secondary">
-                    Total Cost: <b>${metric.TotalCost}</b>
+                    {/* show cost down to 2 decimals */}
+                    Total Cost: <b>${metric.TotalCost.toFixed(2)}</b>
                 </Typography>
             </CardContent>
         </Card>
