@@ -28,9 +28,11 @@ import PolicyTable from './components/PolicyTable';
 import PolicyPieChart from './components/PolicyPieChart';
 import OptimizerLogs from './components/OptimizerLogs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Header from './components/Header'; // Import the Header component
+import TracingBeamContainer from './components/TracingBeamContainer'; // Import the TracingBeamContainer
 
 // Define the ColorModeContext here
-const ColorModeContext = createContext({ toggleColorMode: () => {} });
+export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
 interface Policy {
   name: string;
@@ -417,77 +419,96 @@ const App: React.FC = () => {
   // );
 
   return (
-    <Container maxWidth="xl">
-      <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}
-      marginTop={4}>
-        <Button
-          href='/'
-          startIcon={<FontAwesomeIcon icon={faHomeLg} />}
-          size="small"
-          variant="contained"
-          color="primary"
-        >
-          Home
-        </Button>
-        <IconButton onClick={colorMode.toggleColorMode} color="inherit">
-          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-        </IconButton>
-      </Box>
+    <Box
+    sx={{
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100vh',
+      // backgroundImage: theme.palette.mode === 'light' 
+      // ? 'url(https://www.transparenttextures.com/patterns/axiom-pattern.png)' 
+      // : 'url(https://www.transparenttextures.com/patterns/pinstripe-dark.png)', 
+      backgroundImage: theme.palette.mode === 'light' 
+      ? "url('axiom-pattern.png')"
+      : 'url(pinstripe-dark.png)', 
+      backgroundRepeat: 'repeat',
+      zIndex: 1, // Ensures that the background is behind everything
+    }}
+  >
+      <Header  />  {/* Full-width header at the top */}
+    
+      <Container 
+        maxWidth="xl"
+        sx={{
+          flex: 1,
+          mt: 4,
+          mb: 4,
+          // boxShadow: 'rgba(0, 0, 0, 0.2) 0px 19px 36px, rgba(0, 10, 2, 0.6) 0px 12px 12px',
+          // boxShadow: 'rgba(17, 17, 26, 0.1) 0px 0px 1px',
+          boxShadow: 'rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px',
+          borderRadius: 2,
+          zIndex: 2, // Higher than the background, lower than other overlays (if any)
+          backgroundColor: theme.palette.mode === 'light' 
+          ? 'rgba(255, 255, 255, 0.9)' 
+          : '#1A1A1A',
+          backdropFilter: 'blur(10px)',
 
-      <Typography variant="h3" sx={{ mb: 4, textAlign: 'center' }}>
-        Team CSU Azure Infra - Cost Optimizer
-      </Typography>
-      <Typography variant="body1" sx={{ mb: 4, textAlign: 'center' }}>
-        Optimize your Azure infrastructure costs with our cost optimizer tool.
-      </Typography>
+      }}>
+        <TracingBeamContainer>
 
-      <Container maxWidth="xl">
-        <LLMInteraction />
-      </Container>
+        <Typography variant="h3" sx={{ mb: 4, textAlign: 'center' }}>
+          Azure Cost Optimizer
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 4, textAlign: 'center' }}>
+          Optimize your Azure infrastructure costs with our cost optimizer tool.
+        </Typography>
 
-      <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
-        <Grid item>
-          <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-            <InputLabel>Subscription</InputLabel>
-            <Select value={selectedSubscription} onChange={handleSubscriptionChange} label="Subscription">
-              <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
-              {summaryMetrics.map((metric, index) => (
-                <MenuItem key={index} value={metric.SubscriptionId}>
-                  {metric.SubscriptionId}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        {/* <LLMInteraction /> */}
+        
+        <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
+          <Grid item>
+            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
+              <InputLabel>Subscription</InputLabel>
+              <Select value={selectedSubscription} onChange={handleSubscriptionChange} label="Subscription">
+                <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
+                {summaryMetrics.map((metric, index) => (
+                  <MenuItem key={index} value={metric.SubscriptionId}>
+                    {metric.SubscriptionId}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item>
+            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
+              <InputLabel>Mode</InputLabel>
+              <Select value={mode} onChange={(e) => setMode(e.target.value as string)} label="Mode">
+                <MenuItem value="dry-run">Dry Run</MenuItem>
+                <MenuItem value="apply">Apply</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item>
+            <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
+              Run Optimizer
+            </Button>
+            {isOptimizerRunning && <CircularProgress size={24} sx={{ ml: 1 }} />}
+          </Grid>
+          <Grid item>
+            <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>
+              Stop Optimizer
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item>
-          <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-            <InputLabel>Mode</InputLabel>
-            <Select value={mode} onChange={(e) => setMode(e.target.value as string)} label="Mode">
-              <MenuItem value="dry-run">Dry Run</MenuItem>
-              <MenuItem value="apply">Apply</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item>
-          <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
-            Run Optimizer
-          </Button>
-          {isOptimizerRunning && <CircularProgress size={24} sx={{ ml: 1 }} />}
-        </Grid>
-        <Grid item>
-          <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>
-            Stop Optimizer
-          </Button>
-        </Grid>
-      </Grid>
 
-      {errorMessage && (
-        <Box mt={4}>
-          <Typography variant="h6" color="error">
-            {errorMessage}
-          </Typography>
-        </Box>
-      )}
+        {errorMessage && (
+          <Box mt={4}>
+            <Typography variant="h6" color="error">
+              {errorMessage}
+            </Typography>
+          </Box>
+        )}
+
     {/* Policies */}
       <Grid container spacing={2} rowSpacing={2} >
         <Grid item xs={12} md={6}>
@@ -499,8 +520,9 @@ const App: React.FC = () => {
         </Grid>
 
         {/* Summary Metrics Row */}
-        <Typography variant="h5" mb={2}>Summary Metrics</Typography>
-        <Grid container xs={12} spacing={2} rowSpacing={2} sx={{ 
+
+        <Typography ml={2} variant="h5">Summary Metrics</Typography>
+        <Grid container xs={12} mb={2} spacing={2} rowSpacing={2} sx={{ 
                 marginBottom:2,
                 display: 'flex'
               }}>
@@ -532,13 +554,17 @@ const App: React.FC = () => {
       <Grid container spacing={2} sx={{ 
                 mt: 6,
                 display: 'flex',
+                mb: 4
               }}>
         <Grid item xs={12} md={12}>
           <Typography variant="h5" mb={2}>Optimizer Logs</Typography>
           <OptimizerLogs logs={logs} />
         </Grid>
       </Grid>
+      </TracingBeamContainer>
     </Container>
+    </Box>
+
   );
 };
 
@@ -566,8 +592,8 @@ export default function ToggleColorModeApp() {
             main: mode === 'light' ? '#dc004e' : '#6CE9A6',
           },
           background: {
-            default: mode === 'light' ? '#f4f4f4' : '#121212',
-            paper: mode === 'light' ? '#ffffff' : '#1f1f1f',
+            default: mode === 'light' ? '#f4f4f4' : '#15292B',
+            paper: mode === 'light' ? '#ffffff' : '#181818',
           },
           text: {
             primary: mode === 'light' ? '#333333' : '#ffffff',
@@ -634,6 +660,7 @@ export default function ToggleColorModeApp() {
                     ? '0 16px 32px rgba(0,0,0,0.2)'
                     : '0 16px 32px rgba(0,0,0,0.6)',
                 },
+                marginBottom: '16px',
               },
             },
           },
@@ -643,39 +670,54 @@ export default function ToggleColorModeApp() {
                 fontWeight: 'bold',
                 marginBottom: '12px',
                 marginTop: '12px',
-                color: mode === 'light' ? '#333333' : '#F5F2FD',
+                color: mode === 'light' ? '#333333' : '#FFFFFF',
               },
               h5: {
                 fontWeight: 'bold',
                 marginBottom: '12px',
                 marginTop: '12px',
-                color: mode === 'light' ? '#333333' : '#F5F2FD',
+                color: mode === 'light' ? '#333333' : '#FFFFFF',
               },
               h6: {
                 fontWeight: 'bold',
                 marginBottom: '12px',
                 marginTop: '12px',
-                color: mode === 'light' ? '#333333' : '#F5F2FD',
+                color: mode === 'light' ? '#333333' : '#FFFFFF',
               },
               body1: {
                 marginBottom: '12px',
-                color: mode === 'light' ? '#333333' : '#F5F2FD',
+                color: mode === 'light' ? '#333333' : '#FFFFFF',
 
               },
             },
           },
-          // MuiPaper: {
-          //   styleOverrides: {
-          //     root: {
-          //       boxShadow: mode === 'light'
-          //         ? '0 8px 10px rgba(0,0,0,0.1)'
-          //         : '0 8px 10px rgba(0,0,0,0.5)',
-          //       transition: '0.3s',
-          //       backgroundColor: mode === 'light' ? '#ffffff' : '#1f1f1f',
-          //       color: mode === 'light' ? '#333333' : '#F5F2FD',
-          //     },
-          //   },
-          // },
+
+          MuiContainer: {
+            styleOverrides: {
+              root: {
+                ...(mode === 'light' && {
+                  backgroundColor: '#ffffff',
+                  color: '#333333',
+                }),
+                ...(mode === 'dark' && {
+                  backgroundColor: '#1f1f1f',
+                  color: '#ffffff',
+                }),
+              },
+            },
+          },
+          MuiPaper: {
+            styleOverrides: {
+              root: {
+                boxShadow: mode === 'light'
+                  ? '0 8px 10px rgba(0,0,0,0.1)'
+                  : '0 8px 10px rgba(0,0,0,0.5)',
+                transition: '0.3s',
+                backgroundColor: mode === 'light' ? '#ffffff' : '#1f1f1f',
+                color: mode === 'light' ? '#333333' : '#F5F2FD',
+              },
+            },
+          },
         },
       }),
     [mode]

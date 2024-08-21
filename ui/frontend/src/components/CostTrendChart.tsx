@@ -7,9 +7,10 @@ import {
     CartesianGrid,
     Tooltip,
     Legend,
-    ResponsiveContainer,
+    ResponsiveContainer
 } from 'recharts';
 import { Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 interface CostData {
     date: string;
@@ -38,9 +39,12 @@ interface CostTrendChartProps {
 }
 
 const CostTrendChart: React.FC<CostTrendChartProps> = ({ trendData, selectedSubscription }) => {
+    const theme = useTheme(); // Access the current theme
+
     const filteredTrendData = selectedSubscription === 'All Subscriptions'
       ? trendData
       : trendData.filter((data) => data.SubscriptionId === selectedSubscription);
+
     const generateRandomColor = useCallback(() => {
         return '#' + Math.floor(Math.random() * 16777215).toString(16);
     }, []);
@@ -98,10 +102,10 @@ const CostTrendChart: React.FC<CostTrendChartProps> = ({ trendData, selectedSubs
             <ResponsiveContainer width="100%" maxHeight={400}>
                 <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
+                    <XAxis dataKey="date" stroke={theme.palette.text.primary} />
+                    <YAxis stroke={theme.palette.text.primary} />
                     <Tooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ color: theme.palette.text.primary }} />
                     {Object.keys(dataBySubscription).map((subscriptionId, index) => (
                         <Line
                             key={subscriptionId}
@@ -112,8 +116,6 @@ const CostTrendChart: React.FC<CostTrendChartProps> = ({ trendData, selectedSubs
                             animationEasing='ease-in-out'
                         />
                     ))}
-
-
                 </LineChart>
             </ResponsiveContainer>
         );

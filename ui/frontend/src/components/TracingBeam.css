@@ -1,0 +1,24 @@
+/* Tracing Beam */
+.tracing-beam-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.tracing-beam-vertical {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px; /* Thickness of the beam */
+  height: 0;
+  transform-origin: top;
+  transition: height 0.8s ease-out, top 0.9s ease-out;
+}
+
+.tracing-beam-vertical.active {
+  height: 100%;
+}
+
+.content-container {
+  padding-left: 24px; /* Adjust padding to accommodate the vertical beam */
+  position: relative;
+}

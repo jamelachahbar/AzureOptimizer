@@ -28,7 +28,7 @@ const ExecutionTable: React.FC<ExecutionTableProps> = ({ executionData, selected
             case 'Failed':
                 return { backgroundColor: '#E4080A' };
             case 'Dry Run':
-                return { backgroundColor: '#666666' };
+                return { backgroundColor: '#f5f5'  };
             default:
                 return {
                     // backgroundColor: 'white',
@@ -37,7 +37,7 @@ const ExecutionTable: React.FC<ExecutionTableProps> = ({ executionData, selected
     };
 
     return (
-        <TableContainer component={Paper} style={{ maxHeight: 400 }}>
+        <TableContainer component={TableContainer} style={{ maxHeight: 400 }}>
             <Table stickyHeader>
                 <TableHead>
                     <TableRow>

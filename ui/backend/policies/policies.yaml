@@ -96,12 +96,12 @@ policies:
   exclusions: []
   filters:
   - type: unattached
-  name: Unattached Network Interface Cards
+  name: delete-unattached-nics
   resource: azure.nic
 - actions:
   - type: downgrade_disks
   enabled: true
   filters:
   - type: stopped
-  name: DowngradeDisksOfStoppedVMs
+  name: downgrade-disks-of-stopped-vms
   resource: azure.vm
