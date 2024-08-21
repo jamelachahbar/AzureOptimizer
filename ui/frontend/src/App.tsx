@@ -440,9 +440,14 @@ const App: React.FC = () => {
       <Container 
         maxWidth="xl"
         sx={{
+          display: 'flex',
+          position: 'center',
+          maxHeight: '80%',
           flex: 1,
-          mt: 4,
+          mt: 7.5,
           mb: 4,
+          // adjust on smaller screen width
+          padding: theme.spacing(2),
           // boxShadow: 'rgba(0, 0, 0, 0.2) 0px 19px 36px, rgba(0, 10, 2, 0.6) 0px 12px 12px',
           // boxShadow: 'rgba(17, 17, 26, 0.1) 0px 0px 1px',
           boxShadow: 'rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px',
