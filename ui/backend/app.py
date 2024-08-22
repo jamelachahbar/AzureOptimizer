@@ -89,6 +89,7 @@ subscription_ids = os.getenv('AZURE_SUBSCRIPTION_ID').split(',')  # This will al
 # Set up the credentials
 credential = DefaultAzureCredential()
 
+
 @app.route('/api/run', methods=['POST'])
 def run_optimizer():
     global optimizer_status
@@ -97,7 +98,7 @@ def run_optimizer():
     stop_event.clear()  # Reset the stop event
 
     def run_optimizer_in_thread():
-        global summary_metrics_data, execution_data_data, impacted_resources_data, anomalies_data, trend_data, optimizer_status
+        global summary_metrics_data, execution_data_data, impacted_resources_data, anomalies_data, trend_data, optimizer_status, subscription_ids
         optimizer_status = "Running"
         try:
             result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions, stop_event=stop_event)
@@ -108,6 +109,10 @@ def run_optimizer():
             impacted_resources_data = result['impacted_resources']
             trend_data = result['trend_data']
             anomalies_data = result['anomalies']
+            
+            # Store the subscription IDs from the optimizer result
+            subscription_ids = result.get('subscription_ids', [])
+
             optimizer_status = "Completed"
         except Exception as e:
             optimizer_status = f"Error: {str(e)}"
@@ -280,47 +285,49 @@ def generate_advice_with_llm(recommendations):
 # The endpoint that handles the request from the frontend
 @app.route('/api/analyze-recommendations', methods=['POST'])
 def analyze_recommendations_route():
-    data = request.get_json()
-    subscription_id = data.get('subscription_id')
-    if not subscription_id:
-        return jsonify({'error': 'Missing subscription ID'}), 400
+    global subscription_ids  # Access the global subscription_ids variable
+    
+    if not subscription_ids:
+        return jsonify({'error': 'No subscriptions found. Please run the optimizer first.'}), 400
 
     try:
-        recommendations = get_cost_recommendations(subscription_id)
+        all_structured_advice = []
 
-        # Generate advice using the LLM
-        advice = generate_advice_with_llm(recommendations)
+        for subscription_id in subscription_ids:  # Iterate over the stored subscription IDs
+            recommendations = get_cost_recommendations(subscription_id)
 
-        # Ensure the advice list is the correct length compared to the recommendations
-        if len(advice) != len(recommendations):
-            logger.error("Mismatch between number of recommendations and AI advice. Adjusting length...")
-            advice += ["No advice available"] * (len(recommendations) - len(advice))  # Add placeholders if mismatch
+            # Generate advice using the LLM for each subscription's recommendations
+            advice = generate_advice_with_llm(recommendations)
 
-        # Convert the advice into a structured format for the frontend
-        structured_advice = []
-        for rec, adv in zip(recommendations, advice):  # Assuming the AI advice is split by double newline
-            # Safely access shortDescription, problem, and solution
-            short_description = rec.get('short_description', {})
-            problem = short_description.get('problem', 'No problem description provided.')
-            solution = short_description.get('solution', 'No solution description provided.')
+            # Ensure the advice list is the correct length compared to the recommendations
+            if len(advice) != len(recommendations):
+                logger.error(f"Mismatch between number of recommendations and AI advice for subscription {subscription_id}. Adjusting length...")
+                advice += ["No advice available"] * (len(recommendations) - len(advice))
 
-            structured_advice.append({
-                "category": rec.get("category", "Unknown"),
-                "impact": rec.get("impact", "Unknown"),
-                "short_description": {
-                    "problem": problem,  # Corrected here
-                    "solution": solution,  # Corrected here
-                },
-                "extended_properties": rec.get("extended_properties", {}),
-                "advice": adv  # AI generated advice for this specific recommendation
-            })
+            # Convert the advice into a structured format for the frontend
+            for rec, adv in zip(recommendations, advice):
+                short_description = rec.get('short_description', {})
+                problem = short_description.get('problem', 'No problem description provided.')
+                solution = short_description.get('solution', 'No solution description provided.')
 
-        logger.info(f"Structured Advice Sent to Frontend: {structured_advice}")
-        return jsonify({"advice": structured_advice}), 200
+                all_structured_advice.append({
+                    "subscription_id": subscription_id,
+                    "category": rec.get("category", "Unknown"),
+                    "impact": rec.get("impact", "Unknown"),
+                    "short_description": {
+                        "problem": problem,
+                        "solution": solution,
+                    },
+                    "extended_properties": rec.get("extended_properties", {}),
+                    "advice": adv
+                })
+
+        logger.info(f"Structured Advice Sent to Frontend: {all_structured_advice}")
+        return jsonify({"advice": all_structured_advice}), 200
+
     except Exception as e:
         logger.error(f"Error analyzing recommendations: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

@@ -1,21 +1,17 @@
 import React, { useContext } from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Button, Box, Container } from '@mui/material';
+import { Toolbar, Typography, IconButton, Button, Box, Container } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useTheme } from '@mui/material/styles';
 import { ColorModeContext } from '../App'; // Adjust the import based on your file structure
-import shadows from '@mui/material/styles/shadows';
-import { blue, teal } from '@mui/material/colors';
-import { faBorderNone } from '@fortawesome/free-solid-svg-icons';
+
 
 const Header: React.FC = () => {
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
 
   return (
-    // <AppBar position="static" sx={{ backgroundColor: theme.palette.background.paper }}>
-      // <AppBar position="static" sx={{ width: '100%', boxShadow: shadows[1], backgroundColor: theme.palette.background.paper
-      // }}>
+
         <Container maxWidth={false} disableGutters>
           <Toolbar sx={{ justifyContent: 'space-between', width: '100%' }}>
             {/* //add logo from local folder CostOptTool\ui\frontend\public\ACOlogonew.png but make it smaller and to the left
@@ -57,7 +53,6 @@ const Header: React.FC = () => {
           </Toolbar>
         </Container>
 
-    // </AppBar>
   );
 };
 
