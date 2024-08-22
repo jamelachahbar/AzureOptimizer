@@ -468,7 +468,7 @@ const App: React.FC = () => {
           Optimize your Azure infrastructure costs with our cost optimizer tool.
         </Typography>
 
-        {/* <LLMInteraction /> */}
+        <LLMInteraction />
         
         <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
           <Grid item>

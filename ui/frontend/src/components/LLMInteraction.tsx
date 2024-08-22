@@ -1,6 +1,6 @@
 import React, { useState, useTransition } from 'react';
 import {
-  Button, Box, Typography, List, Paper, CircularProgress, Grid
+  Button, Box, Typography, List, Paper, CircularProgress, Grid, useTheme
 } from '@mui/material';
 import axios from 'axios';
 
@@ -18,12 +18,12 @@ interface Recommendation {
 }
 
 const LLMInteraction: React.FC = () => {
+  const theme = useTheme(); // Access the current theme
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleFetchAndAnalyze = async () => {
-    // Start the optimistic update
     startTransition(() => {
       setIsLoading(true);
       setRecommendations([
@@ -53,7 +53,6 @@ const LLMInteraction: React.FC = () => {
       );
       console.log('Response Data:', res.data.advice);
 
-      // Update the state with the actual data
       setRecommendations(res.data.advice || []);
     } catch (error) {
       console.error('Error querying AI Assistant:', error);
@@ -63,10 +62,8 @@ const LLMInteraction: React.FC = () => {
     }
   };
 
-  // Function to render the AI advice with basic formatting
   const renderFormattedAdvice = (advice: string) => {
     const lines = advice.split('\n').map((line, index) => {
-      // Handle bold text
       if (line.includes('**')) {
         const parts = line.split('**');
         return (
@@ -78,7 +75,6 @@ const LLMInteraction: React.FC = () => {
         );
       }
 
-      // Handle bullet points
       if (line.trim().startsWith('- ')) {
         return (
           <Typography key={index} variant="body2" component="li" style={{ marginLeft: '20px' }}>
@@ -87,7 +83,6 @@ const LLMInteraction: React.FC = () => {
         );
       }
 
-      // Handle numbered lists
       if (line.trim().match(/^\d+\./)) {
         return (
           <Typography key={index} variant="body2" component="li" style={{ marginLeft: '20px' }}>
@@ -107,7 +102,14 @@ const LLMInteraction: React.FC = () => {
   };
 
   return (
-    <Box p={2} m={2} border={1} borderRadius={2} borderColor="grey.300">
+    <Box
+      p={2}
+      m={2}
+      border={1}
+      borderRadius={2}
+      borderColor={theme.palette.mode === 'light' ? 'grey.300' : 'grey.700'}
+      bgcolor={theme.palette.background.paper}
+    >
       <Typography variant="h5" gutterBottom>
         AI Assistant Assessment
       </Typography>
@@ -129,7 +131,15 @@ const LLMInteraction: React.FC = () => {
           <List>
             {recommendations.map((rec, index) => (
               <React.Fragment key={index}>
-                <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+                <Paper
+                  elevation={2}
+                  sx={{
+                    p: 2,
+                    mb: 3,
+                    bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'grey.800',
+                    color: theme.palette.text.primary,
+                  }}
+                >
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6} md={8}>
                       <Typography variant="subtitle1" fontWeight="bold">
@@ -156,7 +166,16 @@ const LLMInteraction: React.FC = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={4}>
                       {rec.extended_properties && (
-                        <Box sx={{ mt: { xs: 2, sm: 0 }, p: 2, border: '1px solid', borderColor: 'grey.400', borderRadius: 2, bgcolor: 'grey.50' }}>
+                        <Box
+                          sx={{
+                            mt: { xs: 2, sm: 0 },
+                            p: 2,
+                            border: '1px solid',
+                            borderColor: theme.palette.mode === 'light' ? 'grey.400' : 'grey.600',
+                            borderRadius: 2,
+                            bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900',
+                          }}
+                        >
                           <Typography variant="subtitle2" fontWeight="bold">
                             Extended Properties:
                           </Typography>
