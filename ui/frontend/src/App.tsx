@@ -430,7 +430,7 @@ const App: React.FC = () => {
       // : 'url(https://www.transparenttextures.com/patterns/pinstripe-dark.png)', 
       backgroundImage: theme.palette.mode === 'light' 
       ? "url('axiom-pattern.png')"
-      : 'url(axiom-pattern.png)', 
+      : "url('skulls.png')", 
       backgroundRepeat: 'repeat',
       // zIndex: 1, // Ensures that the background is behind everything
     }}
