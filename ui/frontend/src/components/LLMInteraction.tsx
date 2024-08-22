@@ -1,12 +1,14 @@
 import React, { useState, useTransition } from 'react';
 import {
-  Button, Box, Typography, List, Paper, CircularProgress, Grid, useTheme
+  Button, Box, Typography, List, ListItem, ListItemText, Collapse, CircularProgress, Grid, Paper, Divider, useTheme
 } from '@mui/material';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
 
 interface ShortDescription {
   problem: string;
-  solution: string;
+  // solution: string;
 }
 
 interface Recommendation {
@@ -22,6 +24,7 @@ const LLMInteraction: React.FC = () => {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const handleFetchAndAnalyze = async () => {
     startTransition(() => {
@@ -32,7 +35,7 @@ const LLMInteraction: React.FC = () => {
           impact: 'Optimistic Impact',
           short_description: {
             problem: 'This is an optimistic problem description.',
-            solution: 'This is an optimistic solution.',
+            // solution: 'This is an optimistic solution.',
           },
           advice: 'This is an optimistic piece of advice.',
         },
@@ -60,6 +63,10 @@ const LLMInteraction: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleToggleExpand = (index: number) => {
+    setExpandedIndex(expandedIndex === index ? null : index);
   };
 
   const renderFormattedAdvice = (advice: string) => {
@@ -131,64 +138,76 @@ const LLMInteraction: React.FC = () => {
           <List>
             {recommendations.map((rec, index) => (
               <React.Fragment key={index}>
-                <Paper
-                  elevation={2}
+                <ListItem
+                  button
+                  onClick={() => handleToggleExpand(index)}
                   sx={{
-                    p: 2,
-                    mb: 3,
-                    bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'grey.800',
-                    color: theme.palette.text.primary,
+                    bgcolor: expandedIndex === index 
+                      ? (theme.palette.mode === 'light' ? 'grey.100' : 'grey.800') 
+                      : 'inherit',
+                    mb: 2, // Add margin bottom for spacing
+                    borderRadius: 1, // Add border radius to make it visually distinct
                   }}
                 >
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={8}>
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        Recommendation {index + 1}
-                      </Typography>
-                      <Typography variant="body2" sx={{ mt: 1 }}>
-                        <strong>Category:</strong> {rec.category}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Impact:</strong> {rec.impact}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Problem:</strong> {rec.short_description.problem || "No problem description available"}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Solution:</strong> {rec.short_description.solution || "No solution available"}
-                      </Typography>
-                      <Typography variant="body2" sx={{ mt: 2 }}>
-                        <strong>AI Advice:</strong>
-                      </Typography>
-                      <Box ml={2}>
-                        {renderFormattedAdvice(rec.advice || "No advice available")}
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={4}>
-                      {rec.extended_properties && (
-                        <Box
-                          sx={{
-                            mt: { xs: 2, sm: 0 },
-                            p: 2,
-                            border: '1px solid',
-                            borderColor: theme.palette.mode === 'light' ? 'grey.400' : 'grey.600',
-                            borderRadius: 2,
-                            bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900',
-                          }}
-                        >
-                          <Typography variant="subtitle2" fontWeight="bold">
-                            Extended Properties:
+                  <ListItemText
+                    primary={`Recommendation ${index + 1}: ${rec.category}`}
+                    secondary={
+                      <>
+                        <Typography variant="body2" color={theme.palette.text.secondary}>
+                          <strong>Impact:</strong> {rec.impact}
+                        </Typography>
+                        <Typography variant="body2" color={theme.palette.text.secondary}>
+                          <strong>Problem:</strong> {rec.short_description.problem || "No problem description available"}
+                        </Typography>
+                      </>
+                    }
+                    primaryTypographyProps={{ color: theme.palette.text.primary }}
+                    secondaryTypographyProps={{ color: theme.palette.text.secondary }}
+                  />
+                  {expandedIndex === index ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </ListItem>
+                <Collapse in={expandedIndex === index} timeout="auto" unmountOnExit>
+                  <Paper
+                    elevation={2}
+                    sx={{
+                      p: 2,
+                      mb: 3,
+                      bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'grey.800',
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    {/* <Typography variant="body2">
+                      <strong>Solution:</strong> {rec.short_description.solution || "No solution available"}
+                    </Typography> */}
+                    <Typography variant="body2" sx={{ mt: 2 }}>
+                      <strong>AI Advice:</strong>
+                    </Typography>
+                    <Box ml={2}>
+                      {renderFormattedAdvice(rec.advice || "No advice available")}
+                    </Box>
+                    {rec.extended_properties && (
+                      <Box
+                        sx={{
+                          mt: 2,
+                          p: 2,
+                          border: '1px solid',
+                          borderColor: theme.palette.mode === 'light' ? 'grey.400' : 'grey.600',
+                          borderRadius: 2,
+                          bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900',
+                        }}
+                      >
+                        <Typography variant="subtitle2" fontWeight="bold">
+                          Extended Properties:
+                        </Typography>
+                        {Object.entries(rec.extended_properties).map(([key, value]) => (
+                          <Typography key={key} variant="body2">
+                            <strong>{key}:</strong> {value}
                           </Typography>
-                          {Object.entries(rec.extended_properties).map(([key, value]) => (
-                            <Typography key={key} variant="body2">
-                              <strong>{key}:</strong> {value}
-                            </Typography>
-                          ))}
-                        </Box>
-                      )}
-                    </Grid>
-                  </Grid>
-                </Paper>
+                        ))}
+                      </Box>
+                    )}
+                  </Paper>
+                </Collapse>
               </React.Fragment>
             ))}
           </List>
