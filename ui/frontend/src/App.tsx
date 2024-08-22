@@ -430,9 +430,9 @@ const App: React.FC = () => {
       // : 'url(https://www.transparenttextures.com/patterns/pinstripe-dark.png)', 
       backgroundImage: theme.palette.mode === 'light' 
       ? "url('axiom-pattern.png')"
-      : 'url(pinstripe-dark.png)', 
+      : 'url(axiom-pattern.png)', 
       backgroundRepeat: 'repeat',
-      zIndex: 1, // Ensures that the background is behind everything
+      // zIndex: 1, // Ensures that the background is behind everything
     }}
   >
       <Header  />  {/* Full-width header at the top */}
@@ -585,6 +585,8 @@ export default function ToggleColorModeApp() {
     []
   );
 
+
+  // Create a custom theme with the selected mode and apply it to the app
   const theme = useMemo(
     () =>
       createTheme({
@@ -648,7 +650,8 @@ export default function ToggleColorModeApp() {
                 borderBottom: '1px solid #e0e0e0',
               },
               head: {
-                backgroundColor: mode === 'light' ? '#f4f4f4' : '#0088FE',
+                backgroundColor: mode === 'light' ? '#f4f4f4' : '#E7DDFF',
+                color: mode === 'light' ? '#333333' : '#121212',
               },
             },
           },

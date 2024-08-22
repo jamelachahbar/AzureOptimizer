@@ -1,5 +1,14 @@
 import React from 'react';
-import { TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper, Typography } from '@mui/material';
+import {
+    TableContainer,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody,
+    Paper,
+    useTheme
+} from '@mui/material';
 
 interface ExecutionData {
     Action: string;
@@ -16,28 +25,41 @@ interface ExecutionTableProps {
 }
 
 const ExecutionTable: React.FC<ExecutionTableProps> = ({ executionData, selectedSubscription }) => {
+    const theme = useTheme();
+
     const filteredExecutionData =
         selectedSubscription === 'All Subscriptions'
             ? executionData
             : executionData.filter((data) => data.SubscriptionId === selectedSubscription);
 
+    // Create row style based on status and color mode
     const getRowStyle = (status: string) => {
         switch (status) {
             case 'Success':
-                return { backgroundColor: '#7DDA58' };
+                return {
+                    backgroundColor: theme.palette.mode === 'light' ? '#E6F4EA' : '#004D40',
+                    color: theme.palette.mode === 'light' ? '#2E7D32' : '#A5D6A7',
+                };
             case 'Failed':
-                return { backgroundColor: '#E4080A' };
+                return {
+                    backgroundColor: theme.palette.mode === 'light' ? '#FDECEA' : '#B71C1C',
+                    color: theme.palette.mode === 'light' ? '#C62828' : '#FFCDD2',
+                };
             case 'Dry Run':
-                return { backgroundColor: '#f5f5'  };
+                return {
+                    backgroundColor: theme.palette.mode === 'light' ? '#FFFFFF' : '#333333',
+                    color: theme.palette.mode === 'light' ? '#EF6C00' : '#FFE0B2',
+                };
             default:
                 return {
-                    // backgroundColor: 'white',
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
                 };
         }
     };
 
     return (
-        <TableContainer component={TableContainer} style={{ maxHeight: 400 }}>
+        <TableContainer component={Paper} style={{ maxHeight: 400 }}>
             <Table stickyHeader>
                 <TableHead>
                     <TableRow>

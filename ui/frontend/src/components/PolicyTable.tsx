@@ -25,7 +25,7 @@ interface PolicyTableProps {
 
 const PolicyTable: React.FC<PolicyTableProps> = ({ policies, handleToggle }) => {
   return (
-    <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
+    <TableContainer component={Paper} style={{ maxHeight: 400, overflowY: 'scroll' }}>
       <Table stickyHeader>
         <TableHead>
           <TableRow>
