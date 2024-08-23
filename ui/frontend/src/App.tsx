@@ -30,6 +30,7 @@ import OptimizerLogs from './components/OptimizerLogs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Header from './components/Header'; // Import the Header component
 import TracingBeamContainer from './components/TracingBeamContainer'; // Import the TracingBeamContainer
+import { Highlight } from './components/HeroHighlight';
 
 // Define the ColorModeContext here
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
@@ -462,11 +463,11 @@ const App: React.FC = () => {
         <TracingBeamContainer>
 
         <Typography variant="h3" sx={{ mb: 4, textAlign: 'center' }}>
-          Azure Cost Optimizer
+        Azure Cost Optimizer
         </Typography>
-        <Typography variant="body1" sx={{ mb: 4, textAlign: 'center' }}>
-          Optimize your Azure infrastructure costs with our cost optimizer tool.
-        </Typography>
+          <Typography variant="h5" sx={{ mb: 4, textAlign: 'center' }}>
+          <Highlight>Optimize</Highlight>your<Highlight>Azure Infrastructure costs</Highlight>with our cost optimizer tool.
+          </Typography>
 
         <LLMInteraction />
         
