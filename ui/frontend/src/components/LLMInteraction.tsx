@@ -31,13 +31,13 @@ const LLMInteraction: React.FC = () => {
       setIsLoading(true);
       setRecommendations([
         {
-          category: 'Optimistic Category',
-          impact: 'Optimistic Impact',
+          category: 'Cost',
+          impact: 'High',
           short_description: {
-            problem: 'This is an optimistic problem description.',
+            problem: 'This is an example cost recommendation description.',
             // solution: 'This is an optimistic solution.',
           },
-          advice: 'This is an optimistic piece of advice.',
+          advice: 'This is an example piece of advice.',
         },
       ]);
     });
@@ -45,9 +45,13 @@ const LLMInteraction: React.FC = () => {
     try {
       const res = await axios.post<{ advice: Recommendation[] }>(
         'http://localhost:5000/api/analyze-recommendations',
+        // pass a list of subscriptionids to the backend
         {
           subscription_id: '38c26c07-ccce-4839-b504-cddac8e5b09d',
+          // subscription_id: 'c916841c-459e-4bbd-aff7-c235ae45f0dd'
+          // subscription_id: '9d923c47-1aa2-4fc9-856f-16ca53e97b76'
         },
+
         {
           headers: {
             'Content-Type': 'application/json',
