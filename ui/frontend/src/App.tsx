@@ -31,7 +31,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Header from './components/Header'; // Import the Header component
 import TracingBeamContainer from './components/TracingBeamContainer'; // Import the TracingBeamContainer
 import { Highlight } from './components/HeroHighlight';
-
+import TypewriterEffectSmooth from './components/TypewriterEffectSmooth'; // Import the TypewriterEffectSmooth component
+import TypewriterEffect from './components/TypewriterEffect';
 // Define the ColorModeContext here
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
@@ -466,9 +467,10 @@ const App: React.FC = () => {
         Azure Cost Optimizer
         </Typography>
           <Typography variant="h5" sx={{ mb: 4, textAlign: 'center' }}>
-          <Highlight>Optimize</Highlight>your<Highlight>Azure Infrastructure costs</Highlight>with our cost optimizer tool.
-          </Typography>
+          <Highlight>Optimize</Highlight>your<Highlight>Azure Infrastructure costs</Highlight>
 
+          </Typography>
+  
         <LLMInteraction />
         
         <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
@@ -569,6 +571,17 @@ const App: React.FC = () => {
       </Grid>
       </TracingBeamContainer>
     </Container>
+    <TypewriterEffectSmooth
+            words={[
+              { text: "Brought" },
+              { text: "to" },
+              { text: "you" },
+              { text: "by" },
+              { text: "Jamel Achahbar" },
+            ]}
+            variant="h6"
+            speed={100}
+          />
     </Box>
 
   );
