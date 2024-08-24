@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Typography, useTheme } from '@mui/material';
 
 interface TypewriterEffectSmoothProps {
@@ -14,34 +14,35 @@ const TypewriterEffectSmooth: React.FC<TypewriterEffectSmoothProps> = ({
   cursorBlinkSpeed = 500,
   variant = 'h5',
 }) => {
-  const [displayedText, setDisplayedText] = useState('');
   const [isTypingDone, setIsTypingDone] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
   const theme = useTheme();
+  
+  // Use useRef to persist text across re-renders
+  const displayedTextRef = useRef('');
+  const wordIndexRef = useRef(0);
+  const charIndexRef = useRef(0);
+  const [, setDisplayedText] = useState('');
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    let wordIndex = 0;
-    let charIndex = 0;
-    let currentText = ''; // Local variable to store current text
 
     const type = () => {
-      const currentWord = words[wordIndex].text;
+      const currentWord = words[wordIndexRef.current].text;
 
-      if (charIndex < currentWord.length) {
-        currentText += currentWord[charIndex];
-        setDisplayedText(currentText);
-        charIndex += 1;
+      if (charIndexRef.current < currentWord.length) {
+        displayedTextRef.current += currentWord[charIndexRef.current];
+        setDisplayedText(displayedTextRef.current); // Trigger a re-render to update the displayed text
+        charIndexRef.current += 1;
         timeoutId = setTimeout(type, speed);
-      } else if (wordIndex < words.length - 1) {
-        currentText += ' '; // Add space between words
-        setDisplayedText(currentText);
-        wordIndex += 1;
-        charIndex = 0;
+      } else if (wordIndexRef.current < words.length - 1) {
+        displayedTextRef.current += ' '; // Add space between words
+        setDisplayedText(displayedTextRef.current); // Trigger a re-render to update the displayed text
+        wordIndexRef.current += 1;
+        charIndexRef.current = 0;
         timeoutId = setTimeout(type, speed);
       } else {
         setIsTypingDone(true);
-        setDisplayedText(currentText); // Finish typing the last word
       }
     };
 
@@ -59,23 +60,25 @@ const TypewriterEffectSmooth: React.FC<TypewriterEffectSmoothProps> = ({
   }, [cursorBlinkSpeed]);
 
   const renderTextWithHighlight = () => {
+    const lastWord = words[words.length - 1].text;
+    const textBeforeLastWord = displayedTextRef.current.slice(0, displayedTextRef.current.length - lastWord.length);
+
     if (isTypingDone) {
-      const lastWord = words[words.length - 1].text;
-      const textBeforeLastWord = displayedText.slice(0, displayedText.length - lastWord.length);
       return (
         <>
           {textBeforeLastWord}
           <span style={{ color: theme.palette.primary.main }}>{lastWord}</span>
         </>
       );
+    } else {
+      return <>{displayedTextRef.current}</>;
     }
-    return <>{displayedText}</>;
   };
 
   return (
     <Typography variant={variant} sx={{ mb: 4, textAlign: 'center', color: theme.palette.text.primary }}>
       {renderTextWithHighlight()}
-      {isTypingDone && <span style={{ visibility: showCursor ? 'visible' : 'hidden' }}>|</span>}
+      <span style={{ visibility: showCursor ? 'visible' : 'hidden' }}>|</span>
     </Typography>
   );
 };
