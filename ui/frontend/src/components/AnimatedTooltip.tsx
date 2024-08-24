@@ -43,8 +43,8 @@ export const AnimatedTooltip: React.FC<AnimatedTooltipProps> = ({ title, childre
             borderRadius: '8px',
             position: 'absolute',
             zIndex: 50,
-            transform: 'translateX(-50%)',
-            left: '50%',
+            transform: 'translateX(-40%)',
+            left: '30%',
             top: '-40px', // Adjust as needed to position the tooltip above the element
           }}
         >
