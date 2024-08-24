@@ -5,6 +5,7 @@ import {
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
+import { AnimatedTooltip } from './AnimatedTooltip';
 
 interface ShortDescription {
   problem: string;
@@ -16,47 +17,44 @@ interface Recommendation {
   short_description: ShortDescription;
   extended_properties?: Record<string, string>;
   advice: string;
-  subscription_id: string;  // Add subscription_id to the interface to track which subscription this belongs to
+  subscription_id: string;
 }
 
 const LLMInteraction: React.FC = () => {
-  const theme = useTheme(); // Access the current theme
+  const theme = useTheme();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [isResultsExpanded, setIsResultsExpanded] = useState<boolean>(true); // State to manage the collapse of the results section
+  const [isResultsExpanded, setIsResultsExpanded] = useState<boolean>(true);
 
   const subscriptionIds = [
     '38c26c07-ccce-4839-b504-cddac8e5b09d',
     'c916841c-459e-4bbd-aff7-c235ae45f0dd',
     '9d923c47-1aa2-4fc9-856f-16ca53e97b76'
-  ]; // List of subscription IDs
+  ];
 
   const handleFetchAndAnalyze = async () => {
     startTransition(() => {
       setIsLoading(true);
       setRecommendations([]);
     });
-  
+
     try {
       const allRecommendations: Recommendation[] = [];
-  
+
       for (const subscription_id of subscriptionIds) {
-        console.log(`Sending request for subscription ID: ${subscription_id}`);
         const res = await axios.post<{ advice: Recommendation[] }>(
           'http://localhost:5000/api/analyze-recommendations',
-          { subscription_id },  // Pass each subscription ID individually
+          { subscription_id },
           {
             headers: {
               'Content-Type': 'application/json',
             },
           }
         );
-  
-        console.log(`Response Data for ${subscription_id}:`, res.data.advice);
+
         if (res.data.advice) {
-          // Add the subscription ID to each recommendation
           const updatedRecommendations = res.data.advice.map((rec) => ({
             ...rec,
             subscription_id,
@@ -64,7 +62,7 @@ const LLMInteraction: React.FC = () => {
           allRecommendations.push(...updatedRecommendations);
         }
       }
-  
+
       setRecommendations(allRecommendations);
     } catch (error) {
       console.error('Error querying AI Assistant:', error);
@@ -73,7 +71,6 @@ const LLMInteraction: React.FC = () => {
       setIsLoading(false);
     }
   };
-  
 
   const handleToggleExpand = (index: number) => {
     setExpandedIndex(expandedIndex === index ? null : index);
@@ -145,13 +142,28 @@ const LLMInteraction: React.FC = () => {
       </Button>
 
       {recommendations.length > 0 && (
-        <>
-          <Box display="flex" alignItems="center" justifyContent="space-between" mb={2} onClick={handleResultsToggle} sx={{ cursor: 'pointer' }}>
-            <Typography variant="h6">
-              Assessment Results
-            </Typography>
-            {isResultsExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </Box>
+        <> 
+        <Box mt={2}               
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+              mb={2}
+              onClick={handleResultsToggle}
+              sx={{ cursor: 'pointer' }}>             
+          <AnimatedTooltip title="Click to expand/collapse the results">
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                mb={2}
+                onClick={handleResultsToggle}
+                sx={{ cursor: 'pointer' }}
+              >
+                          <Typography variant="h6">Assessment Results</Typography>
+                {isResultsExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </Box>              
+            </AnimatedTooltip>
+        </Box>
           <Collapse in={isResultsExpanded} timeout="auto" unmountOnExit>
             <List>
               {recommendations.map((rec, index) => (
@@ -160,8 +172,8 @@ const LLMInteraction: React.FC = () => {
                     button
                     onClick={() => handleToggleExpand(index)}
                     sx={{
-                      bgcolor: expandedIndex === index 
-                        ? (theme.palette.mode === 'light' ? 'grey.100' : 'grey.800') 
+                      bgcolor: expandedIndex === index
+                        ? (theme.palette.mode === 'light' ? 'grey.100' : 'grey.800')
                         : 'inherit',
                       mb: 2, // Add margin bottom for spacing
                       borderRadius: 1, // Add border radius to make it visually distinct
