@@ -1,6 +1,6 @@
 import React, { useState, useTransition } from 'react';
 import {
-  Button, Box, Typography, List, ListItem, ListItemText, Collapse, CircularProgress, Grid, Paper, Divider, useTheme
+  Button, Box, Typography, List, ListItem, ListItemText, Collapse, CircularProgress, Paper, useTheme
 } from '@mui/material';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -8,7 +8,6 @@ import axios from 'axios';
 
 interface ShortDescription {
   problem: string;
-  // solution: string;
 }
 
 interface Recommendation {
@@ -17,6 +16,7 @@ interface Recommendation {
   short_description: ShortDescription;
   extended_properties?: Record<string, string>;
   advice: string;
+  subscription_id: string;  // Add subscription_id to the interface to track which subscription this belongs to
 }
 
 const LLMInteraction: React.FC = () => {
@@ -25,42 +25,45 @@ const LLMInteraction: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [isResultsExpanded, setIsResultsExpanded] = useState<boolean>(true); // State to manage the collapse of the results section
+
+  const subscriptionIds = [
+    '38c26c07-ccce-4839-b504-cddac8e5b09d',
+    'c916841c-459e-4bbd-aff7-c235ae45f0dd',
+    '9d923c47-1aa2-4fc9-856f-16ca53e97b76'
+  ]; // List of subscription IDs
 
   const handleFetchAndAnalyze = async () => {
     startTransition(() => {
       setIsLoading(true);
-      setRecommendations([
-        {
-          category: 'Cost',
-          impact: 'High',
-          short_description: {
-            problem: 'This is an example cost recommendation description.',
-            // solution: 'This is an optimistic solution.',
-          },
-          advice: 'This is an example piece of advice.',
-        },
-      ]);
+      setRecommendations([]);
     });
 
     try {
-      const res = await axios.post<{ advice: Recommendation[] }>(
-        'http://localhost:5000/api/analyze-recommendations',
-        // pass a list of subscriptionids to the backend
-        {
-          subscription_id: '38c26c07-ccce-4839-b504-cddac8e5b09d',
-          // subscription_id: 'c916841c-459e-4bbd-aff7-c235ae45f0dd'
-          // subscription_id: '9d923c47-1aa2-4fc9-856f-16ca53e97b76'
-        },
+      const allRecommendations: Recommendation[] = [];
 
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      for (const subscription_id of subscriptionIds) {
+        const res = await axios.post<{ advice: Recommendation[] }>(
+          'http://localhost:5000/api/analyze-recommendations',
+          { subscription_id },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        console.log(`Response Data for ${subscription_id}:`, res.data.advice);
+        if (res.data.advice) {
+          // Add the subscription ID to each recommendation
+          const updatedRecommendations = res.data.advice.map((rec) => ({
+            ...rec,
+            subscription_id,
+          }));
+          allRecommendations.push(...updatedRecommendations);
         }
-      );
-      console.log('Response Data:', res.data.advice);
+      }
 
-      setRecommendations(res.data.advice || []);
+      setRecommendations(allRecommendations);
     } catch (error) {
       console.error('Error querying AI Assistant:', error);
       setRecommendations([]);
@@ -71,6 +74,10 @@ const LLMInteraction: React.FC = () => {
 
   const handleToggleExpand = (index: number) => {
     setExpandedIndex(expandedIndex === index ? null : index);
+  };
+
+  const handleResultsToggle = () => {
+    setIsResultsExpanded(!isResultsExpanded);
   };
 
   const renderFormattedAdvice = (advice: string) => {
@@ -136,85 +143,94 @@ const LLMInteraction: React.FC = () => {
 
       {recommendations.length > 0 && (
         <>
-          <Typography variant="h6" mb={2}>
-            Assessment Results:
-          </Typography>
-          <List>
-            {recommendations.map((rec, index) => (
-              <React.Fragment key={index}>
-                <ListItem
-                  button
-                  onClick={() => handleToggleExpand(index)}
-                  sx={{
-                    bgcolor: expandedIndex === index 
-                      ? (theme.palette.mode === 'light' ? 'grey.100' : 'grey.800') 
-                      : 'inherit',
-                    mb: 2, // Add margin bottom for spacing
-                    borderRadius: 1, // Add border radius to make it visually distinct
-                  }}
-                >
-                  <ListItemText
-                    primary={`Recommendation ${index + 1}: ${rec.category}`}
-                    secondary={
-                      <>
-                        <Typography variant="body2" color={theme.palette.text.secondary}>
-                          <strong>Impact:</strong> {rec.impact}
-                        </Typography>
-                        <Typography variant="body2" color={theme.palette.text.secondary}>
-                          <strong>Problem:</strong> {rec.short_description.problem || "No problem description available"}
-                        </Typography>
-                      </>
-                    }
-                    primaryTypographyProps={{ color: theme.palette.text.primary }}
-                    secondaryTypographyProps={{ color: theme.palette.text.secondary }}
-                  />
-                  {expandedIndex === index ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </ListItem>
-                <Collapse in={expandedIndex === index} timeout="auto" unmountOnExit>
-                  <Paper
-                    elevation={2}
+          <Box display="flex" alignItems="center" justifyContent="space-between" mb={2} onClick={handleResultsToggle} sx={{ cursor: 'pointer' }}>
+            <Typography variant="h6">
+              Assessment Results
+            </Typography>
+            {isResultsExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </Box>
+          <Collapse in={isResultsExpanded} timeout="auto" unmountOnExit>
+            <List>
+              {recommendations.map((rec, index) => (
+                <React.Fragment key={index}>
+                  <ListItem
+                    button
+                    onClick={() => handleToggleExpand(index)}
                     sx={{
-                      p: 2,
-                      mb: 3,
-                      bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'grey.800',
-                      color: theme.palette.text.primary,
+                      bgcolor: expandedIndex === index 
+                        ? (theme.palette.mode === 'light' ? 'grey.100' : 'grey.800') 
+                        : 'inherit',
+                      mb: 2, // Add margin bottom for spacing
+                      borderRadius: 1, // Add border radius to make it visually distinct
                     }}
                   >
-                    {/* <Typography variant="body2">
-                      <strong>Solution:</strong> {rec.short_description.solution || "No solution available"}
-                    </Typography> */}
-                    <Typography variant="body2" sx={{ mt: 2 }}>
-                      <strong>AI Advice:</strong>
-                    </Typography>
-                    <Box ml={2}>
-                      {renderFormattedAdvice(rec.advice || "No advice available")}
-                    </Box>
-                    {rec.extended_properties && (
-                      <Box
-                        sx={{
-                          mt: 2,
-                          p: 2,
-                          border: '1px solid',
-                          borderColor: theme.palette.mode === 'light' ? 'grey.400' : 'grey.600',
-                          borderRadius: 2,
-                          bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900',
-                        }}
-                      >
-                        <Typography variant="subtitle2" fontWeight="bold">
-                          Extended Properties:
-                        </Typography>
-                        {Object.entries(rec.extended_properties).map(([key, value]) => (
-                          <Typography key={key} variant="body2">
-                            <strong>{key}:</strong> {value}
+                    <ListItemText
+                      primary={
+                        <>
+                          <Typography variant="body1" color={theme.palette.text.primary}>
+                            <strong>Subscription:</strong> {rec.subscription_id} - <strong>Recommendation {index + 1}:</strong> {rec.category}
                           </Typography>
-                        ))}
+                        </>
+                      }
+                      secondary={
+                        <>
+                          <Typography variant="body2" color={theme.palette.text.secondary}>
+                            <strong>Impact:</strong> {rec.impact}
+                          </Typography>
+                          <Typography variant="body2" color={theme.palette.text.secondary}>
+                            <strong>Problem:</strong> {rec.short_description.problem || "No problem description available"}
+                          </Typography>
+                        </>
+                      }
+                      primaryTypographyProps={{ color: theme.palette.text.primary }}
+                      secondaryTypographyProps={{ color: theme.palette.text.secondary }}
+                    />
+
+                    {expandedIndex === index ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </ListItem>
+                  <Collapse in={expandedIndex === index} timeout="auto" unmountOnExit>
+                    <Paper
+                      elevation={2}
+                      sx={{
+                        p: 2,
+                        mb: 3,
+                        bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'grey.800',
+                        color: theme.palette.text.primary,
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ mt: 2 }}>
+                        <strong>AI Advice:</strong>
+                      </Typography>
+                      <Box ml={2}>
+                        {renderFormattedAdvice(rec.advice || "No advice available")}
                       </Box>
-                    )}
-                  </Paper>
-                </Collapse>
-              </React.Fragment>
-            ))}
-          </List>
+                      {rec.extended_properties && (
+                        <Box
+                          sx={{
+                            mt: 2,
+                            p: 2,
+                            border: '1px solid',
+                            borderColor: theme.palette.mode === 'light' ? 'grey.400' : 'grey.600',
+                            borderRadius: 2,
+                            bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'grey.900',
+                          }}
+                        >
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            Extended Properties:
+                          </Typography>
+                          {Object.entries(rec.extended_properties).map(([key, value]) => (
+                            <Typography key={key} variant="body2">
+                              <strong>{key}:</strong> {value}
+                            </Typography>
+                          ))}
+                        </Box>
+                      )}
+                    </Paper>
+                  </Collapse>
+                </React.Fragment>
+              ))}
+            </List>
+          </Collapse>
         </>
       )}
     </Box>

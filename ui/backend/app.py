@@ -204,25 +204,30 @@ def toggle_policy():
 
 credential = DefaultAzureCredential()
 
-def get_cost_recommendations(subscription_id):
+def get_cost_recommendations(subscription_ids):
     """
-    Fetch cost recommendations for an Azure subscription using Azure SDK.
+    Fetch cost recommendations for multiple Azure subscriptions using Azure SDK.
     This function uses the Azure SDK to fetch cost recommendations from Azure Advisor
-    for the specified subscription ID. It filters the recommendations to only include
+    for the specified list of subscription IDs. It filters the recommendations to only include
     those in the 'Cost' category.
     """
-    try:
-        client = AdvisorManagementClient(credential, subscription_id)
-        recommendations = client.recommendations.list()
-        cost_recommendations = [rec.as_dict() for rec in recommendations if rec.category == 'Cost']
-        
-        # Log the content of the recommendations for debugging
-        logger.info(f"Cost Recommendations for Subscription {subscription_id}: {cost_recommendations}")
-        
-        return cost_recommendations
-    except Exception as e:
-        logger.error(f"Error fetching cost recommendations: {str(e)}")
-        return []
+    all_cost_recommendations = {}
+
+    for subscription_id in subscription_ids:
+        try:
+            client = AdvisorManagementClient(credential, subscription_id)
+            recommendations = client.recommendations.list()
+            cost_recommendations = [rec.as_dict() for rec in recommendations if rec.category == 'Cost']
+            
+            # Log the content of the recommendations for debugging
+            logger.info(f"Cost Recommendations for Subscription {subscription_id}: {cost_recommendations}")
+            
+            all_cost_recommendations[subscription_id] = cost_recommendations
+        except Exception as e:
+            logger.error(f"Error fetching cost recommendations for subscription {subscription_id}: {str(e)}")
+            all_cost_recommendations[subscription_id] = []
+
+    return all_cost_recommendations
 
 def generate_advice_with_llm(recommendations):
     advice_list = []
@@ -281,42 +286,47 @@ def generate_advice_with_llm(recommendations):
 @app.route('/api/analyze-recommendations', methods=['POST'])
 def analyze_recommendations_route():
     data = request.get_json()
-    subscription_id = data.get('subscription_id')
-    if not subscription_id:
-        return jsonify({'error': 'Missing subscription ID'}), 400
+    subscription_ids = data.get('subscription_ids', [])  # Expect a list of subscription IDs
+    if not subscription_ids:
+        return jsonify({'error': 'Missing subscription IDs'}), 400
+
+    all_structured_advice = []
 
     try:
-        recommendations = get_cost_recommendations(subscription_id)
+        for subscription_id in subscription_ids:
+            recommendations = get_cost_recommendations(subscription_id)
 
-        # Generate advice using the LLM
-        advice = generate_advice_with_llm(recommendations)
+            # Generate advice using the LLM
+            advice = generate_advice_with_llm(recommendations)
 
-        # Ensure the advice list is the correct length compared to the recommendations
-        if len(advice) != len(recommendations):
-            logger.error("Mismatch between number of recommendations and AI advice. Adjusting length...")
-            advice += ["No advice available"] * (len(recommendations) - len(advice))  # Add placeholders if mismatch
+            # Ensure the advice list is the correct length compared to the recommendations
+            if len(advice) != len(recommendations):
+                logger.error(f"Mismatch between number of recommendations and AI advice for subscription {subscription_id}. Adjusting length...")
+                advice += ["No advice available"] * (len(recommendations) - len(advice))  # Add placeholders if mismatch
 
-        # Convert the advice into a structured format for the frontend
-        structured_advice = []
-        for rec, adv in zip(recommendations, advice):  # Assuming the AI advice is split by double newline
-            # Safely access shortDescription, problem, and solution
-            short_description = rec.get('short_description', {})
-            problem = short_description.get('problem', 'No problem description provided.')
-            solution = short_description.get('solution', 'No solution description provided.')
+            # Convert the advice into a structured format for the frontend
+            structured_advice = []
+            for rec, adv in zip(recommendations, advice):  # Assuming the AI advice is split by double newline
+                short_description = rec.get('short_description', {})
+                problem = short_description.get('problem', 'No problem description provided.')
+                solution = short_description.get('solution', 'No solution description provided.')
 
-            structured_advice.append({
-                "category": rec.get("category", "Unknown"),
-                "impact": rec.get("impact", "Unknown"),
-                "short_description": {
-                    "problem": problem,  # Corrected here
-                    "solution": solution,  # Corrected here
-                },
-                "extended_properties": rec.get("extended_properties", {}),
-                "advice": adv  # AI generated advice for this specific recommendation
-            })
+                structured_advice.append({
+                    "subscription_id": subscription_id,  # Include the subscription ID for clarity
+                    "category": rec.get("category", "Unknown"),
+                    "impact": rec.get("impact", "Unknown"),
+                    "short_description": {
+                        "problem": problem,
+                        "solution": solution,
+                    },
+                    "extended_properties": rec.get("extended_properties", {}),
+                    "advice": adv  # AI generated advice for this specific recommendation
+                })
 
-        logger.info(f"Structured Advice Sent to Frontend: {structured_advice}")
-        return jsonify({"advice": structured_advice}), 200
+            all_structured_advice.extend(structured_advice)
+
+        logger.info(f"Structured Advice Sent to Frontend: {all_structured_advice}")
+        return jsonify({"advice": all_structured_advice}), 200
     except Exception as e:
         logger.error(f"Error analyzing recommendations: {str(e)}")
         return jsonify({'error': str(e)}), 500

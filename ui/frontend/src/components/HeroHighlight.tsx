@@ -9,10 +9,14 @@ export const Highlight: React.FC<{ children: React.ReactNode }> = ({ children })
   const darkModeBackground = 'linear-gradient(90deg, rgba(105, 94, 251, 1) 0%, rgba(134, 87, 255, 1) 100%)';
 
   return (
+    // Highlight animation for the text and make it sequencially appear
+    // with the background color
+    // https://www.framer.com/api/motion/motion-value/
+    // https://www.framer.com/api/motion/motion-component/
     <motion.span
       initial={{ backgroundSize: '0% 100%' }}
       animate={{ backgroundSize: '100% 100%' }}
-      transition={{ duration: 1, ease: 'linear', delay: 0.3 }}
+      transition={{ duration: 0.5 }}
       style={{
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'left center',
