@@ -38,20 +38,22 @@ const LLMInteraction: React.FC = () => {
       setIsLoading(true);
       setRecommendations([]);
     });
-
+  
     try {
       const allRecommendations: Recommendation[] = [];
-
+  
       for (const subscription_id of subscriptionIds) {
+        console.log(`Sending request for subscription ID: ${subscription_id}`);
         const res = await axios.post<{ advice: Recommendation[] }>(
           'http://localhost:5000/api/analyze-recommendations',
-          { subscription_id },
+          { subscription_id },  // Pass each subscription ID individually
           {
             headers: {
               'Content-Type': 'application/json',
             },
           }
         );
+  
         console.log(`Response Data for ${subscription_id}:`, res.data.advice);
         if (res.data.advice) {
           // Add the subscription ID to each recommendation
@@ -62,7 +64,7 @@ const LLMInteraction: React.FC = () => {
           allRecommendations.push(...updatedRecommendations);
         }
       }
-
+  
       setRecommendations(allRecommendations);
     } catch (error) {
       console.error('Error querying AI Assistant:', error);
@@ -71,6 +73,7 @@ const LLMInteraction: React.FC = () => {
       setIsLoading(false);
     }
   };
+  
 
   const handleToggleExpand = (index: number) => {
     setExpandedIndex(expandedIndex === index ? null : index);

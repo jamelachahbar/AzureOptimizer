@@ -72,10 +72,10 @@ policies:
       off_peak_dtu: 5
       peak_dtu: 5
     - max_dtu: 50
-      min_dtu: 10
+      min_dtu: 20
       name: Standard
-      off_peak_dtu: 20
-      peak_dtu: 50
+      off_peak_dtu: 10
+      peak_dtu: 100
     - max_dtu: 1000
       min_dtu: 25
       name: Premium

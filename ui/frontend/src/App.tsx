@@ -13,9 +13,6 @@ import {
   IconButton,
   CssBaseline
 } from '@mui/material';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
-import { fa0, faArrowCircleRight, faArrowRotateBackward, faAutomobile, faHome, faHomeLg, faSave, faSurprise, faToolbox, faTools, faWrench } from '@fortawesome/free-solid-svg-icons';
 import Button from '@mui/material/Button';
 import axios from 'axios';
 import { createTheme, ThemeProvider, useTheme } from '@mui/material/styles';

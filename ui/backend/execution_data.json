@@ -8,13 +8,6 @@
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "Sample-VM",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: Sample-VM in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmtest",
         "Action": "stop",
         "Status": "Dry Run",
@@ -73,16 +66,16 @@
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "costopttestdb",
         "Action": "scale",
-        "Status": "No Change",
-        "Message": "Current DTU is already optimal. No scaling required.",
+        "Status": "Dry Run",
+        "Message": "Dry run mode, no action taken. Would scale DTU to 10",
         "Cost": 0
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "onpremdgwsql",
         "Action": "scale",
-        "Status": "No Change",
-        "Message": "Current DTU is already optimal. No scaling required.",
+        "Status": "Dry Run",
+        "Message": "Dry run mode, no action taken. Would scale DTU to 10",
         "Cost": 0
     },
     {
