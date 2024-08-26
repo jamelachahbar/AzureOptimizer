@@ -8,13 +8,6 @@
 {
   "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
   "Policy": "stop-unused-vms",
-  "Resource": "Sample-VM",
-  "Actions": "stop",
-  "Owner": "jachahbar@microsoft.com"
-}
-{
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "stop-unused-vms",
   "Resource": "vmtest",
   "Actions": "stop",
   "Owner": "jachahbar@microsoft.com"
@@ -66,6 +59,15 @@
   "Policy": "update-storage-account-sku",
   "Resource": "dbstorage6xgnebmgwml4c",
   "Actions": "update_sku",
+  "Owner": "jachahbar@microsoft.com"
+}
+{
+  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "Policy": "scale-sql-database-dtu",
+  "Resource": "onpremdgwsql",
+  "Actions": "scale",
+  "Status": "Success",
+  "Message": "Dry run mode, no action taken. Would scale DTU to 50",
   "Owner": "jachahbar@microsoft.com"
 }
 {
