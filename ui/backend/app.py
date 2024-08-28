@@ -10,7 +10,9 @@ import matplotlib
 import openai
 from azure.mgmt.advisor import AdvisorManagementClient
 from azure.identity import DefaultAzureCredential
-
+from storage_utils import ensure_container_and_files_exist  # Import the storage utility module
+# Ensure the container and files exist at startup
+ensure_container_and_files_exist()
 # Configure OpenAI GPT-4 API (or Azure OpenAI) using your API keys and endpoint
 openai.api_key = os.getenv("OPENAI_API_KEY")
 # Configure OpenAI GPT-4 API (or Azure OpenAI) using your API keys and endpoint
@@ -180,6 +182,30 @@ def get_policies():
         logger.error(f"Error fetching policies: {e}")
         return jsonify({'error': 'Error fetching policies'}), 500
 
+
+
+@app.route('/api/policies/policyeditor/<policy_name>', methods=['POST'])
+def add_policy(policy_name):
+    try:
+        new_policy = request.json  # Expect the full policy structure from the frontend
+        policies = load_policies()
+
+        # Ensure the policy name in the URL matches the name in the policy data
+        if policy_name != new_policy.get('name'):
+            return jsonify({'error': 'Policy name in URL does not match policy data.'}), 400
+
+        # Check for existing policy with the same name
+        if any(policy['name'] == policy_name for policy in policies['policies']):
+            return jsonify({'error': 'Policy with this name already exists.'}), 400
+
+        policies['policies'].append(new_policy)
+        save_policies(policies)
+
+        return jsonify({"message": "Policy added successfully"}), 200
+    except Exception as e:
+        logger.error(f"Error adding policy: {e}")
+        return jsonify({'error': 'Error adding policy'}), 500
+
 @app.route('/api/toggle-policy', methods=['POST'])
 def toggle_policy():
     try:
@@ -202,7 +228,56 @@ def toggle_policy():
         return jsonify({'error': 'Error toggling policy'}), 500
 
 
+
+@app.route('/api/initialize', methods=['POST'])
+def initialize_storage():
+    """Initialize storage by ensuring the container and files exist."""
+    try:
+        ensure_container_and_files_exist()
+        return jsonify({"message": "Storage initialized successfully"}), 200
+    except Exception as e:
+        logger.error(f"Initialization failed: {e}")
+        return jsonify({"error": "Failed to initialize storage"}), 500
+
 credential = DefaultAzureCredential()
+
+@app.route('/api/policies/policyeditor/<policy_name>', methods=['PUT'])
+def update_policy(policy_name):
+    try:
+        updated_policy = request.json  # The updated policy data sent from the frontend
+        policies = load_policies()  # Load existing policies from the YAML file
+
+        # Search for the policy by name
+        for i, policy in enumerate(policies['policies']):
+            if policy['name'] == policy_name:
+                # Update the policy with the new data
+                policies['policies'][i] = updated_policy
+                save_policies(policies)  # Save the updated policies back to the YAML file
+                return jsonify({"message": "Policy updated successfully"}), 200
+
+        return jsonify({'error': 'Policy not found.'}), 404
+    except Exception as e:
+        logger.error(f"Error updating policy: {e}")
+        return jsonify({'error': 'Error updating policy'}), 500
+
+@app.route('/api/policies/policyeditor/<policy_name>', methods=['DELETE'])
+def delete_policy(policy_name):
+    try:
+        policies = load_policies()
+
+        # Find and remove the policy by name
+        policy_to_delete = next((policy for policy in policies['policies'] if policy['name'] == policy_name), None)
+
+        if not policy_to_delete:
+            return jsonify({'error': 'Policy not found.'}), 404
+
+        policies['policies'].remove(policy_to_delete)
+        save_policies(policies)
+
+        return jsonify({"message": "Policy deleted successfully"}), 200
+    except Exception as e:
+        logger.error(f"Error deleting policy: {e}")
+        return jsonify({'error': 'Error deleting policy'}), 500
 
 def get_cost_recommendations(subscription_ids):
     """

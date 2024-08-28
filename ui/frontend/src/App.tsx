@@ -30,6 +30,9 @@ import TracingBeamContainer from './components/TracingBeamContainer'; // Import 
 import { Highlight } from './components/HeroHighlight';
 import TypewriterEffectSmooth from './components/TypewriterEffectSmooth'; // Import the TypewriterEffectSmooth component
 import TypewriterEffect from './components/TypewriterEffect';
+
+import PolicyEditor from './components/PolicyEditor'; // Import the new PolicyEditor component
+
 // Define the ColorModeContext here
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
@@ -467,7 +470,13 @@ const App: React.FC = () => {
           <Highlight>Optimize</Highlight>your<Highlight>Azure Infrastructure costs</Highlight>
 
           </Typography>
-  
+          {/* New Policy Editor Component */}
+          <Grid container spacing={2} rowSpacing={2}>
+            <Grid item xs={12}>
+              <PolicyEditor policies={policies} setPolicies={setPolicies} isLoading={isLoading} />
+            </Grid>
+          </Grid>
+
         <LLMInteraction />
         
         <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>

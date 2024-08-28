@@ -71,11 +71,11 @@ policies:
       name: Basic
       off_peak_dtu: 5
       peak_dtu: 5
-    - max_dtu: 50
-      min_dtu: 20
+    - max_dtu: 100
+      min_dtu: 10
       name: Standard
       off_peak_dtu: 10
-      peak_dtu: 100
+      peak_dtu: 20
     - max_dtu: 1000
       min_dtu: 25
       name: Premium

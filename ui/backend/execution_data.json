@@ -73,16 +73,16 @@
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "costopttestdb",
         "Action": "scale",
-        "Status": "Dry Run",
-        "Message": "Dry run mode, no action taken. Would scale DTU to 10",
+        "Status": "No Change",
+        "Message": "Current DTU is already optimal. No scaling required.",
         "Cost": 0
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "onpremdgwsql",
         "Action": "scale",
-        "Status": "Dry Run",
-        "Message": "Dry run mode, no action taken. Would scale DTU to 10",
+        "Status": "No Change",
+        "Message": "Current DTU is already optimal. No scaling required.",
         "Cost": 0
     },
     {
