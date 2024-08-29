@@ -30,8 +30,9 @@ import TracingBeamContainer from './components/TracingBeamContainer'; // Import 
 import { Highlight } from './components/HeroHighlight';
 import TypewriterEffectSmooth from './components/TypewriterEffectSmooth'; // Import the TypewriterEffectSmooth component
 import TypewriterEffect from './components/TypewriterEffect';
-
+import FlipText from './components/FlipWords'; // Import the FlipWords component
 import PolicyEditor from './components/PolicyEditor'; // Import the new PolicyEditor component
+import {LandingScreen} from './components/LandingScreen'; // Import the LandingScreen component
 
 // Define the ColorModeContext here
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
@@ -84,7 +85,7 @@ interface AnomalyData {
 
 // App component definition with functional component
 const App: React.FC = () => {
- 
+
   const [summaryMetrics, setSummaryMetrics] = useState<SummaryMetric[]>([
     {
       AverageDailyCost: 10,
@@ -420,6 +421,16 @@ const App: React.FC = () => {
   //   </TableContainer>
   // );
 
+
+  const [loading, setLoading] = useState(true); // Control the landing screen visibility
+
+  const handleLandingFinished = () => {
+    setLoading(false);
+  };
+
+  if (loading) {
+    return <LandingScreen onFinished={handleLandingFinished} />;
+  }
   return (
     <Box
     sx={{
@@ -468,16 +479,16 @@ const App: React.FC = () => {
         </Typography>
           <Typography variant="h5" sx={{ mb: 4, textAlign: 'center' }}>
           <Highlight>Optimize</Highlight>your<Highlight>Azure Infrastructure costs</Highlight>
-
           </Typography>
+
           {/* New Policy Editor Component */}
-          <Grid container spacing={2} rowSpacing={2}>
+          {/* <Grid container spacing={2} rowSpacing={2}>
             <Grid item xs={12}>
               <PolicyEditor policies={policies} setPolicies={setPolicies} isLoading={isLoading} />
             </Grid>
-          </Grid>
+          </Grid> */}
 
-        <LLMInteraction />
+        {/* <LLMInteraction /> */}
         
         <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
           <Grid item>

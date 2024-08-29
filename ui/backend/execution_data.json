@@ -64,10 +64,24 @@
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "dbstorage6xgnebmgwml4c",
-        "Action": "update_sku",
+        "Resource": "pip-acodemo1",
+        "Action": "delete",
         "Status": "Dry Run",
-        "Message": "[Dry Run] Action: update_sku on Resource: dbstorage6xgnebmgwml4c in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+        "Message": "[Dry Run] Action: delete on Resource: pip-acodemo1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+    },
+    {
+        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+        "Resource": "rg-acodemo1",
+        "Action": "delete",
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: delete on Resource: rg-acodemo1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+    },
+    {
+        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+        "Resource": "rg-acodemo2",
+        "Action": "delete",
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: delete on Resource: rg-acodemo2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
