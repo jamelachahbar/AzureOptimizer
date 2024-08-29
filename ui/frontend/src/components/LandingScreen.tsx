@@ -28,7 +28,7 @@ export const LandingScreen: React.FC<{ onFinished: () => void }> = ({ onFinished
             &nbsp;
           </Typography>
           <FlipText
-            texts={["Built with love", "and passion", "for the Developer Community Day"]}
+            texts={["Built with love💙", "and passion🔥", "for the Developer👨‍💻👩‍💻 Community Day"]}
             interval={2500}
             className="flip-text"
           />
