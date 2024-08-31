@@ -33,6 +33,9 @@ import TypewriterEffect from './components/TypewriterEffect';
 import FlipText from './components/FlipWords'; // Import the FlipWords component
 import PolicyEditor from './components/PolicyEditor'; // Import the new PolicyEditor component
 import {LandingScreen} from './components/LandingScreen'; // Import the LandingScreen component
+import LoginButton from './components/LoginButton';
+import AuthProvider from './providers/AuthProvider';
+import { useIsAuthenticated } from "@azure/msal-react";
 
 // Define the ColorModeContext here
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
@@ -85,6 +88,7 @@ interface AnomalyData {
 
 // App component definition with functional component
 const App: React.FC = () => {
+  const isAuthenticated = useIsAuthenticated();
 
   const [summaryMetrics, setSummaryMetrics] = useState<SummaryMetric[]>([
     {
@@ -431,6 +435,20 @@ const App: React.FC = () => {
   if (loading) {
     return <LandingScreen onFinished={handleLandingFinished} />;
   }
+  if (!isAuthenticated) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
+        <LoginButton />
+      </Box>
+    );
+  }
   return (
     <Box
     sx={{
@@ -766,7 +784,10 @@ export default function ToggleColorModeApp() {
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
+        <AuthProvider>
         <App />
+        </AuthProvider>
+
       </ThemeProvider>
     </ColorModeContext.Provider>
   );

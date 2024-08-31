@@ -45,7 +45,7 @@ policies:
   - sku: Standard_LRS
     type: update_sku
   description: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
-  enabled: false
+  enabled: true
   filters:
   - type: sku
     values:

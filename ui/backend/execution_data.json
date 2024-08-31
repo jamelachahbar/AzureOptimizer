@@ -8,13 +8,6 @@
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "Sample-VM",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: Sample-VM in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmtest",
         "Action": "stop",
         "Status": "Dry Run",
@@ -26,13 +19,6 @@
         "Action": "stop",
         "Status": "Dry Run",
         "Message": "[Dry Run] Action: stop on Resource: vmencrypted1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmwithhibernationmode",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vmwithhibernationmode in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
@@ -82,6 +68,13 @@
         "Action": "delete",
         "Status": "Dry Run",
         "Message": "[Dry Run] Action: delete on Resource: rg-acodemo2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+    },
+    {
+        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+        "Resource": "dbstorage6xgnebmgwml4c",
+        "Action": "update_sku",
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: update_sku on Resource: dbstorage6xgnebmgwml4c in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
