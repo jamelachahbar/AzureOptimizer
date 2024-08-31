@@ -4,7 +4,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useTheme } from '@mui/material/styles';
 import { ColorModeContext } from '../App'; // Adjust the import based on your file structure
-
+import LogoutButton from './LogoutButton';
 
 const Header: React.FC = () => {
   const theme = useTheme();
@@ -45,10 +45,10 @@ const Header: React.FC = () => {
               <IconButton onClick={colorMode.toggleColorMode} color="primary">
                 {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
               </IconButton>
-
-              <Button variant="contained" color="primary" href="/">
+              <LogoutButton />
+              {/* <Button variant="contained" color="primary" href="/">
                 Log In - WIP
-              </Button> 
+              </Button>  */}
             </Box>
           </Toolbar>
         </Container>

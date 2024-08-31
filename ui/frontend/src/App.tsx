@@ -34,6 +34,8 @@ import FlipText from './components/FlipWords'; // Import the FlipWords component
 import PolicyEditor from './components/PolicyEditor'; // Import the new PolicyEditor component
 import {LandingScreen} from './components/LandingScreen'; // Import the LandingScreen component
 import LoginButton from './components/LoginButton';
+import LogoutButton from './components/LogoutButton';  // Import the LogoutButton
+
 import AuthProvider from './providers/AuthProvider';
 import { useIsAuthenticated } from "@azure/msal-react";
 
@@ -445,6 +447,7 @@ const App: React.FC = () => {
           height: '100vh',
         }}
       >
+
         <LoginButton />
       </Box>
     );
@@ -467,7 +470,7 @@ const App: React.FC = () => {
     }}
   >
       <Header  />  {/* Full-width header at the top */}
-    
+
       <Container 
         maxWidth="xl"
         sx={{
