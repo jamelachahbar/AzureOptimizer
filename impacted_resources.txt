@@ -63,9 +63,48 @@
 }
 {
   "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "Policy": "delete-unattached-public-ips",
+  "Resource": "pip-acodemo1",
+  "Actions": "delete",
+  "Owner": "jachahbar@microsoft.com"
+}
+{
+  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "Policy": "delete-resources-in-group",
+  "Resource": "rg-acodemo1",
+  "Actions": "delete",
+  "Owner": null
+}
+{
+  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "Policy": "delete-resources-in-group",
+  "Resource": "rg-acodemo2",
+  "Actions": "delete",
+  "Owner": null
+}
+{
+  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
   "Policy": "update-storage-account-sku",
   "Resource": "dbstorage6xgnebmgwml4c",
   "Actions": "update_sku",
+  "Owner": "jachahbar@microsoft.com"
+}
+{
+  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "Policy": "scale-sql-database-dtu",
+  "Resource": "costopttestdb",
+  "Actions": "scale",
+  "Status": "Success",
+  "Message": "Dry run mode, no action taken. Would scale DTU to 50",
+  "Owner": "jachahbar@microsoft.com"
+}
+{
+  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "Policy": "scale-sql-database-dtu",
+  "Resource": "onpremdgwsql",
+  "Actions": "scale",
+  "Status": "Success",
+  "Message": "Dry run mode, no action taken. Would scale DTU to 50",
   "Owner": "jachahbar@microsoft.com"
 }
 {
@@ -79,6 +118,20 @@
   "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
   "Policy": "DowngradeDisksOfStoppedVMs",
   "Resource": "Sample-VM",
+  "Actions": "downgrade_disks",
+  "Owner": "jachahbar@microsoft.com"
+}
+{
+  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "Policy": "DowngradeDisksOfStoppedVMs",
+  "Resource": "azdownvm_885b10b2",
+  "Actions": "downgrade_disks",
+  "Owner": "jachahbar@microsoft.com"
+}
+{
+  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "Policy": "DowngradeDisksOfStoppedVMs",
+  "Resource": "azdownvm_af5a1d4a",
   "Actions": "downgrade_disks",
   "Owner": "jachahbar@microsoft.com"
 }
