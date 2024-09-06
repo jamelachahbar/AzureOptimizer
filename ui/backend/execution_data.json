@@ -8,6 +8,13 @@
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+        "Resource": "Sample-VM",
+        "Action": "stop",
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: Sample-VM in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+    },
+    {
+        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmtest",
         "Action": "stop",
         "Status": "Dry Run",
@@ -19,6 +26,13 @@
         "Action": "stop",
         "Status": "Dry Run",
         "Message": "[Dry Run] Action: stop on Resource: vmencrypted1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+    },
+    {
+        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+        "Resource": "vmwithhibernationmode",
+        "Action": "stop",
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: vmwithhibernationmode in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
@@ -50,27 +64,6 @@
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "pip-acodemo1",
-        "Action": "delete",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: delete on Resource: pip-acodemo1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "rg-acodemo1",
-        "Action": "delete",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: delete on Resource: rg-acodemo1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "rg-acodemo2",
-        "Action": "delete",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: delete on Resource: rg-acodemo2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "dbstorage6xgnebmgwml4c",
         "Action": "update_sku",
         "Status": "Dry Run",
@@ -80,16 +73,16 @@
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "costopttestdb",
         "Action": "scale",
-        "Status": "No Change",
-        "Message": "Current DTU is already optimal. No scaling required.",
+        "Status": "Dry Run",
+        "Message": "Dry run mode, no action taken. Would scale DTU to 10",
         "Cost": 0
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "onpremdgwsql",
         "Action": "scale",
-        "Status": "No Change",
-        "Message": "Current DTU is already optimal. No scaling required.",
+        "Status": "Dry Run",
+        "Message": "Dry run mode, no action taken. Would scale DTU to 10",
         "Cost": 0
     },
     {
@@ -105,6 +98,20 @@
         "Action": "downgrade_disks",
         "Status": "Dry Run",
         "Message": "[Dry Run] Action: downgrade_disks on Resource: Sample-VM in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+    },
+    {
+        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+        "Resource": "azdownvm_885b10b2",
+        "Action": "downgrade_disks",
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: azdownvm_885b10b2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+    },
+    {
+        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+        "Resource": "azdownvm_af5a1d4a",
+        "Action": "downgrade_disks",
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: azdownvm_af5a1d4a in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",

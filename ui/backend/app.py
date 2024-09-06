@@ -11,6 +11,8 @@ import openai
 from azure.mgmt.advisor import AdvisorManagementClient
 from azure.identity import DefaultAzureCredential
 from storage_utils import ensure_container_and_files_exist  # Import the storage utility module
+import sys
+# from agents.azure_tools import get_cost_data, get_cost_recommendations, llm_generate_advice
 # Ensure the container and files exist at startup
 ensure_container_and_files_exist()
 # Configure OpenAI GPT-4 API (or Azure OpenAI) using your API keys and endpoint
@@ -357,7 +359,34 @@ def generate_advice_with_llm(recommendations):
 
     return advice_list
 
-# The endpoint that handles the request from the frontend
+
+# from agents.azure_agent import create_agent
+# agent = create_agent()
+
+# @app.route('/api/analyze-recommendations', methods=['POST'])
+# def analyze_recommendations_route():
+#     data = request.get_json()
+#     subscription_id = data.get('subscription_id')
+#     impacted_resources = data.get('impacted_resources', [])
+
+#     if not subscription_id:
+#         return jsonify({'error': 'Missing subscription ID'}), 400
+
+#     if not impacted_resources:
+#         return jsonify({'error': 'Missing impacted resources'}), 400
+
+#     try:
+#         # Use the agent to analyze recommendations and impacted resources
+#         prompt = f"Analyze cost recommendations and optimization for subscription {subscription_id} with the following impacted resources: {impacted_resources}."
+        
+#         # Pass the data as a prompt to the agent
+#         response = agent.run(prompt)
+
+#         return jsonify({'response': response}), 200
+#     except Exception as e:
+#         logger.error(f"Error analyzing recommendations: {str(e)}")
+#         return jsonify({'error': str(e)}), 500
+
 @app.route('/api/analyze-recommendations', methods=['POST'])
 def analyze_recommendations_route():
     data = request.get_json()
@@ -401,6 +430,8 @@ def analyze_recommendations_route():
     except Exception as e:
         logger.error(f"Error analyzing recommendations: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

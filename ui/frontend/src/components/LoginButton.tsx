@@ -16,7 +16,7 @@ const LoginButton: React.FC = () => {
   return (
     <Box sx={{ textAlign: 'center', mt: 5 }}>
       <Typography variant="h3" sx={{ mb: 2 }}>
-        Welcome to Azure Cost Optimizer
+        Welcome to Azure Optimizer
       </Typography>
       <Typography variant="body1" sx={{ mb: 1 }}>
         Log in to continue
