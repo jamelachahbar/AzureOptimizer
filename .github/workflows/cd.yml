@@ -1,4 +1,4 @@
-name: Azure Cost Optimization Workflow Apply Mode
+name: Azure Optimization Workflow Apply Mode
 
 on:
   workflow_run:
