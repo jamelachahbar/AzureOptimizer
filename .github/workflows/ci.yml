@@ -1,4 +1,4 @@
-name: Azure Cost Optimization Workflow Dry Run
+name: Azure Optimization Workflow Dry Run
 
 on:
   push:
