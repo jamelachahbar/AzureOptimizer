@@ -14,17 +14,30 @@ const Header: React.FC = () => {
 
         <Container maxWidth={false} disableGutters>
           <Toolbar sx={{ justifyContent: 'space-between', width: '100%' }}>
-            {/* //add logo from local folder CostOptTool\ui\frontend\public\ACOlogonew.png but make it smaller and to the left
+            {/* //add logo from local folder CostOptTool\ui\frontend\public\aologo-test.png but make it smaller and to the left
             //add a button to go back to home page
             //add a button to change theme */}
            
             {/* add the logo */}
-            <Typography variant="h6" component={Typography} fontWeight={
+            {/* <Typography variant="h6" component={Typography} fontWeight={
               'bold'} sx={{ color: 'primary' }
             }>
               ACO
-            </Typography>
-            {/* <img src="acologonewnobg.png" alt="ACO Logo" style={{ width: 50, height: 50 }} /> */}
+            </Typography> */}
+            {/* // add a logo for dark mode and one for light mode */}
+            {theme.palette.mode === 'dark' ? 
+              <Typography variant="h6" component={Typography} fontWeight={
+                'bold'} sx={{ color: 'primary' }
+              }>
+                AO
+              </Typography>              :
+              // <img src="aologo-test.png" alt="ACO Logo" style={{ width: 70, height: 60 }} />
+              <Typography variant="h6" component={Typography} fontWeight={
+                'bold'} sx={{ color: 'primary' }
+              }>
+                AO
+              </Typography>
+            }
 
             <Box sx={{display:{xs:'flex',md:'flex'}}}>
 

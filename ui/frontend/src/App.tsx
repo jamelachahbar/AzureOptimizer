@@ -434,9 +434,9 @@ const App: React.FC = () => {
     setLoading(false);
   };
 
-  if (loading) {
-    return <LandingScreen onFinished={handleLandingFinished} />;
-  }
+  // if (loading) {
+  //   return <LandingScreen onFinished={handleLandingFinished} />;
+  // }
   if (!isAuthenticated) {
     return (
       <Box
@@ -496,7 +496,7 @@ const App: React.FC = () => {
         <TracingBeamContainer>
 
         <Typography variant="h3" sx={{ mb: 4, textAlign: 'center' }}>
-        Azure Cost Optimizer
+        Azure Optimizer Tool
         </Typography>
           <Typography variant="h5" sx={{ mb: 4, textAlign: 'center' }}>
           <Highlight>Optimize</Highlight>your<Highlight>Azure Infrastructure costs</Highlight>
@@ -509,7 +509,7 @@ const App: React.FC = () => {
             </Grid>
           </Grid> */}
 
-        {/* <LLMInteraction /> */}
+        <LLMInteraction />
         
         <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
           <Grid item>
