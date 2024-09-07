@@ -15,7 +15,10 @@ interface Recommendation {
   advice?: string;
   subscription_id?: string;
   source?: string;
-  SubscriptionGuid?: string; // Field for SQL DB recommendations
+  SubscriptionGuid?: string; 
+  Instance?: string;  // Updated key based on your backend response
+  generated_date?: string;  // Updated key to match the response from backend
+  fit_score?: string;  // Updated key to match the response from backend
 }
 
 const LLMInteraction_FinopsHubs: React.FC = () => {
@@ -27,14 +30,12 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   const [isResultsExpanded, setIsResultsExpanded] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Function to get the correct subscription ID
+  // Get the subscription ID based on the recommendation source
   const getSubscriptionId = (rec: Recommendation) => {
     if (rec.source === 'Azure API') {
-      // For Azure API, use subid from extended_properties if available
       return rec.extended_properties?.subid || rec.subscription_id || 'N/A';
     }
-    // For SQL DB recommendations, use SubscriptionGuid
-    return rec.SubscriptionGuid || 'N/A';
+    return rec.subscription_id || 'N/A';
   };
 
   // Fetch recommendations for review (without sending to LLM)
@@ -47,7 +48,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
 
     try {
       const res = await axios.get<Recommendation[]>(
-        `http://localhost:5000/api/review-recommendations?subscription_id=9d923c47-1aa2-4fc9-856f-16ca53e97b76`
+        `http://localhost:5000/api/review-recommendations`
       );
 
       if (res.data.length === 0) {
@@ -98,6 +99,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     setIsResultsExpanded(!isResultsExpanded);
   };
 
+  // Render the advice from LLM
   const renderFormattedAdvice = (advice: string) => {
     const lines = advice.split('\n').map((line, index) => {
       if (line.includes('**')) {
@@ -127,6 +129,50 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     });
 
     return <>{lines}</>;
+  };
+
+  // Render additional properties for SQL DB recommendations
+  const renderSqlDbProperties = (rec: Recommendation) => {
+    return (
+      <Box sx={{ mt: 2, p: 2, border: '1px solid', borderRadius: 2 }}>
+        <Typography variant="subtitle2" fontWeight="bold">
+          Additional SQL DB Information:
+        </Typography>
+        <Typography variant="body2">
+          <strong>Instance Name:</strong> {rec.Instance || 'N/A'}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Generated Date:</strong> {rec.generated_date || 'N/A'}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Fit Score:</strong> {rec.fit_score || 'N/A'}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Subscription ID:</strong> {rec.subscription_id || 'N/A'}
+        </Typography>
+      </Box>
+    );
+  };
+
+  // Render extended properties for Azure API recommendations or SQL DB
+  const renderExtendedProperties = (rec: Recommendation) => {
+    if (rec.source === 'SQL DB') {
+      return renderSqlDbProperties(rec);
+    } else if (rec.extended_properties) {
+      return (
+        <Box sx={{ mt: 2, p: 2, border: '1px solid', borderRadius: 2 }}>
+          <Typography variant="subtitle2" fontWeight="bold">
+            Extended Properties:
+          </Typography>
+          {Object.entries(rec.extended_properties).map(([key, value]) => (
+            <Typography key={key} variant="body2">
+              <strong>{key}:</strong> {value}
+            </Typography>
+          ))}
+        </Box>
+      );
+    }
+    return null;
   };
 
   return (
@@ -174,7 +220,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           </Box>
           <Collapse in={isResultsExpanded} timeout="auto" unmountOnExit>
             <List>
-            {recommendations.map((rec, index) => (
+              {recommendations.map((rec, index) => (
                 <React.Fragment key={index}>
                   <ListItem button onClick={() => handleToggleExpand(index)} sx={{ bgcolor: expandedIndex === index ? 'grey.100' : 'inherit', mb: 2, borderRadius: 1 }}>
                     <ListItemText
@@ -182,7 +228,8 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
                         <>
                           <Typography variant="body1">
                             <strong>Subscription:</strong> {getSubscriptionId(rec)} - <strong>Recommendation {index + 1}:</strong> {rec.category || 'N/A'}
-                            <strong> Source:</strong> {rec.source || 'N/A'}
+                            <strong> Source:</strong>
+                            {rec.source || 'N/A'}
                           </Typography>
                         </>
                       }
@@ -207,18 +254,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
                       <Box ml={2}>
                         {renderFormattedAdvice(rec.advice || "No advice available")}
                       </Box>
-                      {rec.extended_properties && (
-                        <Box sx={{ mt: 2, p: 2, border: '1px solid', borderRadius: 2 }}>
-                          <Typography variant="subtitle2" fontWeight="bold">
-                            Extended Properties:
-                          </Typography>
-                          {Object.entries(rec.extended_properties).map(([key, value]) => (
-                            <Typography key={key} variant="body2">
-                              <strong>{key}:</strong> {value}
-                            </Typography>
-                          ))}
-                        </Box>
-                      )}
+                      {renderExtendedProperties(rec)} {/* Render SQL DB or Azure API properties */}
                     </Paper>
                   </Collapse>
                 </React.Fragment>

@@ -460,7 +460,6 @@ def get_cost_recommendations(subscription_ids):
     
     return all_cost_recommendations
 ### Function to get recommendations from SQL database ###
-### Function to get recommendations from SQL database ###
 def get_sql_recommendations():
     conn_str = (
         "DRIVER={ODBC Driver 18 for SQL Server};"
@@ -476,7 +475,8 @@ def get_sql_recommendations():
     query = """
     SELECT RecommendationId, Category, Impact, 
            RecommendationDescription, RecommendationAction, 
-           InstanceName, SubscriptionGuid
+           InstanceName, SubscriptionGuid, AdditionalInfo, 
+           TenantGuid, FitScore, GeneratedDate
     FROM dbo.Recommendations
     WHERE Category = 'Cost';
     """
@@ -490,15 +490,19 @@ def get_sql_recommendations():
         for row in cursor.fetchall():
             recommendations.append({
                 'RecommendationId': row.RecommendationId,
-                'category': row.Category,  # Mapping SQL 'Category' to 'category'
-                'impact': row.Impact if row.Impact else 'Unknown',  # Mapping SQL 'Impact' to 'impact'
+                'category': row.Category,
+                'impact': row.Impact if row.Impact else 'Unknown',
                 'short_description': {
-                    'problem': row.RecommendationDescription if row.RecommendationDescription else 'No problem description available'  # Mapping SQL 'RecommendationDescription' to 'short_description.problem'
+                    'problem': row.RecommendationDescription if row.RecommendationDescription else 'No problem description available'
                 },
-                'action': row.RecommendationAction if row.RecommendationAction else 'No action available',  # Custom key for SQL 'RecommendationAction'
-                'Instance': row.InstanceName,  # Custom field for instance name
-                'subscription_id': row.SubscriptionGuid,  # Mapping SQL 'SubscriptionGuid' to 'subscription_id'
-                'source': 'SQL DB'
+                'action': row.RecommendationAction if row.RecommendationAction else 'No action available',
+                'Instance': row.InstanceName,
+                'subscription_id': row.SubscriptionGuid,
+                'source': 'SQL DB',
+                'additional_info': row.AdditionalInfo,
+                'tenant_id': row.TenantGuid,
+                'fit_score': row.FitScore,
+                'generated_date': row.GeneratedDate
             })
         conn.close()
         return recommendations
@@ -507,10 +511,8 @@ def get_sql_recommendations():
         logger.error(f"Error fetching recommendations from SQL: {e}")
         return []
 
-
 ### LLM Advice Generation ###
 MAX_TOKENS = 4000  # Adjust based on the LLM model limits
-
 def generate_advice_with_llm(recommendations):
     advice_list = []
 
@@ -563,9 +565,8 @@ def generate_advice_with_llm(recommendations):
 @app.route('/api/review-recommendations', methods=['GET'])
 def review_recommendations_route():
     try:
-        # Define the valid subscription IDs for both sources
-        azure_subscription_ids = ['38c26c07-ccce-4839-b504-cddac8e5b09d', 'c916841c-459e-4bbd-aff7-c235ae45f0dd']  # Azure tenant subscription IDs
-        sql_subscription_id = '9d923c47-1aa2-4fc9-856f-16ca53e97b76'  # SQL tenant subscription ID
+        azure_subscription_ids = ['38c26c07-ccce-4839-b504-cddac8e5b09d', 'c916841c-459e-4bbd-aff7-c235ae45f0dd']
+        sql_subscription_id = '9d923c47-1aa2-4fc9-856f-16ca53e97b76'
         
         all_recommendations = []
 
@@ -576,8 +577,14 @@ def review_recommendations_route():
                 advisor_recommendations = get_cost_recommendations([subscription_id])
                 if isinstance(advisor_recommendations, dict):
                     for recommendations in advisor_recommendations.values():
-                        if recommendations:  # Make sure it's not empty
-                            azure_recommendations.extend(recommendations)
+                        if recommendations:
+                            for rec in recommendations:
+                                # Ensure subscription_id is included in each recommendation
+                                if 'extended_properties' in rec and 'subid' in rec['extended_properties']:
+                                    rec['subscription_id'] = rec['extended_properties']['subid']
+                                else:
+                                    rec['subscription_id'] = subscription_id  # Fallback to subscription_id if not found in extended properties
+                                azure_recommendations.append(rec)
             except Exception as e:
                 logger.error(f"Error fetching Azure Advisor recommendations for subscription {subscription_id}: {e}")
         
@@ -587,6 +594,11 @@ def review_recommendations_route():
             sql_recommendations = get_sql_recommendations()
             if not sql_recommendations:
                 logger.warning(f"No recommendations found for SQL subscription: {sql_subscription_id}")
+            else:
+                # Ensure each SQL recommendation has the subscription_id set correctly
+                for rec in sql_recommendations:
+                    if 'subscription_id' not in rec:
+                        rec['subscription_id'] = sql_subscription_id
         except Exception as e:
             logger.error(f"Error fetching SQL recommendations: {e}")
 
@@ -594,7 +606,6 @@ def review_recommendations_route():
         all_recommendations.extend(azure_recommendations)
         all_recommendations.extend(sql_recommendations)
 
-        # Handle empty results from both sources
         if not all_recommendations:
             logger.warning("No recommendations found from either source.")
             return jsonify({"message": "No recommendations available"}), 200
@@ -604,7 +615,6 @@ def review_recommendations_route():
     except Exception as e:
         logger.error(f"Error fetching recommendations: {e}")
         return jsonify({'error': str(e)}), 500
-
 
 ### API Endpoint to Analyze Recommendations ###
 @app.route('/api/analyze-recommendations', methods=['POST'])
