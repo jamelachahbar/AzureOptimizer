@@ -15,6 +15,7 @@ interface Recommendation {
   advice?: string;
   subscription_id?: string;
   source?: string;
+  SubscriptionGuid?: string; // Field for SQL DB recommendations
 }
 
 const LLMInteraction_FinopsHubs: React.FC = () => {
@@ -24,13 +25,17 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   const [isPending, startTransition] = useTransition();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [isResultsExpanded, setIsResultsExpanded] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);  // New state for errors
+  const [error, setError] = useState<string | null>(null);
 
-  const subscriptionIds = [
-    '38c26c07-ccce-4839-b504-cddac8e5b09d',
-    'c916841c-459e-4bbd-aff7-c235ae45f0dd',
-    '9d923c47-1aa2-4fc9-856f-16ca53e97b76'
-  ];
+  // Function to get the correct subscription ID
+  const getSubscriptionId = (rec: Recommendation) => {
+    if (rec.source === 'Azure API') {
+      // For Azure API, use subid from extended_properties if available
+      return rec.extended_properties?.subid || rec.subscription_id || 'N/A';
+    }
+    // For SQL DB recommendations, use SubscriptionGuid
+    return rec.SubscriptionGuid || 'N/A';
+  };
 
   // Fetch recommendations for review (without sending to LLM)
   const handleFetchRecommendations = async () => {
@@ -57,6 +62,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       setIsLoading(false);
     }
   };
+
   // Send selected recommendations to LLM for advice generation
   const handleSendToLLM = async () => {
     startTransition(() => {
@@ -147,7 +153,17 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       </Button>
 
       {recommendations.length > 0 && (
-        <> 
+        <>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleSendToLLM}
+            disabled={isLoading || isPending}
+            sx={{ mb: 4, ml: 2 }}
+          >
+            {isLoading ? <CircularProgress size={24} /> : 'Send to LLM for Analysis'}
+          </Button>
+
           <Box mt={2} display="flex" alignItems="center" justifyContent="space-between" mb={2} onClick={handleResultsToggle} sx={{ cursor: 'pointer' }}>
             <AnimatedTooltip title="Click to expand/collapse the results">
               <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
@@ -158,14 +174,14 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           </Box>
           <Collapse in={isResultsExpanded} timeout="auto" unmountOnExit>
             <List>
-              {recommendations.map((rec, index) => (
+            {recommendations.map((rec, index) => (
                 <React.Fragment key={index}>
                   <ListItem button onClick={() => handleToggleExpand(index)} sx={{ bgcolor: expandedIndex === index ? 'grey.100' : 'inherit', mb: 2, borderRadius: 1 }}>
                     <ListItemText
                       primary={
                         <>
                           <Typography variant="body1">
-                            <strong>Subscription:</strong> {rec.subscription_id || 'N/A'} - <strong>Recommendation {index + 1}:</strong> {rec.category || 'N/A'} 
+                            <strong>Subscription:</strong> {getSubscriptionId(rec)} - <strong>Recommendation {index + 1}:</strong> {rec.category || 'N/A'}
                             <strong> Source:</strong> {rec.source || 'N/A'}
                           </Typography>
                         </>

@@ -460,6 +460,7 @@ def get_cost_recommendations(subscription_ids):
     
     return all_cost_recommendations
 ### Function to get recommendations from SQL database ###
+### Function to get recommendations from SQL database ###
 def get_sql_recommendations():
     conn_str = (
         "DRIVER={ODBC Driver 18 for SQL Server};"
@@ -473,8 +474,9 @@ def get_sql_recommendations():
     )
 
     query = """
-    SELECT RecommendationId, Category, Impact, RecommendationDescription, 
-           RecommendationAction, InstanceName, SubscriptionGuid 
+    SELECT RecommendationId, Category, Impact, 
+           RecommendationDescription, RecommendationAction, 
+           InstanceName, SubscriptionGuid
     FROM dbo.Recommendations
     WHERE Category = 'Cost';
     """
@@ -488,13 +490,15 @@ def get_sql_recommendations():
         for row in cursor.fetchall():
             recommendations.append({
                 'RecommendationId': row.RecommendationId,
-                'Category': row.Category,
-                'Impact': row.Impact if row.Impact else 'Unknown',  # Handle nulls
-                'Description': row.RecommendationDescription if row.RecommendationDescription else 'No description available',
-                'Action': row.RecommendationAction if row.RecommendationAction else 'No action available',
-                'Instance': row.InstanceName if row.InstanceName else 'N/A',
-                'SubscriptionId': row.SubscriptionGuid if row.SubscriptionGuid else 'N/A',  # Map SubscriptionGuid to SubscriptionId
-                'Source': 'SQL DB'
+                'category': row.Category,  # Mapping SQL 'Category' to 'category'
+                'impact': row.Impact if row.Impact else 'Unknown',  # Mapping SQL 'Impact' to 'impact'
+                'short_description': {
+                    'problem': row.RecommendationDescription if row.RecommendationDescription else 'No problem description available'  # Mapping SQL 'RecommendationDescription' to 'short_description.problem'
+                },
+                'action': row.RecommendationAction if row.RecommendationAction else 'No action available',  # Custom key for SQL 'RecommendationAction'
+                'Instance': row.InstanceName,  # Custom field for instance name
+                'subscription_id': row.SubscriptionGuid,  # Mapping SQL 'SubscriptionGuid' to 'subscription_id'
+                'source': 'SQL DB'
             })
         conn.close()
         return recommendations
