@@ -38,7 +38,7 @@ import LogoutButton from './components/LogoutButton';  // Import the LogoutButto
 
 import AuthProvider from './providers/AuthProvider';
 import { useIsAuthenticated } from "@azure/msal-react";
-
+import LLMInteraction_FinopsHubs from './components/LLMInteraction_FinopsHubs';
 // Define the ColorModeContext here
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
@@ -509,8 +509,8 @@ const App: React.FC = () => {
             </Grid>
           </Grid> */}
 
-        <LLMInteraction />
-        
+        {/* <LLMInteraction /> */}
+        <LLMInteraction_FinopsHubs />
         <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
           <Grid item>
             <FormControl variant="outlined" sx={{ minWidth: 120 }}>

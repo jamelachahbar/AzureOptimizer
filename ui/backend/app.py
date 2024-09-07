@@ -12,6 +12,8 @@ from azure.mgmt.advisor import AdvisorManagementClient
 from azure.identity import DefaultAzureCredential
 from storage_utils import ensure_container_and_files_exist  # Import the storage utility module
 import sys
+import pymssql
+
 # from agents.azure_tools import get_cost_data, get_cost_recommendations, llm_generate_advice
 # Ensure the container and files exist at startup
 ensure_container_and_files_exist()
@@ -19,6 +21,9 @@ ensure_container_and_files_exist()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 # Configure OpenAI GPT-4 API (or Azure OpenAI) using your API keys and endpoint
 matplotlib.use('Agg')  # Use a non-interactive backend
+
+
+import pyodbc # Import the pyodbc module for SQL Server connectivity
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
@@ -281,87 +286,85 @@ def delete_policy(policy_name):
         logger.error(f"Error deleting policy: {e}")
         return jsonify({'error': 'Error deleting policy'}), 500
 
-def get_cost_recommendations(subscription_ids):
-    """
-    Fetch cost recommendations for multiple Azure subscriptions using Azure SDK.
-    This function uses the Azure SDK to fetch cost recommendations from Azure Advisor
-    for the specified list of subscription IDs. It filters the recommendations to only include
-    those in the 'Cost' category.
-    """
-    all_cost_recommendations = {}
+# def get_cost_recommendations(subscription_ids):
+#     """
+#     Fetch cost recommendations for multiple Azure subscriptions using Azure SDK.
+#     This function uses the Azure SDK to fetch cost recommendations from Azure Advisor
+#     for the specified list of subscription IDs. It filters the recommendations to only include
+#     those in the 'Cost' category.
+#     """
+#     all_cost_recommendations = {}
 
-    for subscription_id in subscription_ids:
-        try:
-            client = AdvisorManagementClient(credential, subscription_id)
-            recommendations = client.recommendations.list()
-            cost_recommendations = [rec.as_dict() for rec in recommendations if rec.category == 'Cost']
+#     for subscription_id in subscription_ids:
+#         try:
+#             client = AdvisorManagementClient(credential, subscription_id)
+#             recommendations = client.recommendations.list()
+#             cost_recommendations = [rec.as_dict() for rec in recommendations if rec.category == 'Cost']
             
-            # Log the content of the recommendations for debugging
-            logger.info(f"Cost Recommendations for Subscription {subscription_id}: {cost_recommendations}")
+#             # Log the content of the recommendations for debugging
+#             logger.info(f"Cost Recommendations for Subscription {subscription_id}: {cost_recommendations}")
             
-            all_cost_recommendations[subscription_id] = cost_recommendations
-        except Exception as e:
-            logger.error(f"Error fetching cost recommendations for subscription {subscription_id}: {str(e)}")
-            all_cost_recommendations[subscription_id] = []
+#             all_cost_recommendations[subscription_id] = cost_recommendations
+#         except Exception as e:
+#             logger.error(f"Error fetching cost recommendations for subscription {subscription_id}: {str(e)}")
+#             all_cost_recommendations[subscription_id] = []
 
-    return all_cost_recommendations
+#     return all_cost_recommendations
 
-def generate_advice_with_llm(recommendations):
-    advice_list = []
+# def generate_advice_with_llm(recommendations):
+#     advice_list = []
 
-    for rec in recommendations:
-        # Safely access shortDescription, problem, and solution
-        short_description = rec.get('short_description', {})
-        problem = short_description.get('problem', 'No problem description provided.')
-        solution = short_description.get('solution', 'No solution description provided.')
+#     for rec in recommendations:
+#         # Safely access shortDescription, problem, and solution
+#         short_description = rec.get('short_description', {})
+#         problem = short_description.get('problem', 'No problem description provided.')
+#         solution = short_description.get('solution', 'No solution description provided.')
 
-        # Generate the prompt
-        prompt = f"""
-        As an expert consultant, your task is to analyze the following Azure Advisor recommendation and provide
-        specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and don't make it too long. Here is the recommendation:
+#         # Generate the prompt
+#         prompt = f"""
+#         As an expert consultant, your task is to analyze the following Azure Advisor recommendation and provide
+#         specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and don't make it too long. Here is the recommendation:
         
-        - Category: {rec.get('category', 'Unknown')}
-        - Impact: {rec.get('impact', 'Unknown')}
-        - Problem: {problem}
-        - Solution: {solution}
-        - Extended Properties: {rec.get('extended_properties', 'Unknown')}
+#         - Category: {rec.get('category', 'Unknown')}
+#         - Impact: {rec.get('impact', 'Unknown')}
+#         - Problem: {problem}
+#         - Solution: {solution}
+#         - Extended Properties: {rec.get('extended_properties', 'Unknown')}
 
-        Please provide detailed advice on how to address this recommendation.
-        """
+#         Please provide detailed advice on how to address this recommendation.
+#         """
 
-        try:
-            logger.info(f"Sending prompt to OpenAI: {prompt}")
-            response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a skilled Azure consultant who knows everything about FinOps and Cost Optimization."},
-                    {"role": "user", "content": prompt}
-                ]
+#         try:
+#             logger.info(f"Sending prompt to OpenAI: {prompt}")
+#             response = openai.ChatCompletion.create(
+#                 model="gpt-4o-mini",
+#                 messages=[
+#                     {"role": "system", "content": "You are a skilled Azure consultant who knows everything about FinOps and Cost Optimization."},
+#                     {"role": "user", "content": prompt}
+#                 ]
 
-            )
-            logger.info(f"Received response from OpenAI: {response}")
+#             )
+#             logger.info(f"Received response from OpenAI: {response}")
 
-            if not response or not response.choices:
-                logger.error("No valid response received from OpenAI.")
-                advice_text = "No advice could be generated."
-            else:
-                advice_text = response.choices[0].message["content"].strip()
+#             if not response or not response.choices:
+#                 logger.error("No valid response received from OpenAI.")
+#                 advice_text = "No advice could be generated."
+#             else:
+#                 advice_text = response.choices[0].message["content"].strip()
 
-            if not advice_text:
-                logger.error("Received empty advice from the AI.")
-                advice_text = "No advice could be generated."
+#             if not advice_text:
+#                 logger.error("Received empty advice from the AI.")
+#                 advice_text = "No advice could be generated."
 
-            advice_list.append(advice_text)
+#             advice_list.append(advice_text)
 
-        except Exception as e:
-            logger.error(f"Error generating AI advice: {str(e)}")
-            advice_list.append(f"An error occurred: {str(e)}")
+#         except Exception as e:
+#             logger.error(f"Error generating AI advice: {str(e)}")
+#             advice_list.append(f"An error occurred: {str(e)}")
 
-    return advice_list
+#     return advice_list
 
 
-# from agents.azure_agent import create_agent
-# agent = create_agent()
 
 # @app.route('/api/analyze-recommendations', methods=['POST'])
 # def analyze_recommendations_route():
@@ -387,50 +390,251 @@ def generate_advice_with_llm(recommendations):
 #         logger.error(f"Error analyzing recommendations: {str(e)}")
 #         return jsonify({'error': str(e)}), 500
 
+# @app.route('/api/analyze-recommendations', methods=['POST'])
+# def analyze_recommendations_route():
+#     data = request.get_json()
+#     subscription_id = data.get('subscription_id')  # Expect a single subscription ID
+#     if not subscription_id:
+#         return jsonify({'error': 'Missing subscription ID'}), 400
+
+#     try:
+#         # Fetch recommendations for the given subscription ID
+#         recommendations = get_cost_recommendations([subscription_id])  # Pass as a list with a single ID
+
+#         # Generate advice using the LLM
+#         advice = generate_advice_with_llm(recommendations[subscription_id])
+
+#         # Ensure the advice list is the correct length compared to the recommendations
+#         if len(advice) != len(recommendations[subscription_id]):
+#             logger.error(f"Mismatch between number of recommendations and AI advice for subscription {subscription_id}. Adjusting length...")
+#             advice += ["No advice available"] * (len(recommendations[subscription_id]) - len(advice))  # Add placeholders if mismatch
+
+#         # Convert the advice into a structured format for the frontend
+#         structured_advice = []
+#         for rec, adv in zip(recommendations[subscription_id], advice):  # Assuming the AI advice is split by double newline
+#             short_description = rec.get('short_description', {})
+#             problem = short_description.get('problem', 'No problem description provided.')
+#             solution = short_description.get('solution', 'No solution description provided.')
+
+#             structured_advice.append({
+#                 "subscription_id": subscription_id,  # Include the subscription ID for clarity
+#                 "category": rec.get("category", "Unknown"),
+#                 "impact": rec.get("impact", "Unknown"),
+#                 "short_description": {
+#                     "problem": problem,
+#                     "solution": solution,
+#                 },
+#                 "extended_properties": rec.get("extended_properties", {}),
+#                 "advice": adv  # AI generated advice for this specific recommendation
+#             })
+
+#         logger.info(f"Structured Advice Sent to Frontend: {structured_advice}")
+#         return jsonify({"advice": structured_advice}), 200
+#     except Exception as e:
+#         logger.error(f"Error analyzing recommendations: {str(e)}")
+#         return jsonify({'error': str(e)}), 500
+
+
+
+
+# Work In Progress
+### Function to get recommendations from Azure API ###
+def get_cost_recommendations(subscription_ids):
+    all_cost_recommendations = {}
+
+    for subscription_id in subscription_ids:
+        try:
+            client = AdvisorManagementClient(credential, subscription_id)
+            recommendations = client.recommendations.list()
+            cost_recommendations = [
+                {
+                    **rec.as_dict(),
+                    'source': 'Azure API'  # Add source metadata
+                }
+                for rec in recommendations if rec.category == 'Cost'
+            ]
+            all_cost_recommendations[subscription_id] = cost_recommendations
+        except Exception as e:
+            logger.error(f"Error fetching cost recommendations for subscription {subscription_id}: {str(e)}")
+            all_cost_recommendations[subscription_id] = []
+    
+    return all_cost_recommendations
+### Function to get recommendations from SQL database ###
+def get_sql_recommendations():
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        "SERVER=aoejml-sql.database.windows.net,1433;"
+        "DATABASE=azureoptimization;"
+        "UID=azureadmin@aoejml-sql;"
+        "PWD=Achahbar2019;"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
+    query = """
+    SELECT RecommendationId, Category, Impact, RecommendationDescription, 
+           RecommendationAction, InstanceName, SubscriptionGuid 
+    FROM dbo.Recommendations
+    WHERE Category = 'Cost';
+    """
+
+    try:
+        conn = pyodbc.connect(conn_str)
+        cursor = conn.cursor()
+        cursor.execute(query)
+
+        recommendations = []
+        for row in cursor.fetchall():
+            recommendations.append({
+                'RecommendationId': row.RecommendationId,
+                'Category': row.Category,
+                'Impact': row.Impact if row.Impact else 'Unknown',  # Handle nulls
+                'Description': row.RecommendationDescription if row.RecommendationDescription else 'No description available',
+                'Action': row.RecommendationAction if row.RecommendationAction else 'No action available',
+                'Instance': row.InstanceName if row.InstanceName else 'N/A',
+                'SubscriptionId': row.SubscriptionGuid if row.SubscriptionGuid else 'N/A',  # Map SubscriptionGuid to SubscriptionId
+                'Source': 'SQL DB'
+            })
+        conn.close()
+        return recommendations
+
+    except Exception as e:
+        logger.error(f"Error fetching recommendations from SQL: {e}")
+        return []
+
+
+### LLM Advice Generation ###
+MAX_TOKENS = 4000  # Adjust based on the LLM model limits
+
+def generate_advice_with_llm(recommendations):
+    advice_list = []
+
+    for rec in recommendations:
+        # Truncate problem and solution if needed
+        problem = rec.get('Description', 'No description provided.')[:500]
+        solution = rec.get('Action', 'No action provided.')[:500]
+
+        # Generate prompt
+        prompt = f"""
+        As an Azure consultant, analyze the following recommendation and provide actionable steps to optimize costs:
+
+        - Problem: {problem}
+        - Solution: {solution}
+        - Impact: {rec.get('Impact', 'Unknown')}
+        - Source: {rec.get('source', 'Unknown')}
+
+        Provide a maximum of 3 bullet points for actions to optimize costs.
+        """
+
+        try:
+            # Check token length
+            if len(prompt.split()) > MAX_TOKENS:
+                raise ValueError("Input exceeds the maximum token length.")
+
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a skilled Azure consultant who knows everything about FinOps and Cost Optimization."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            advice_text = response['choices'][0]['message']['content'].strip()
+
+            if not advice_text:
+                advice_text = "No advice could be generated."
+            advice_list.append(advice_text)
+
+        except openai.OpenAIError as e:
+            logger.error(f"Error generating AI advice: {str(e)}")
+            advice_list.append(f"An error occurred: {str(e)}")
+
+        except ValueError as ve:
+            logger.error(f"Prompt too long: {str(ve)}")
+            advice_list.append("Prompt exceeds token limit.")
+    
+    return advice_list
+
+### API Endpoint to Fetch and Review Recommendations ###
+@app.route('/api/review-recommendations', methods=['GET'])
+def review_recommendations_route():
+    try:
+        # Define the valid subscription IDs for both sources
+        azure_subscription_ids = ['38c26c07-ccce-4839-b504-cddac8e5b09d', 'c916841c-459e-4bbd-aff7-c235ae45f0dd']  # Azure tenant subscription IDs
+        sql_subscription_id = '9d923c47-1aa2-4fc9-856f-16ca53e97b76'  # SQL tenant subscription ID
+        
+        all_recommendations = []
+
+        # Fetch recommendations from Azure Advisor
+        azure_recommendations = []
+        for subscription_id in azure_subscription_ids:
+            try:
+                advisor_recommendations = get_cost_recommendations([subscription_id])
+                if isinstance(advisor_recommendations, dict):
+                    for recommendations in advisor_recommendations.values():
+                        if recommendations:  # Make sure it's not empty
+                            azure_recommendations.extend(recommendations)
+            except Exception as e:
+                logger.error(f"Error fetching Azure Advisor recommendations for subscription {subscription_id}: {e}")
+        
+        # Fetch recommendations from SQL database
+        sql_recommendations = []
+        try:
+            sql_recommendations = get_sql_recommendations()
+            if not sql_recommendations:
+                logger.warning(f"No recommendations found for SQL subscription: {sql_subscription_id}")
+        except Exception as e:
+            logger.error(f"Error fetching SQL recommendations: {e}")
+
+        # Combine recommendations from both sources
+        all_recommendations.extend(azure_recommendations)
+        all_recommendations.extend(sql_recommendations)
+
+        # Handle empty results from both sources
+        if not all_recommendations:
+            logger.warning("No recommendations found from either source.")
+            return jsonify({"message": "No recommendations available"}), 200
+
+        return jsonify(all_recommendations), 200
+
+    except Exception as e:
+        logger.error(f"Error fetching recommendations: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+### API Endpoint to Analyze Recommendations ###
 @app.route('/api/analyze-recommendations', methods=['POST'])
 def analyze_recommendations_route():
     data = request.get_json()
-    subscription_id = data.get('subscription_id')  # Expect a single subscription ID
+    subscription_id = data.get('subscription_id')
+
     if not subscription_id:
         return jsonify({'error': 'Missing subscription ID'}), 400
 
     try:
-        # Fetch recommendations for the given subscription ID
-        recommendations = get_cost_recommendations([subscription_id])  # Pass as a list with a single ID
+        # Fetch recommendations from both sources
+        azure_recommendations = get_cost_recommendations([subscription_id])[subscription_id]
+        sql_recommendations = get_sql_recommendations()
 
-        # Generate advice using the LLM
-        advice = generate_advice_with_llm(recommendations[subscription_id])
+        # Merge both recommendation sources
+        all_recommendations = azure_recommendations + sql_recommendations
 
-        # Ensure the advice list is the correct length compared to the recommendations
-        if len(advice) != len(recommendations[subscription_id]):
-            logger.error(f"Mismatch between number of recommendations and AI advice for subscription {subscription_id}. Adjusting length...")
-            advice += ["No advice available"] * (len(recommendations[subscription_id]) - len(advice))  # Add placeholders if mismatch
+        # Generate advice for all recommendations
+        advice = generate_advice_with_llm(all_recommendations)
 
-        # Convert the advice into a structured format for the frontend
+        # Structured response for frontend
         structured_advice = []
-        for rec, adv in zip(recommendations[subscription_id], advice):  # Assuming the AI advice is split by double newline
-            short_description = rec.get('short_description', {})
-            problem = short_description.get('problem', 'No problem description provided.')
-            solution = short_description.get('solution', 'No solution description provided.')
-
+        for rec, adv in zip(all_recommendations, advice):
             structured_advice.append({
-                "subscription_id": subscription_id,  # Include the subscription ID for clarity
-                "category": rec.get("category", "Unknown"),
-                "impact": rec.get("impact", "Unknown"),
-                "short_description": {
-                    "problem": problem,
-                    "solution": solution,
-                },
-                "extended_properties": rec.get("extended_properties", {}),
-                "advice": adv  # AI generated advice for this specific recommendation
+                "recommendation": rec,
+                "advice": adv
             })
 
-        logger.info(f"Structured Advice Sent to Frontend: {structured_advice}")
         return jsonify({"advice": structured_advice}), 200
+
     except Exception as e:
         logger.error(f"Error analyzing recommendations: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
 
 
 if __name__ == '__main__':
