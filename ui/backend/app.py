@@ -620,36 +620,27 @@ def review_recommendations_route():
 @app.route('/api/analyze-recommendations', methods=['POST'])
 def analyze_recommendations_route():
     data = request.get_json()
-    subscription_id = data.get('subscription_id')
 
-    if not subscription_id:
-        return jsonify({'error': 'Missing subscription ID'}), 400
+    selected_recommendations = data.get('recommendations')
+    if not selected_recommendations:
+        return jsonify({'error': 'Missing recommendations'}), 400
+
+    # Extract subscription IDs from selected recommendations
+    for rec in selected_recommendations:
+        if 'subscription_id' not in rec:
+            return jsonify({'error': 'Missing subscription ID'}), 400
 
     try:
-        # Fetch recommendations from both sources
-        azure_recommendations = get_cost_recommendations([subscription_id])[subscription_id]
-        sql_recommendations = get_sql_recommendations()
+        # Generate LLM advice for the selected recommendations
+        advice = generate_advice_with_llm(selected_recommendations)
 
-        # Merge both recommendation sources
-        all_recommendations = azure_recommendations + sql_recommendations
-
-        # Generate advice for all recommendations
-        advice = generate_advice_with_llm(all_recommendations)
-
-        # Structured response for frontend
-        structured_advice = []
-        for rec, adv in zip(all_recommendations, advice):
-            structured_advice.append({
-                "recommendation": rec,
-                "advice": adv
-            })
-
+        # Return the generated advice
+        structured_advice = [{'recommendation': rec, 'advice': adv} for rec, adv in zip(selected_recommendations, advice)]
         return jsonify({"advice": structured_advice}), 200
 
     except Exception as e:
         logger.error(f"Error analyzing recommendations: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
