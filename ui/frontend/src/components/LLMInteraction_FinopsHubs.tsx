@@ -1,6 +1,6 @@
 import React, { useState, useTransition } from 'react';
 import {
-  Button, Box, Typography, List, ListItem, ListItemText, Collapse, CircularProgress, Paper, useTheme
+  Button, Box, Typography, List, ListItem, ListItemText, Collapse, CircularProgress, Paper, useTheme, MenuItem, Select, InputLabel, FormControl
 } from '@mui/material';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -16,9 +16,9 @@ interface Recommendation {
   subscription_id?: string;
   source?: string;
   SubscriptionGuid?: string; 
-  Instance?: string;  // Updated key based on your backend response
-  generated_date?: string;  // Updated key to match the response from backend
-  fit_score?: string;  // Updated key to match the response from backend
+  Instance?: string;
+  generated_date?: string;
+  fit_score?: string;
 }
 
 const LLMInteraction_FinopsHubs: React.FC = () => {
@@ -29,6 +29,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [isResultsExpanded, setIsResultsExpanded] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [sourceFilter, setSourceFilter] = useState<string>('All');  // New state for source filter
 
   // Get the subscription ID based on the recommendation source
   const getSubscriptionId = (rec: Recommendation) => {
@@ -99,7 +100,15 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     setIsResultsExpanded(!isResultsExpanded);
   };
 
-  // Render the advice from LLM
+  const handleFilterChange = (event: any) => {
+    setSourceFilter(event.target.value);
+  };
+
+  // Filter recommendations based on the selected source
+  const filteredRecommendations = recommendations.filter((rec) => {
+    return sourceFilter === 'All' || rec.source === sourceFilter;
+  });
+
   const renderFormattedAdvice = (advice: string) => {
     const lines = advice.split('\n').map((line, index) => {
       if (line.includes('**')) {
@@ -131,7 +140,6 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     return <>{lines}</>;
   };
 
-  // Render additional properties for SQL DB recommendations
   const renderSqlDbProperties = (rec: Recommendation) => {
     return (
       <Box sx={{ mt: 2, p: 2, border: '1px solid', borderRadius: 2 }}>
@@ -154,7 +162,6 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     );
   };
 
-  // Render extended properties for Azure API recommendations or SQL DB
   const renderExtendedProperties = (rec: Recommendation) => {
     if (rec.source === 'SQL DB') {
       return renderSqlDbProperties(rec);
@@ -210,6 +217,19 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
             {isLoading ? <CircularProgress size={24} /> : 'Send to LLM for Analysis'}
           </Button>
 
+          <FormControl sx={{ mb: 4, ml: 2, minWidth: 200 }}>
+            <InputLabel>Filter by Source</InputLabel>
+            <Select
+              value={sourceFilter}
+              label="Filter by Source"
+              onChange={handleFilterChange}
+            >
+              <MenuItem value="All">All</MenuItem>
+              <MenuItem value="SQL DB">SQL DB</MenuItem>
+              <MenuItem value="Azure API">Azure API</MenuItem>
+            </Select>
+          </FormControl>
+
           <Box mt={2} display="flex" alignItems="center" justifyContent="space-between" mb={2} onClick={handleResultsToggle} sx={{ cursor: 'pointer' }}>
             <AnimatedTooltip title="Click to expand/collapse the results">
               <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
@@ -218,9 +238,10 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
               </Box>
             </AnimatedTooltip>
           </Box>
+
           <Collapse in={isResultsExpanded} timeout="auto" unmountOnExit>
             <List>
-              {recommendations.map((rec, index) => (
+              {filteredRecommendations.map((rec, index) => (
                 <React.Fragment key={index}>
                   <ListItem button onClick={() => handleToggleExpand(index)} sx={{ bgcolor: expandedIndex === index ? 'grey.100' : 'inherit', mb: 2, borderRadius: 1 }}>
                     <ListItemText
@@ -228,8 +249,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
                         <>
                           <Typography variant="body1">
                             <strong>Subscription:</strong> {getSubscriptionId(rec)} - <strong>Recommendation {index + 1}:</strong> {rec.category || 'N/A'}
-                            <strong> Source:</strong>
-                            {rec.source || 'N/A'}
+                            <strong> Source:</strong> {rec.source || 'N/A'}
                           </Typography>
                         </>
                       }
