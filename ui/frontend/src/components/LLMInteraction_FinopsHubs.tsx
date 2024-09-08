@@ -5,9 +5,9 @@ import {
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
-import { AnimatedTooltip } from './AnimatedTooltip';
-import { SelectChangeEvent } from '@mui/material';  // Import this from MUI
-import { v4 as uuidv4 } from 'uuid'; // Use UUID library to generate unique IDs
+import { AnimatedTooltip } from './AnimatedTooltip';  // Reintroducing the Tooltip
+import { SelectChangeEvent } from '@mui/material';  
+import { v4 as uuidv4 } from 'uuid';  
 
 interface Recommendation {
   id: any;
@@ -34,7 +34,13 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedRecommendations, setSelectedRecommendations] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
-  const [filterSource, setFilterSource] = useState(''); // Filter state
+  const [filterSource, setFilterSource] = useState('');  // Filter state
+  const [searchQuery, setSearchQuery] = useState('');    // Search query state
+
+  // Handle search query
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
 
   const getSubscriptionId = (rec: Recommendation) => {
     if (rec.source === 'Azure API') {
@@ -46,7 +52,6 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   const handleFilterChange = (event: SelectChangeEvent) => {
     setFilterSource(event.target.value);
   };
-
 
   const handleFetchRecommendations = async () => {
     startTransition(() => {
@@ -68,9 +73,8 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-};
+  };
 
-  
   const handleSendToLLM = async () => {
     if (selectedRecommendations.size === 0) {
       console.error("No recommendations selected");
@@ -83,9 +87,9 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     });
 
     try {
-      // Map the selected recommendations
+      // Map the selected recommendations from the filteredRecommendations list
       const mappedRecommendations = Array.from(selectedRecommendations).map((index) => {
-        const rec = recommendations[index];
+        const rec = filteredRecommendations[index];  // Filtered recommendations used here
         if (!rec) {
           console.error(`Recommendation at index ${index} is undefined`);
           return null;
@@ -127,14 +131,6 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     }
   };
 
-
-  
-  
-  
-  
-  
-  
-
   const handleToggleExpand = (index: number) => {
     setExpandedIndex(expandedIndex === index ? null : index);
   };
@@ -157,7 +153,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     if (selectAll) {
       setSelectedRecommendations(new Set());
     } else {
-      const allSelected = new Set(recommendations.map((_, index) => index));
+      const allSelected = new Set(filteredRecommendations.map((_, index) => index));
       setSelectedRecommendations(allSelected);
     }
     setSelectAll(!selectAll);
@@ -165,7 +161,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
 
   const renderFormattedAdvice = (advice: string | undefined) => {
     if (!advice) return "No advice available";  // Handle case where advice is undefined
-    
+
     const lines = advice.split('\n').map((line, index) => {
       if (line.includes('**')) {
         const parts = line.split('**');
@@ -177,7 +173,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           </Typography>
         );
       }
-  
+
       if (line.trim().startsWith('- ')) {
         return (
           <Typography key={index} variant="body2" component="li" style={{ marginLeft: '20px' }}>
@@ -185,19 +181,16 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           </Typography>
         );
       }
-  
+
       return (
         <Typography key={index} variant="body2">
           {line}
         </Typography>
       );
     });
-  
+
     return <>{lines}</>;
   };
-  
-  
-  
 
   const renderSqlDbProperties = (rec: Recommendation) => {
     return (
@@ -241,10 +234,15 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     return null;
   };
 
-  const filteredRecommendations = filterSource
-    ? recommendations.filter((rec) => rec.source === filterSource)
-    : recommendations;
-
+  // Filter recommendations by both source and search query
+  const filteredRecommendations = recommendations.filter((rec) => {
+    const matchesSource = filterSource ? rec.source === filterSource : true;
+    const matchesSearch = searchQuery
+      ? rec.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        rec.short_description?.problem.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+    return matchesSource && matchesSearch;
+  });
   return (
     <Box p={2} m={2} border={1} borderRadius={2} borderColor={theme.palette.mode === 'light' ? 'grey.300' : 'grey.700'}>
       <Typography variant="h5" gutterBottom>
@@ -276,35 +274,50 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       >
         {isLoading ? <CircularProgress size={24} /> : `Send to AI Assistant for Analysis (${selectedRecommendations.size})`}
       </Button>
+
       {recommendations.length > 0 && (
         <>
           {/* Filter and Select All options */}
           <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
+            <Box display="flex" alignItems="center">
+              <Select
+                value={filterSource}
+                onChange={handleFilterChange}
+                displayEmpty
+                sx={{ minWidth: '240px' }}
+              >
+                <MenuItem value="">
+                  <em>All Sources</em>
+                </MenuItem>
+                <MenuItem value="Azure API">Azure API</MenuItem>
+                <MenuItem value="SQL DB">SQL DB</MenuItem>
+              </Select>
+            </Box>
+            <Box>
+              <Checkbox
+                checked={selectAll}
+                onChange={handleSelectAll}
+                inputProps={{ 'aria-label': 'select all' }}
+              />
+              <Typography>Select All</Typography>
+            </Box>
           </Box>
 
-          {/* Source filter */}
-          <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
-            <Select
-              value={filterSource}
-              onChange={handleFilterChange}
-              displayEmpty
-              sx={{ minWidth: '240px' }} // Matches the width of "Fetch Recommendations" button
-            >
-              <MenuItem value="">
-                <em>All Sources</em>
-              </MenuItem>
-              <MenuItem value="Azure API">Azure API</MenuItem>
-              <MenuItem value="SQL DB">SQL DB</MenuItem>
-            </Select>
-          </Box>
-
-          <Box display="flex" alignItems="center">
-            <Checkbox
-              checked={selectAll}
-              onChange={handleSelectAll}
-              inputProps={{ 'aria-label': 'select all' }}
+          {/* Search Bar */}
+          <Box display="flex" alignItems="center" sx={{ mb: 4 }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Search Recommendations..."
+              style={{
+                width: '740px',
+                height: '50px',
+                padding: '8px',
+                borderRadius: '4px',
+                border: `1px solid ${theme.palette.grey[300]}`
+              }}
             />
-            <Typography>Select All</Typography>
           </Box>
 
           <Box mt={2} display="flex" alignItems="center" justifyContent="space-between" mb={2} onClick={handleResultsToggle} sx={{ cursor: 'pointer' }}>
@@ -317,7 +330,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           </Box>
 
           <Collapse in={isResultsExpanded} timeout="auto" unmountOnExit>
-            <List>
+            <List sx={{ maxHeight: '400px', overflow: 'auto' }}>
               {filteredRecommendations.map((rec, index) => (
                 <React.Fragment key={index}>
                   <ListItem
@@ -375,4 +388,5 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
 };
 
 export default LLMInteraction_FinopsHubs;
+
 

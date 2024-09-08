@@ -541,15 +541,16 @@ def generate_advice_with_llm(recommendations):
 
             # Create prompt for SQL DB recommendations
             prompt = f"""
-            As an Azure consultant, analyze the following recommendation from SQL DB and provide actionable steps to optimize costs:
-
+            As an Azure consultant, analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and don't make it too long. Here is the recommendation:
             - Instance: {instance_name}
             - Problem: {problem}
             - Solution: {solution}
             - Impact: {impact}
             - Subscription ID: {subscription_id}
+            - Instance Name: {instance_name}
+            - Additional Info: {rec.get('additional_info', 'N/A')}
 
-            Provide a maximum of 3 bullet points for actions to optimize costs.
+            Provide a maximum of 3 bullet points for actions to optimize costs + Conclude with a decision based on the information provided.
             """
         else:  # Handling Azure API recommendations
             problem = rec.get('short_description', {}).get('problem', 'No description available')
@@ -559,14 +560,15 @@ def generate_advice_with_llm(recommendations):
 
             # Create prompt for Azure API recommendations
             prompt = f"""
-            As an Azure consultant, analyze the following recommendation from Azure API and provide actionable steps to optimize costs:
+            As an Azure consultant, analyze the following recommendation from Azure Advisor API and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and don't make it too long. Here is the recommendation:
 
             - Problem: {problem}
             - Solution: {solution}
             - Impact: {impact}
             - Subscription ID: {subscription_id}
+            - Extended Properties: {rec.get('extended_properties', 'N/A')}
 
-            Provide a maximum of 3 bullet points for actions to optimize costs.
+            Provide a maximum of 3 bullet points for actions to optimize costs and conclude with a decision based on the information provided with the extended properties.
             """
 
         try:
