@@ -7,6 +7,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
 import { AnimatedTooltip } from './AnimatedTooltip';
 import { SelectChangeEvent } from '@mui/material';  // Import this from MUI
+import { v4 as uuidv4 } from 'uuid'; // Use UUID library to generate unique IDs
 
 interface Recommendation {
   id: any;
@@ -46,6 +47,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     setFilterSource(event.target.value);
   };
 
+
   const handleFetchRecommendations = async () => {
     startTransition(() => {
       setIsLoading(true);
@@ -54,36 +56,32 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     });
 
     try {
-      const res = await axios.get<Recommendation[]>(`http://localhost:5000/api/review-recommendations`);
-
+      const res = await axios.get('http://localhost:5000/api/review-recommendations');
       if (res.data.length === 0) {
         setError('No recommendations available.');
       } else {
-        const recommendationsWithIds = res.data.map((rec, index) => ({
-          ...rec,
-          id: rec.id || index,  // Ensure each recommendation has a unique `id`
-        }));
-        setRecommendations(recommendationsWithIds);
+        setRecommendations(res.data);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching recommendations:', error);
       setError('Failed to fetch recommendations. Please try again later.');
     } finally {
       setIsLoading(false);
     }
-  };
+};
 
+  
   const handleSendToLLM = async () => {
     if (selectedRecommendations.size === 0) {
       console.error("No recommendations selected");
       return;
     }
-  
+
     startTransition(() => {
       setIsLoading(true);
       setError(null);
     });
-  
+
     try {
       // Map the selected recommendations
       const mappedRecommendations = Array.from(selectedRecommendations).map((index) => {
@@ -92,42 +90,35 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           console.error(`Recommendation at index ${index} is undefined`);
           return null;
         }
-  
+
         return {
           ...rec,
-          subscription_id: rec.source === "Azure API"
-            ? rec.extended_properties?.subId || "N/A"
-            : rec.subscription_id || "N/A"
+          subscription_id: rec.subscription_id || "N/A",
+          uuid: rec.uuid || uuidv4(),  // Ensure that UUID is used
         };
       }).filter(rec => rec !== null);
-  
+
       if (mappedRecommendations.length === 0) {
         console.error("No valid recommendations to send");
         return;
       }
-  
+
       // Make the API request
       const res = await axios.post(
         "http://localhost:5000/api/analyze-recommendations",
         { recommendations: mappedRecommendations },
         { headers: { "Content-Type": "application/json" } }
       );
-  
-      // Log the response to ensure the format
+
       console.log('Response from LLM:', res.data);
-  
-      // Check if the response structure is an array
-      if (Array.isArray(res.data)) {
-        // If the response is an array, map over it and update the advice
-        setRecommendations(prev => prev.map((rec, index) => {
-          const updatedRec = res.data.find(
-            (r) => r.recommendation?.id === rec.id
-          );
-          return updatedRec ? { ...rec, advice: updatedRec.advice } : rec;
-        }));
-      } else {
-        console.error("Invalid response format:", res.data);
-      }
+
+      // Update the advice for each recommendation based on the unique uuid
+      setRecommendations(prev => prev.map((rec) => {
+        const updatedRec = res.data.find(
+          (r: { recommendation: { uuid: string } }) => r.recommendation?.uuid === rec.uuid  // Use uuid for matching
+        );
+        return updatedRec ? { ...rec, advice: updatedRec.advice } : rec;
+      }));
     } catch (error) {
       console.error("Error querying AI Assistant:", error);
       setError("Failed to query the AI Assistant. Please try again later.");
@@ -135,6 +126,8 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+
   
   
   

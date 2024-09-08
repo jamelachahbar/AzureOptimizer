@@ -439,6 +439,7 @@ def delete_policy(policy_name):
 
 # Work In Progress
 ### Function to get recommendations from Azure API ###
+
 def get_cost_recommendations(subscription_ids):
     all_cost_recommendations = {}
 
@@ -446,20 +447,30 @@ def get_cost_recommendations(subscription_ids):
         try:
             client = AdvisorManagementClient(credential, subscription_id)
             recommendations = client.recommendations.list()
+
+            # Process each recommendation and always add a UUID, regardless of existing IDs
             cost_recommendations = [
                 {
                     **rec.as_dict(),
-                    'source': 'Azure API'  # Add source metadata
+                    'uuid': str(uuid.uuid4()),  # Always generate a new UUID, independent of existing IDs
+                    'RecommendationId': rec.id if rec.id else None,  # Keep original RecommendationId if present
+                    'source': 'Azure API',
+                    'subscription_id': subscription_id  # Use the subscription_id
                 }
                 for rec in recommendations if rec.category == 'Cost'
             ]
+            
             all_cost_recommendations[subscription_id] = cost_recommendations
         except Exception as e:
             logger.error(f"Error fetching cost recommendations for subscription {subscription_id}: {str(e)}")
             all_cost_recommendations[subscription_id] = []
     
     return all_cost_recommendations
+
+
 ### Function to get recommendations from SQL database ###
+import uuid
+
 def get_sql_recommendations():
     conn_str = (
         "DRIVER={ODBC Driver 18 for SQL Server};"
@@ -488,8 +499,11 @@ def get_sql_recommendations():
 
         recommendations = []
         for row in cursor.fetchall():
+            # Always generate a UUID, even if other IDs are present
+            rec_uuid = str(uuid.uuid4())  
             recommendations.append({
-                'RecommendationId': row.RecommendationId,
+                'uuid': rec_uuid,  # Add UUID to each recommendation
+                'RecommendationId': row.RecommendationId if row.RecommendationId else rec_uuid,
                 'category': row.Category,
                 'impact': row.Impact if row.Impact else 'Unknown',
                 'short_description': {
@@ -497,7 +511,7 @@ def get_sql_recommendations():
                 },
                 'action': row.RecommendationAction if row.RecommendationAction else 'No action available',
                 'Instance': row.InstanceName,
-                'subscription_id': row.SubscriptionGuid,
+                'subscription_id': row.SubscriptionGuid or rec_uuid,  # Generate UUID if missing
                 'source': 'SQL DB',
                 'additional_info': row.AdditionalInfo,
                 'tenant_id': row.TenantGuid,
@@ -640,36 +654,13 @@ def review_recommendations_route():
 def analyze_recommendations_route():
     data = request.get_json()
     recommendations = data.get('recommendations', [])
-    logger.info(f"Received recommendations: {recommendations}")  # Add this line to log the received recommendations
+    logger.info(f"Received recommendations: {recommendations}")
 
     if not recommendations:
         return jsonify({'error': 'No recommendations provided'}), 400
 
-    subscription_ids = set()  # Track all subscription IDs
-    for recommendation in recommendations:
-        # Handle subscription ID extraction based on source
-        if recommendation.get('source') == 'Azure API':
-            subscription_id = recommendation.get('extended_properties', {}).get('subId', '')
-        elif recommendation.get('source') == 'SQL DB':
-            subscription_id = recommendation.get('subscription_id', '')
-        else:
-            subscription_id = '38c26c07-ccce-4839-b504-cddac8e5b09d'  # Default case
-
-        if not subscription_id:
-            return jsonify({'error': 'Missing subscription ID'}), 400
-        
-        # Add subscription ID to the set
-        subscription_ids.add(subscription_id)
-
-    # Call the LLM to generate advice for each recommendation
     advice = generate_advice_with_llm(recommendations)
 
-    # Ensure the advice list is the correct length compared to the recommendations
-    if len(advice) != len(recommendations):
-        logger.error("Mismatch between number of recommendations and AI advice. Adjusting length...")
-        advice += ["No advice available"] * (len(recommendations) - len(advice))
-
-    # Combine the recommendations and advice into a structured format
     structured_data = []
     for rec, adv in zip(recommendations, advice):
         structured_data.append({
