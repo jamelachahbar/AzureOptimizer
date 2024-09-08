@@ -512,54 +512,72 @@ def get_sql_recommendations():
         return []
 
 ### LLM Advice Generation ###
-MAX_TOKENS = 4000  # Adjust based on the LLM model limits
+MAX_TOKENS = 5000  # Maximum tokens for OpenAI API
 def generate_advice_with_llm(recommendations):
     advice_list = []
 
     for rec in recommendations:
-        # Truncate problem and solution if needed
-        problem = rec.get('Description', 'No description provided.')[:500]
-        solution = rec.get('Action', 'No action provided.')[:500]
+        # Handling SQL DB Recommendations
+        if rec.get('source') == 'SQL DB':
+            problem = rec.get('short_description', {}).get('problem', 'No description available')
+            solution = rec.get('action', 'No action available')
+            impact = rec.get('impact', 'Unknown')
+            subscription_id = rec.get('subscription_id', 'N/A')
+            instance_name = rec.get('Instance', 'N/A')
 
-        # Generate prompt
-        prompt = f"""
-        As an Azure consultant, analyze the following recommendation and provide actionable steps to optimize costs:
+            # Create prompt for SQL DB recommendations
+            prompt = f"""
+            As an Azure consultant, analyze the following recommendation from SQL DB and provide actionable steps to optimize costs:
 
-        - Problem: {problem}
-        - Solution: {solution}
-        - Impact: {rec.get('Impact', 'Unknown')}
-        - Source: {rec.get('source', 'Unknown')}
+            - Instance: {instance_name}
+            - Problem: {problem}
+            - Solution: {solution}
+            - Impact: {impact}
+            - Subscription ID: {subscription_id}
 
-        Provide a maximum of 3 bullet points for actions to optimize costs.
-        """
+            Provide a maximum of 3 bullet points for actions to optimize costs.
+            """
+        else:  # Handling Azure API recommendations
+            problem = rec.get('short_description', {}).get('problem', 'No description available')
+            solution = rec.get('short_description', {}).get('solution', 'No solution available')
+            impact = rec.get('impact', 'Unknown')
+            subscription_id = rec.get('extended_properties', {}).get('subId', rec.get('subscription_id', 'N/A'))
+
+            # Create prompt for Azure API recommendations
+            prompt = f"""
+            As an Azure consultant, analyze the following recommendation from Azure API and provide actionable steps to optimize costs:
+
+            - Problem: {problem}
+            - Solution: {solution}
+            - Impact: {impact}
+            - Subscription ID: {subscription_id}
+
+            Provide a maximum of 3 bullet points for actions to optimize costs.
+            """
 
         try:
-            # Check token length
-            if len(prompt.split()) > MAX_TOKENS:
-                raise ValueError("Input exceeds the maximum token length.")
-
+            # Send prompt to OpenAI (GPT-4)
             response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "You are a skilled Azure consultant who knows everything about FinOps and Cost Optimization."},
+                    {"role": "system", "content": "You are a skilled Azure consultant who knows everything about FinOps and cost optimization."},
                     {"role": "user", "content": prompt}
-                ]
+                ],
+                max_tokens=MAX_TOKENS
             )
-            advice_text = response['choices'][0]['message']['content'].strip()
 
+            advice_text = response['choices'][0]['message']['content'].strip()
             if not advice_text:
                 advice_text = "No advice could be generated."
             advice_list.append(advice_text)
 
         except openai.OpenAIError as e:
-            logger.error(f"Error generating AI advice: {str(e)}")
+            logger.error(f"OpenAI Error: {e}")
             advice_list.append(f"An error occurred: {str(e)}")
 
-        except ValueError as ve:
-            logger.error(f"Prompt too long: {str(ve)}")
-            advice_list.append("Prompt exceeds token limit.")
-    
     return advice_list
+
+
 
 ### API Endpoint to Fetch and Review Recommendations ###
 @app.route('/api/review-recommendations', methods=['GET'])
@@ -616,31 +634,50 @@ def review_recommendations_route():
         logger.error(f"Error fetching recommendations: {e}")
         return jsonify({'error': str(e)}), 500
 
+
 ### API Endpoint to Analyze Recommendations ###
 @app.route('/api/analyze-recommendations', methods=['POST'])
 def analyze_recommendations_route():
     data = request.get_json()
+    recommendations = data.get('recommendations', [])
+    logger.info(f"Received recommendations: {recommendations}")  # Add this line to log the received recommendations
 
-    selected_recommendations = data.get('recommendations')
-    if not selected_recommendations:
-        return jsonify({'error': 'Missing recommendations'}), 400
+    if not recommendations:
+        return jsonify({'error': 'No recommendations provided'}), 400
 
-    # Extract subscription IDs from selected recommendations
-    for rec in selected_recommendations:
-        if 'subscription_id' not in rec:
+    subscription_ids = set()  # Track all subscription IDs
+    for recommendation in recommendations:
+        # Handle subscription ID extraction based on source
+        if recommendation.get('source') == 'Azure API':
+            subscription_id = recommendation.get('extended_properties', {}).get('subId', '')
+        elif recommendation.get('source') == 'SQL DB':
+            subscription_id = recommendation.get('subscription_id', '')
+        else:
+            subscription_id = '38c26c07-ccce-4839-b504-cddac8e5b09d'  # Default case
+
+        if not subscription_id:
             return jsonify({'error': 'Missing subscription ID'}), 400
+        
+        # Add subscription ID to the set
+        subscription_ids.add(subscription_id)
 
-    try:
-        # Generate LLM advice for the selected recommendations
-        advice = generate_advice_with_llm(selected_recommendations)
+    # Call the LLM to generate advice for each recommendation
+    advice = generate_advice_with_llm(recommendations)
 
-        # Return the generated advice
-        structured_advice = [{'recommendation': rec, 'advice': adv} for rec, adv in zip(selected_recommendations, advice)]
-        return jsonify({"advice": structured_advice}), 200
+    # Ensure the advice list is the correct length compared to the recommendations
+    if len(advice) != len(recommendations):
+        logger.error("Mismatch between number of recommendations and AI advice. Adjusting length...")
+        advice += ["No advice available"] * (len(recommendations) - len(advice))
 
-    except Exception as e:
-        logger.error(f"Error analyzing recommendations: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+    # Combine the recommendations and advice into a structured format
+    structured_data = []
+    for rec, adv in zip(recommendations, advice):
+        structured_data.append({
+            'recommendation': rec,
+            'advice': adv
+        })
+
+    return jsonify(structured_data), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

@@ -9,6 +9,7 @@ import { AnimatedTooltip } from './AnimatedTooltip';
 import { SelectChangeEvent } from '@mui/material';  // Import this from MUI
 
 interface Recommendation {
+  id: any;
   category: string;
   impact?: string;
   short_description?: { problem: string };
@@ -58,7 +59,11 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       if (res.data.length === 0) {
         setError('No recommendations available.');
       } else {
-        setRecommendations(res.data);
+        const recommendationsWithIds = res.data.map((rec, index) => ({
+          ...rec,
+          id: rec.id || index,  // Ensure each recommendation has a unique `id`
+        }));
+        setRecommendations(recommendationsWithIds);
       }
     } catch (error: any) {
       console.error('Error fetching recommendations:', error);
@@ -69,34 +74,73 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   };
 
   const handleSendToLLM = async () => {
+    if (selectedRecommendations.size === 0) {
+      console.error("No recommendations selected");
+      return;
+    }
+  
     startTransition(() => {
       setIsLoading(true);
       setError(null);
     });
-
+  
     try {
-      const recommendationsToSend = recommendations.filter((_, index) =>
-        selectedRecommendations.has(index)
-      );
-
-      const res = await axios.post<{ advice: Recommendation[] }>(
-        'http://localhost:5000/api/analyze-recommendations',
-        { recommendations: recommendationsToSend },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      // Map the selected recommendations
+      const mappedRecommendations = Array.from(selectedRecommendations).map((index) => {
+        const rec = recommendations[index];
+        if (!rec) {
+          console.error(`Recommendation at index ${index} is undefined`);
+          return null;
         }
+  
+        return {
+          ...rec,
+          subscription_id: rec.source === "Azure API"
+            ? rec.extended_properties?.subId || "N/A"
+            : rec.subscription_id || "N/A"
+        };
+      }).filter(rec => rec !== null);
+  
+      if (mappedRecommendations.length === 0) {
+        console.error("No valid recommendations to send");
+        return;
+      }
+  
+      // Make the API request
+      const res = await axios.post(
+        "http://localhost:5000/api/analyze-recommendations",
+        { recommendations: mappedRecommendations },
+        { headers: { "Content-Type": "application/json" } }
       );
-
-      setRecommendations(res.data.advice);
-    } catch (error: any) {
-      console.error('Error querying AI Assistant:', error);
-      setError('Failed to query the AI Assistant. Please try again later.');
+  
+      // Log the response to ensure the format
+      console.log('Response from LLM:', res.data);
+  
+      // Check if the response structure is an array
+      if (Array.isArray(res.data)) {
+        // If the response is an array, map over it and update the advice
+        setRecommendations(prev => prev.map((rec, index) => {
+          const updatedRec = res.data.find(
+            (r) => r.recommendation?.id === rec.id
+          );
+          return updatedRec ? { ...rec, advice: updatedRec.advice } : rec;
+        }));
+      } else {
+        console.error("Invalid response format:", res.data);
+      }
+    } catch (error) {
+      console.error("Error querying AI Assistant:", error);
+      setError("Failed to query the AI Assistant. Please try again later.");
     } finally {
       setIsLoading(false);
     }
   };
+  
+  
+  
+  
+  
+  
 
   const handleToggleExpand = (index: number) => {
     setExpandedIndex(expandedIndex === index ? null : index);
@@ -126,7 +170,9 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     setSelectAll(!selectAll);
   };
 
-  const renderFormattedAdvice = (advice: string) => {
+  const renderFormattedAdvice = (advice: string | undefined) => {
+    if (!advice) return "No advice available";  // Handle case where advice is undefined
+    
     const lines = advice.split('\n').map((line, index) => {
       if (line.includes('**')) {
         const parts = line.split('**');
@@ -138,7 +184,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           </Typography>
         );
       }
-
+  
       if (line.trim().startsWith('- ')) {
         return (
           <Typography key={index} variant="body2" component="li" style={{ marginLeft: '20px' }}>
@@ -146,16 +192,19 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           </Typography>
         );
       }
-
+  
       return (
         <Typography key={index} variant="body2">
           {line}
         </Typography>
       );
     });
-
+  
     return <>{lines}</>;
   };
+  
+  
+  
 
   const renderSqlDbProperties = (rec: Recommendation) => {
     return (
@@ -225,44 +274,45 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
         {isLoading ? <CircularProgress size={24} /> : 'Fetch Recommendations for Review'}
       </Button>
 
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={handleSendToLLM}
+        disabled={isLoading || selectedRecommendations.size === 0}
+        sx={{ mb: 4, ml: 2 }}
+      >
+        {isLoading ? <CircularProgress size={24} /> : `Send to AI Assistant for Analysis (${selectedRecommendations.size})`}
+      </Button>
       {recommendations.length > 0 && (
         <>
           {/* Filter and Select All options */}
           <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
-            {/* Source filter */}
-            <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
-              <Select
-                value={filterSource}
-                onChange={handleFilterChange}
-                displayEmpty
-                sx={{ minWidth: '240px' }} // Matches the width of "Fetch Recommendations" button
-              >
-                <MenuItem value="">
-                  <em>All Sources</em>
-                </MenuItem>
-                <MenuItem value="Azure API">Azure API</MenuItem>
-                <MenuItem value="SQL DB">SQL DB</MenuItem>
-              </Select>
-            </Box>
-
-            <Box display="flex" alignItems="center">
-              <Checkbox
-                checked={selectAll}
-                onChange={handleSelectAll}
-                inputProps={{ 'aria-label': 'select all' }}
-              />
-              <Typography>Select All</Typography>
-            </Box>
           </Box>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleSendToLLM}
-            disabled={isLoading || selectedRecommendations.size === 0}
-            sx={{ mb: 4, ml: 2 }}
-          >
-            {isLoading ? <CircularProgress size={24} /> : `Send to LLM for Analysis (${selectedRecommendations.size})`}
-          </Button>
+
+          {/* Source filter */}
+          <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
+            <Select
+              value={filterSource}
+              onChange={handleFilterChange}
+              displayEmpty
+              sx={{ minWidth: '240px' }} // Matches the width of "Fetch Recommendations" button
+            >
+              <MenuItem value="">
+                <em>All Sources</em>
+              </MenuItem>
+              <MenuItem value="Azure API">Azure API</MenuItem>
+              <MenuItem value="SQL DB">SQL DB</MenuItem>
+            </Select>
+          </Box>
+
+          <Box display="flex" alignItems="center">
+            <Checkbox
+              checked={selectAll}
+              onChange={handleSelectAll}
+              inputProps={{ 'aria-label': 'select all' }}
+            />
+            <Typography>Select All</Typography>
+          </Box>
 
           <Box mt={2} display="flex" alignItems="center" justifyContent="space-between" mb={2} onClick={handleResultsToggle} sx={{ cursor: 'pointer' }}>
             <AnimatedTooltip title="Click to expand/collapse the results">
@@ -332,3 +382,4 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
 };
 
 export default LLMInteraction_FinopsHubs;
+
