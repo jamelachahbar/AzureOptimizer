@@ -393,9 +393,6 @@ const getAutocompleteOptions = (recommendations: any[]) => {
                       {/* Priority Badge */}
                       <RecommendationItem 
                         rec={rec}
-                        index={index} 
-                        handleSelectRecommendation={handleSelectRecommendation} 
-                        selectedRecommendations={selectedRecommendations} 
                       />
                     
                       <Checkbox
