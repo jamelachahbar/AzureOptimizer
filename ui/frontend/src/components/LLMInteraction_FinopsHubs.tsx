@@ -41,9 +41,9 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');    // Search query state
 
   // Handle search query
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-  };
+  // const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setSearchQuery(event.target.value);
+  // };
 
   const getSubscriptionId = (rec: Recommendation) => {
     if (rec.source === 'Azure API') {
@@ -240,22 +240,36 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   // Filter recommendations by both source and search query
   const filteredRecommendations = recommendations.filter((rec) => {
     const matchesSource = filterSource ? rec.source === filterSource : true;
+    
     const matchesSearch = searchQuery
-      ? rec.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        rec.short_description?.problem.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
+      ? rec.category.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        rec.impact?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        rec.short_description?.problem?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        rec.advice?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (rec.source === 'Azure API' && rec.extended_properties &&
+          Object.values(rec.extended_properties).some((prop) =>
+            prop.toLowerCase().includes(searchQuery.toLowerCase())
+          )) ||
+        (rec.source === 'SQL DB' &&
+            [rec.Instance, rec.generated_date, rec.fit_score]
+              .filter(Boolean)
+              .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(searchQuery.toLowerCase()
+            ))
+        )
+      : true;    
     return matchesSource && matchesSearch;
   });
+  
 
 
 // Flattening and combining all possible autocomplete options from extended properties and additional SQL DB information
-const getAutocompleteOptions = (recommendations) => {
+const getAutocompleteOptions = (recommendations: any[]) => {
   return recommendations.flatMap((rec) => {
     if (rec.source === 'Azure API' && rec.extended_properties) {
       return Object.values(rec.extended_properties);
     }
     if (rec.source === 'SQL DB') {
-      return [rec.Instance, rec.generated_date, rec.fit_score].filter(Boolean); // Filter out undefined or null values
+      return [rec.Instance, rec.additional_info].filter(Boolean); // Filter out undefined or null values
     }
     return [];
   });
@@ -296,7 +310,7 @@ const getAutocompleteOptions = (recommendations) => {
       {recommendations.length > 0 && (
         <>
           {/* Filter and Select All options */}
-          <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
+          <Box display="flex" alignItems="center" sx={{ mb: 4 }}>
             <Box display="flex" alignItems="center">
               <Select
                 value={filterSource}
@@ -311,13 +325,15 @@ const getAutocompleteOptions = (recommendations) => {
                 <MenuItem value="SQL DB">SQL DB</MenuItem>
               </Select>
             </Box>
-            <Box>
+            <Box display="flex" alignItems="flex-start">
               <Checkbox
                 checked={selectAll}
                 onChange={handleSelectAll}
                 inputProps={{ 'aria-label': 'select all' }}
               />
-              <Typography>Select All</Typography>
+              <Typography display={
+                'flex'} alignItems={'center'} sx={{ cursor: 'pointer' }
+              }>Select All</Typography>
             </Box>
           </Box>
 
