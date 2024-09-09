@@ -14,11 +14,11 @@ type Priority = {
 };
 
 const getPriority = (annualSavingsAmount: number): Priority => {
-  if (annualSavingsAmount >= 900) return { label: 'High Priority', color: 'error', icon: <WarningIcon /> };
-  if (annualSavingsAmount >= 250) return { label: 'Medium Priority', color: 'warning', icon: <WarningIcon /> };
+  if (annualSavingsAmount >= 800) return { label: 'High Priority', color: 'error', icon: <WarningIcon /> };
+  if (annualSavingsAmount >= 500) return { label: 'Medium Priority', color: 'warning', icon: <WarningIcon /> };
   if (annualSavingsAmount > 0) return { label: 'Low Priority', color: 'success', icon: <CheckCircleIcon /> };
   // Default case if there is no savings
-  return { label: 'No savings mentioned', color: 'info', icon: <QuestionMarkRounded /> };
+  return { label: 'No savings Info!', color: 'info', icon: <QuestionMarkRounded /> };
 };
 
 type RecommendationItemProps = {
