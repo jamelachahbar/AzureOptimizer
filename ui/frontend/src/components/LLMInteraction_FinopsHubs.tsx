@@ -279,7 +279,7 @@ const getAutocompleteOptions = (recommendations: any[]) => {
   return (
     <Box p={2} m={2} border={1} borderRadius={2} borderColor={theme.palette.mode === 'light' ? 'grey.300' : 'grey.700'}>
       <Typography variant="h5" gutterBottom>
-        AI Assistant Assessment
+        Azure Optimizer Assessment
       </Typography>
 
       {error && (

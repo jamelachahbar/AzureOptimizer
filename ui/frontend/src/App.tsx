@@ -510,7 +510,15 @@ const App: React.FC = () => {
           </Grid> */}
 
         {/* <LLMInteraction /> */}
-        <LLMInteraction_FinopsHubs />
+
+        <Grid container spacing={2} rowSpacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
+          <Grid item xs={12} md={12}>
+            <LLMInteraction_FinopsHubs />
+          </Grid>
+          {/* <Grid item xs={12}>
+              <PolicyEditor policies={policies} setPolicies={setPolicies} isLoading={isLoading} />
+            </Grid> */}
+        </Grid>
         <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
           <Grid item>
             <FormControl variant="outlined" sx={{ minWidth: 120 }}>
