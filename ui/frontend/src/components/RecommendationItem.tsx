@@ -4,6 +4,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { OverridableStringUnion } from '@mui/types';
 import { ChipPropsColorOverrides } from '@mui/material/Chip';
+import { QuestionMark } from '@mui/icons-material';
 
 // Define the type for priority
 type Priority = {
@@ -15,9 +16,9 @@ type Priority = {
 // Helper function to determine the priority based on savings amount
 const getPriority = (annualSavingsAmount: number): Priority => {
   if (annualSavingsAmount >= 900) return { label: 'High Priority', color: 'error', icon: <WarningIcon /> };
-  if (annualSavingsAmount >= 250) return { label: 'Medium Priority', color: 'warning', icon: <WarningIcon /> };
+  if (annualSavingsAmount >= 400) return { label: 'Medium Priority', color: 'warning', icon: <WarningIcon /> };
   if (annualSavingsAmount > 0) return { label: 'Low Priority', color: 'success', icon: <CheckCircleIcon /> };
-  return { label: 'No savings mentioned', color: 'info', icon: <WarningIcon /> };
+  return { label: 'No savings info!', color: 'info', icon: <QuestionMark /> };
 };
 
 // Define the prop types for RecommendationItem

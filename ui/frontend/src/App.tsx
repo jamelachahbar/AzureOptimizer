@@ -778,6 +778,16 @@ export default function ToggleColorModeApp() {
               },
             },
           },
+          MuiListItem: {
+            styleOverrides: {
+              root: {
+                '&$selected': {
+                  backgroundColor: mode === 'light' ? '#f4f4f4' : '#E7DDFF',
+                  color: mode === 'light' ? '#333333' : '#121212',
+                },
+              },
+            },
+          },
         },
       }),
     [mode]

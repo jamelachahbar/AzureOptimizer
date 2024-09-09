@@ -12,6 +12,7 @@ import RecommendationItem from './RecommendationItem';
 import { Autocomplete, TextField } from '@mui/material';
 
 interface Recommendation {
+  uuid: string;
   id: any;
   category: string;
   impact?: string;
@@ -384,7 +385,8 @@ const getAutocompleteOptions = (recommendations: any[]) => {
                   <ListItem
                     button
                     onClick={() => handleToggleExpand(index)}
-                    sx={{ bgcolor: expandedIndex === index ? 'grey.100' : 'inherit', mb: 2, borderRadius: 1 }}
+                    sx= {{mb: 2, borderRadius: 1}}
+                    // sx={{ bgcolor: expandedIndex === index ? 'grey.100' : 'inherit', mb: 2, borderRadius: 1 }}
                   >
                     {/* Aligning Priority Badge and Checkbox */}
                     <Box display="flex" alignItems="center" sx={{ mr: 2 }}>
