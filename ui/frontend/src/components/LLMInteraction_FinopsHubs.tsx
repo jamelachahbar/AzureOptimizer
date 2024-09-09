@@ -1,6 +1,6 @@
 import React, { useState, useTransition } from 'react';
 import {
-  Button, Box, Typography, List, ListItem, ListItemText, Collapse, CircularProgress, Paper, useTheme, Checkbox, Select, MenuItem
+  Button, Box, Typography, List, ListItem, ListItemText, Collapse, CircularProgress, Paper, useTheme, Checkbox, Select, MenuItem, Chip
 } from '@mui/material';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -8,6 +8,8 @@ import axios from 'axios';
 import { AnimatedTooltip } from './AnimatedTooltip';  // Reintroducing the Tooltip
 import { SelectChangeEvent } from '@mui/material';  
 import { v4 as uuidv4 } from 'uuid';  
+import RecommendationItem from './RecommendationItem';
+import { Autocomplete, TextField } from '@mui/material';
 
 interface Recommendation {
   id: any;
@@ -23,6 +25,7 @@ interface Recommendation {
   generated_date?: string;
   fit_score?: string;
 }
+
 
 const LLMInteraction_FinopsHubs: React.FC = () => {
   const theme = useTheme();
@@ -243,6 +246,21 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       : true;
     return matchesSource && matchesSearch;
   });
+
+
+// Flattening and combining all possible autocomplete options from extended properties and additional SQL DB information
+const getAutocompleteOptions = (recommendations) => {
+  return recommendations.flatMap((rec) => {
+    if (rec.source === 'Azure API' && rec.extended_properties) {
+      return Object.values(rec.extended_properties);
+    }
+    if (rec.source === 'SQL DB') {
+      return [rec.Instance, rec.generated_date, rec.fit_score].filter(Boolean); // Filter out undefined or null values
+    }
+    return [];
+  });
+};
+
   return (
     <Box p={2} m={2} border={1} borderRadius={2} borderColor={theme.palette.mode === 'light' ? 'grey.300' : 'grey.700'}>
       <Typography variant="h5" gutterBottom>
@@ -304,21 +322,35 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           </Box>
 
           {/* Search Bar */}
-          <Box display="flex" alignItems="center" sx={{ mb: 4 }}>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Search Recommendations..."
-              style={{
-                width: '740px',
-                height: '50px',
-                padding: '8px',
-                borderRadius: '4px',
-                border: `1px solid ${theme.palette.grey[300]}`
-              }}
-            />
-          </Box>
+        <Box display="flex" alignItems="center" sx={{ mb: 4 }}>
+          <Autocomplete
+            freeSolo
+            options={getAutocompleteOptions(recommendations)}
+            value={searchQuery}
+            onInputChange={(event, newInputValue) => setSearchQuery(newInputValue)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Search Recommendations..."
+                about="Search bar for filtering recommendations"
+                sx={{
+                  width: '740px',
+                  height: '50px',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  border: `1px solid ${theme.palette.grey[300]}`,
+                  '& .MuiInputBase-root': {
+                    height: '100%',
+                    padding: '0 14px',
+                  },
+                }}
+              />
+            )}
+          />
+        </Box>
+
+
+
 
           <Box mt={2} display="flex" alignItems="center" justifyContent="space-between" mb={2} onClick={handleResultsToggle} sx={{ cursor: 'pointer' }}>
             <AnimatedTooltip title="Click to expand/collapse the results">
@@ -330,7 +362,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           </Box>
 
           <Collapse in={isResultsExpanded} timeout="auto" unmountOnExit>
-            <List sx={{ maxHeight: '400px', overflow: 'auto' }}>
+            <List sx={{ maxHeight: '400px', overflow: 'auto', alignItems:'center' }}>
               {filteredRecommendations.map((rec, index) => (
                 <React.Fragment key={index}>
                   <ListItem
@@ -338,12 +370,23 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
                     onClick={() => handleToggleExpand(index)}
                     sx={{ bgcolor: expandedIndex === index ? 'grey.100' : 'inherit', mb: 2, borderRadius: 1 }}
                   >
-                    <Checkbox
-                      checked={selectedRecommendations.has(index)}
-                      onChange={() => handleSelectRecommendation(index)}
-                      sx={{ mr: 2 }}
-                      inputProps={{ 'aria-label': `select recommendation ${index}` }}
-                    />
+                    {/* Aligning Priority Badge and Checkbox */}
+                    <Box display="flex" alignItems="center" sx={{ mr: 2 }}>
+                      {/* Priority Badge */}
+                      <RecommendationItem 
+                        rec={rec}
+                        index={index} 
+                        handleSelectRecommendation={handleSelectRecommendation} 
+                        selectedRecommendations={selectedRecommendations} 
+                      />
+                    
+                      <Checkbox
+                        checked={selectedRecommendations.has(index)}
+                        onChange={() => handleSelectRecommendation(index)}
+                        inputProps={{ 'aria-label': `select recommendation ${index}` }}
+                      /> 
+                    </Box>
+                    {/*  */}
                     <ListItemText
                       primary={
                         <>
@@ -388,5 +431,3 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
 };
 
 export default LLMInteraction_FinopsHubs;
-
-
