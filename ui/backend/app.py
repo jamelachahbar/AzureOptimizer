@@ -436,8 +436,8 @@ def delete_policy(policy_name):
 
 
 
+### Work In Progress - Azure API and SQL DB Integration for Recommendations and Advice Generation ###
 
-# Work In Progress
 ### Function to get recommendations from Azure API ###
 
 def get_cost_recommendations(subscription_ids):
