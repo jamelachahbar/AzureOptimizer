@@ -28,6 +28,10 @@ type RecommendationItemProps = {
     };
     additional_info?: string;
     source?: string;
+    savingsAmount?: string; // Added for Log Analytics
+    annualSavingsAmount?: string; // Added for Log Analytics
+    problem?: string;
+
   };
 };
 
@@ -45,6 +49,9 @@ const RecommendationItem: React.FC<RecommendationItemProps> = ({ rec }) => {
     } catch (error) {
       console.error('Error parsing additional_info JSON:', error);
     }
+  } else if (rec.source === 'Log Analytics' && rec.annualSavingsAmount) {
+    savingsAmount = parseFloat(rec.annualSavingsAmount || '0');
+
   }
 
   const priority = getPriority(savingsAmount);

@@ -1,3 +1,4 @@
+import uuid
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 import threading
@@ -11,8 +12,7 @@ import openai
 from azure.mgmt.advisor import AdvisorManagementClient
 from azure.identity import DefaultAzureCredential
 from storage_utils import ensure_container_and_files_exist  # Import the storage utility module
-import sys
-import pymssql
+import pyodbc # Import the pyodbc module for SQL Server connectivity
 
 # from agents.azure_tools import get_cost_data, get_cost_recommendations, llm_generate_advice
 # Ensure the container and files exist at startup
@@ -23,7 +23,6 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 matplotlib.use('Agg')  # Use a non-interactive backend
 
 
-import pyodbc # Import the pyodbc module for SQL Server connectivity
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
@@ -455,7 +454,8 @@ def get_cost_recommendations(subscription_ids):
                     'uuid': str(uuid.uuid4()),  # Always generate a new UUID, independent of existing IDs
                     'RecommendationId': rec.id if rec.id else None,  # Keep original RecommendationId if present
                     'source': 'Azure API',
-                    'subscription_id': subscription_id  # Use the subscription_id
+                    'subscription_id': subscription_id,  # Use the subscription_id
+                    'impact': rec.impact if rec.impact else 'Unknown',  # Normalize impact
                 }
                 for rec in recommendations if rec.category == 'Cost'
             ]
@@ -469,7 +469,6 @@ def get_cost_recommendations(subscription_ids):
 
 
 ### Function to get recommendations from SQL database ###
-import uuid
 
 def get_sql_recommendations():
     conn_str = (
@@ -502,16 +501,16 @@ def get_sql_recommendations():
             # Always generate a UUID, even if other IDs are present
             rec_uuid = str(uuid.uuid4())  
             recommendations.append({
-                'uuid': rec_uuid,  # Add UUID to each recommendation
+                'uuid': rec_uuid,
                 'RecommendationId': row.RecommendationId if row.RecommendationId else rec_uuid,
                 'category': row.Category,
-                'impact': row.Impact if row.Impact else 'Unknown',
+                'impact': row.Impact if row.Impact else 'Unknown',  # Normalize impact
                 'short_description': {
                     'problem': row.RecommendationDescription if row.RecommendationDescription else 'No problem description available'
                 },
                 'action': row.RecommendationAction if row.RecommendationAction else 'No action available',
                 'Instance': row.InstanceName,
-                'subscription_id': row.SubscriptionGuid or rec_uuid,  # Generate UUID if missing
+                'subscription_id': row.SubscriptionGuid or rec_uuid,
                 'source': 'SQL DB',
                 'additional_info': row.AdditionalInfo,
                 'tenant_id': row.TenantGuid,
@@ -524,6 +523,45 @@ def get_sql_recommendations():
     except Exception as e:
         logger.error(f"Error fetching recommendations from SQL: {e}")
         return []
+
+
+### API Endpoint to Query Recommendations from Log Analytics ###
+from log_analytics import get_log_analytics_data
+from datetime import timedelta
+from uuid import uuid4
+
+# Ensure the correct mapping of fields for Log Analytics
+@app.route('/api/log-analytics-data', methods=['POST'])
+def fetch_log_analytics_data():
+    # Use 'DEFAULT' if no client_id_key is passed in the request body
+    client_id_key = request.json.get('client_id_key', 'DEFAULT')
+
+    # Get the timespan from the request, or default to 30 days
+    days = request.json.get('days', 30)
+    timespan = timedelta(days=days)
+
+    # Define the KQL query for Log Analytics data
+    query = """
+    AzureOptimizationRecommendationsV1_CL
+    | where TimeGenerated >= ago(30d) and Category == "Cost"
+    | extend additionalInfo = parse_json(AdditionalInfo_s)
+    | project 
+        problem = RecommendationDescription_s,  // Keep original name for recommendation
+        impact = Impact_s,  // Keep original name for impact
+        solution = RecommendationAction_s,  // Keep original name for solution
+        TimeGenerated,  // Keep original name for generated date
+        SubscriptionGuid_g,  // Keep original name for subscription ID
+        savingsAmount = additionalInfo.savingsAmount,  // Include savingsAmount as is
+        InstanceName_g,  // Include instance name
+        FitScore_d  // Fit score (if needed)
+    | order by TimeGenerated desc
+    """
+    
+    # Call the function with the dynamic client_id_key and timespan
+    data = get_log_analytics_data(query=query, client_id_key='OTHER', timespan=timespan)
+
+    return jsonify(data), 200
+
 
 ### LLM Advice Generation ###
 MAX_TOKENS = 5000  # Maximum tokens for OpenAI API
@@ -635,13 +673,57 @@ def review_recommendations_route():
                         rec['subscription_id'] = sql_subscription_id
         except Exception as e:
             logger.error(f"Error fetching SQL recommendations: {e}")
+    
+        # Fetch recommendations from Log Analytics
+        log_analytics_recommendations = []
+        try:
+            # Example: Set a default client_id_key and timespan (30 days) for the Log Analytics query
+            client_id_key = 'OTHER'  # This can be dynamic or static based on your needs
+            timespan = timedelta(days=30)  # Fetch data for the last 30 days
 
-        # Combine recommendations from both sources
+            log_analytics_query = """
+            AzureOptimizationRecommendationsV1_CL
+            | where TimeGenerated >= ago(30d) and Category == "Cost"
+            | extend additionalInfo = parse_json(AdditionalInfo_s)
+            | project 
+                problem = RecommendationDescription_s,  // Keep original name for recommendation
+                impact = Impact_s , 
+                solution = RecommendationAction_s,  // Keep original name for solution
+                TimeGenerated,  // Keep original name for generated date
+                SubscriptionGuid_g,  // Keep original name for subscription ID
+                savingsAmount = additionalInfo.savingsAmount,  // Include savingsAmount as 
+                annualSavingsAmount = additionalInfo.annualSavingsAmount,  // Include annualSavingsAmount as well
+                InstanceName_g,  // Include instance name
+                FitScore_d  // Fit score (if needed)
+            | order by TimeGenerated desc
+            """
+            # Now pass the correct arguments: query, client_id_key, and timespan
+            log_analytics_recommendations = get_log_analytics_data(query=log_analytics_query, client_id_key=client_id_key, timespan=timespan)
+            # Add UUID and source to each recommendation
+            for rec in log_analytics_recommendations:
+                rec['uuid'] = str(uuid4())
+                rec['source'] = 'Log Analytics'
+                rec['subscription_id'] = rec.get('SubscriptionGuid_g', 'N/A')
+                rec['impact'] = rec.get('impact', 'Unknown')
+                # Normalize the structure to match other recommendations
+                rec['additional_info'] = rec.get('savingsAmount', 'N/A')
+                rec['Instance'] = rec.get('InstanceName_g', 'N/A')
+                rec['problem'] = rec.get('problem', 'No problem description available')
+                rec['solution'] = rec.get('solution', 'No solution description available')
+                rec['fit_score'] = rec.get('FitScore_d', 'N/A')
+                rec['annualSavingsAmount'] = rec.get('annualSavingsAmount', 'N/A')
+            if not log_analytics_recommendations:
+                logger.warning("No recommendations found from Log Analytics.")
+        except Exception as e:
+            logger.error(f"Error fetching Log Analytics recommendations: {e}")
+
+        # Combine recommendations from all sources
         all_recommendations.extend(azure_recommendations)
         all_recommendations.extend(sql_recommendations)
+        all_recommendations.extend(log_analytics_recommendations)
 
         if not all_recommendations:
-            logger.warning("No recommendations found from either source.")
+            logger.warning("No recommendations found from any source.")
             return jsonify({"message": "No recommendations available"}), 200
 
         return jsonify(all_recommendations), 200

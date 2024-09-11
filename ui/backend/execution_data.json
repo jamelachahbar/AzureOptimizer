@@ -1,69 +1,6 @@
 [
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "VM-LINUX-01",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: VM-LINUX-01 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmtest",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vmtest in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmencrypted1",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vmencrypted1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmwithhibernationmode",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vmwithhibernationmode in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vm-forcedetachdemo1-1",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vm-forcedetachdemo1-1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vm-forcedetachdemo1-2",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vm-forcedetachdemo1-2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vm-forcedetachdemo1-3",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vm-forcedetachdemo1-3 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmacoademospot",
-        "Action": "stop",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: stop on Resource: vmacoademospot in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "dbstorage6xgnebmgwml4c",
-        "Action": "update_sku",
-        "Status": "Dry Run",
-        "Message": "[Dry Run] Action: update_sku on Resource: dbstorage6xgnebmgwml4c in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "costopttestdb",
         "Action": "scale",
         "Status": "Dry Run",

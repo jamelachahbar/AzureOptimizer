@@ -17,6 +17,7 @@ interface Recommendation {
   category: string;
   impact?: string;
   short_description?: { problem: string };
+  short_description_s?: { solution: string };
   extended_properties?: Record<string, string>;
   advice?: string;
   subscription_id?: string;
@@ -25,8 +26,13 @@ interface Recommendation {
   Instance?: string;
   generated_date?: string;
   fit_score?: string;
-}
+  savingsAmount?: string;
+  Impact_s?: string;
+  problem?: string;
+  solution?: string;
+  annualSavingsAmount?: string;
 
+}
 
 const LLMInteraction_FinopsHubs: React.FC = () => {
   const theme = useTheme();
@@ -41,14 +47,12 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   const [filterSource, setFilterSource] = useState('');  // Filter state
   const [searchQuery, setSearchQuery] = useState('');    // Search query state
 
-  // Handle search query
-  // const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   setSearchQuery(event.target.value);
-  // };
-
+  // Helper function to retrieve subscription ID based on source
   const getSubscriptionId = (rec: Recommendation) => {
     if (rec.source === 'Azure API') {
       return rec.extended_properties?.subid || rec.subscription_id || 'N/A';
+    } else if (rec.source === 'Log Analytics') {
+      return rec.subscription_id || rec.SubscriptionGuid || 'N/A';  // Use SubscriptionGuid if subscription_id is missing
     }
     return rec.subscription_id || 'N/A';
   };
@@ -63,13 +67,49 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       setRecommendations([]);
       setError(null);
     });
-
+  
     try {
       const res = await axios.get('http://localhost:5000/api/review-recommendations');
       if (res.data.length === 0) {
         setError('No recommendations available.');
       } else {
-        setRecommendations(res.data);
+        // Ensure proper mapping based on the source of the recommendation
+        const mappedData = res.data.map((rec: any) => {
+          if (rec.source === 'Log Analytics') {
+            return {
+              ...rec,
+              recommendation_name: rec.problem || 'Unnamed Recommendation',  // Ensure the correct recommendation title is mapped
+              impact: rec.impact || 'Unknown',  // Ensure correct impact mapping for Log Analytics
+              problem: rec.problem|| 'No problem description available',
+              solution: rec.solution || 'No solution available',
+              generated_date: rec.TimeGenerated || 'N/A',
+              fit_score: rec.FitScore_s || 'N/A',
+              savingsAmount: rec.savingsAmount || 'N/A',
+              annualSavingsAmount: rec.annualSavingsAmount || 'N/A'
+              
+            };
+          } else if (rec.source === 'SQL DB') {
+            return {
+              ...rec,
+              recommendation_name: rec.RecommendationDescription || 'Unnamed Recommendation',
+              impact: rec.impact || 'Unknown',  // Properly map the impact field
+              problem: rec.short_description?.problem || 'No problem description available',
+              solution: rec.action || 'No solution available',
+            };
+          } else if (rec.source === 'Azure API') {
+            return {
+              ...rec,
+              recommendation_name: rec.short_description?.problem || 'Unnamed Recommendation',  // Use problem field for Azure API recommendations
+              impact: rec.extended_properties?.impact || rec.impact || 'Unknown',  // Ensure correct impact mapping for Azure API
+              problem: rec.short_description?.problem || 'No problem description available',
+              solution: rec.extended_properties?.solution || 'No solution available',
+            };
+          } else {
+            return rec;  // Fallback in case a new source is added later
+          }
+        });
+  
+        setRecommendations(mappedData);
       }
     } catch (error) {
       console.error('Error fetching recommendations:', error);
@@ -78,6 +118,13 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       setIsLoading(false);
     }
   };
+  
+  
+  
+  
+  
+  
+  
 
   const handleSendToLLM = async () => {
     if (selectedRecommendations.size === 0) {
@@ -91,9 +138,8 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     });
 
     try {
-      // Map the selected recommendations from the filteredRecommendations list
       const mappedRecommendations = Array.from(selectedRecommendations).map((index) => {
-        const rec = filteredRecommendations[index];  // Filtered recommendations used here
+        const rec = filteredRecommendations[index];
         if (!rec) {
           console.error(`Recommendation at index ${index} is undefined`);
           return null;
@@ -102,7 +148,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
         return {
           ...rec,
           subscription_id: rec.subscription_id || "N/A",
-          uuid: rec.uuid || uuidv4(),  // Ensure that UUID is used
+          uuid: rec.uuid || uuidv4(),  // Ensure UUID is always present
         };
       }).filter(rec => rec !== null);
 
@@ -111,7 +157,6 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
         return;
       }
 
-      // Make the API request
       const res = await axios.post(
         "http://localhost:5000/api/analyze-recommendations",
         { recommendations: mappedRecommendations },
@@ -120,7 +165,6 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
 
       console.log('Response from LLM:', res.data);
 
-      // Update the advice for each recommendation based on the unique uuid
       setRecommendations(prev => prev.map((rec) => {
         const updatedRec = res.data.find(
           (r: { recommendation: { uuid: string } }) => r.recommendation?.uuid === rec.uuid  // Use uuid for matching
@@ -163,8 +207,9 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     setSelectAll(!selectAll);
   };
 
+  // Renders advice text with formatting for bold and list items
   const renderFormattedAdvice = (advice: string | undefined) => {
-    if (!advice) return "No advice available";  // Handle case where advice is undefined
+    if (!advice) return "No advice available";
 
     const lines = advice.split('\n').map((line, index) => {
       if (line.includes('**')) {
@@ -196,6 +241,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     return <>{lines}</>;
   };
 
+  // Renders properties specific to SQL DB recommendations
   const renderSqlDbProperties = (rec: Recommendation) => {
     return (
       <Box sx={{ mt: 2, p: 2, border: '1px solid', borderRadius: 2 }}>
@@ -218,9 +264,46 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
     );
   };
 
+  // Renders properties specific to Log Analytics recommendations
+  const renderLogAnalyticsProperties = (rec: Recommendation) => {
+    return (
+      <Box sx={{ mt: 2, p: 2, border: '1px solid', borderRadius: 2 }}>
+        <Typography variant="subtitle2" fontWeight="bold">
+          Log Analytics Properties:
+        </Typography>
+        <Typography variant="body2">
+          <strong>Problem:</strong> {rec.problem || 'No problem description available'}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Solution:</strong> {rec.solution || 'No solution available'}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Instance Name:</strong> {rec.Instance || 'N/A'}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Generated Date:</strong> {rec.generated_date || 'N/A'}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Fit Score:</strong> {rec.fit_score || 'N/A'}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Subscription ID:</strong> {rec.subscription_id || rec.SubscriptionGuid || 'N/A'}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Savings Amount:</strong> {rec.savingsAmount || 'N/A'}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Annual Savings Amount:</strong> {rec.annualSavingsAmount || 'N/A'}
+        </Typography>
+      </Box>
+    );
+  };
+
   const renderExtendedProperties = (rec: Recommendation) => {
     if (rec.source === 'SQL DB') {
       return renderSqlDbProperties(rec);
+    } else if (rec.source === 'Log Analytics') {
+      return renderLogAnalyticsProperties(rec);
     } else if (rec.extended_properties) {
       return (
         <Box sx={{ mt: 2, p: 2, border: '1px solid', borderRadius: 2 }}>
@@ -241,7 +324,6 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   // Filter recommendations by both source and search query
   const filteredRecommendations = recommendations.filter((rec) => {
     const matchesSource = filterSource ? rec.source === filterSource : true;
-    
     const matchesSearch = searchQuery
       ? rec.category.toLowerCase().includes(searchQuery.toLowerCase()) || 
         rec.impact?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -256,25 +338,32 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
               .filter(Boolean)
               .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(searchQuery.toLowerCase()
             ))
+        ) ||
+        (rec.source === 'Log Analytics' &&
+            [rec.Instance, rec.generated_date, rec.fit_score]
+              .filter(Boolean)
+              .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(searchQuery.toLowerCase()
+            ))
         )
       : true;    
     return matchesSource && matchesSearch;
   });
-  
 
-
-// Flattening and combining all possible autocomplete options from extended properties and additional SQL DB information
-const getAutocompleteOptions = (recommendations: any[]) => {
-  return recommendations.flatMap((rec) => {
-    if (rec.source === 'Azure API' && rec.extended_properties) {
-      return Object.values(rec.extended_properties);
-    }
-    if (rec.source === 'SQL DB') {
-      return [rec.Instance, rec.additional_info].filter(Boolean); // Filter out undefined or null values
-    }
-    return [];
-  });
-};
+  // Autocomplete options for search bar
+  const getAutocompleteOptions = (recommendations: any[]) => {
+    return recommendations.flatMap((rec) => {
+      if (rec.source === 'Azure API' && rec.extended_properties) {
+        return Object.values(rec.extended_properties);
+      }
+      if (rec.source === 'SQL DB') {
+        return [rec.Instance, rec.additional_info].filter(Boolean);
+      }
+      if (rec.source === 'Log Analytics') {
+        return [rec.Instance, rec.generated_date, rec.fit_score].filter(Boolean);
+      }
+      return [];
+    });
+  };
 
   return (
     <Box p={2} m={2} border={1} borderRadius={2} borderColor={theme.palette.mode === 'light' ? 'grey.300' : 'grey.700'}>
@@ -324,6 +413,7 @@ const getAutocompleteOptions = (recommendations: any[]) => {
                 </MenuItem>
                 <MenuItem value="Azure API">Azure API</MenuItem>
                 <MenuItem value="SQL DB">SQL DB</MenuItem>
+                <MenuItem value="Log Analytics">Log Analytics</MenuItem> {/* Add Log Analytics filter */}
               </Select>
             </Box>
             <Box display="flex" alignItems="flex-start">
@@ -332,42 +422,39 @@ const getAutocompleteOptions = (recommendations: any[]) => {
                 onChange={handleSelectAll}
                 inputProps={{ 'aria-label': 'select all' }}
               />
-              <Typography display={
-                'flex'} alignItems={'center'} sx={{ cursor: 'pointer' }
-              }>Select All</Typography>
+              <Typography display={'flex'} alignItems={'center'} sx={{ cursor: 'pointer' }}>
+                Select All
+              </Typography>
             </Box>
           </Box>
 
           {/* Search Bar */}
-        <Box display="flex" alignItems="center" sx={{ mb: 4 }}>
-          <Autocomplete
-            freeSolo
-            options={getAutocompleteOptions(recommendations)}
-            value={searchQuery}
-            onInputChange={(event, newInputValue) => setSearchQuery(newInputValue)}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder="Search Recommendations..."
-                about="Search bar for filtering recommendations"
-                sx={{
-                  width: '740px',
-                  height: '50px',
-                  padding: '8px',
-                  borderRadius: '4px',
-                  border: `1px solid ${theme.palette.grey[300]}`,
-                  '& .MuiInputBase-root': {
-                    height: '100%',
-                    padding: '0 14px',
-                  },
-                }}
-              />
-            )}
-          />
-        </Box>
-
-
-
+          <Box display="flex" alignItems="center" sx={{ mb: 4 }}>
+            <Autocomplete
+              freeSolo
+              options={getAutocompleteOptions(recommendations)}
+              value={searchQuery}
+              onInputChange={(event, newInputValue) => setSearchQuery(newInputValue)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Search Recommendations..."
+                  about="Search bar for filtering recommendations"
+                  sx={{
+                    width: '740px',
+                    height: '50px',
+                    padding: '8px',
+                    borderRadius: '4px',
+                    border: `1px solid ${theme.palette.grey[300]}`,
+                    '& .MuiInputBase-root': {
+                      height: '100%',
+                      padding: '0 14px',
+                    },
+                  }}
+                />
+              )}
+            />
+          </Box>
 
           <Box mt={2} display="flex" alignItems="center" justifyContent="space-between" mb={2} onClick={handleResultsToggle} sx={{ cursor: 'pointer' }}>
             <AnimatedTooltip title="Click to expand/collapse the results">
@@ -379,21 +466,17 @@ const getAutocompleteOptions = (recommendations: any[]) => {
           </Box>
 
           <Collapse in={isResultsExpanded} timeout="auto" unmountOnExit>
-            <List sx={{ maxHeight: '400px', overflow: 'auto', alignItems:'center' }}>
+            <List sx={{ maxHeight: '400px', overflow: 'auto', alignItems: 'center' }}>
               {filteredRecommendations.map((rec, index) => (
                 <React.Fragment key={index}>
                   <ListItem
                     button
                     onClick={() => handleToggleExpand(index)}
                     sx= {{mb: 2, borderRadius: 1}}
-                    // sx={{ bgcolor: expandedIndex === index ? 'grey.100' : 'inherit', mb: 2, borderRadius: 1 }}
                   >
-                    {/* Aligning Priority Badge and Checkbox */}
                     <Box display="flex" alignItems="center" sx={{ mr: 2 }}>
                       {/* Priority Badge */}
-                      <RecommendationItem 
-                        rec={rec}
-                      />
+                      <RecommendationItem rec={rec} />
                     
                       <Checkbox
                         checked={selectedRecommendations.has(index)}
@@ -401,7 +484,7 @@ const getAutocompleteOptions = (recommendations: any[]) => {
                         inputProps={{ 'aria-label': `select recommendation ${index}` }}
                       /> 
                     </Box>
-                    {/*  */}
+
                     <ListItemText
                       primary={
                         <>
@@ -417,7 +500,7 @@ const getAutocompleteOptions = (recommendations: any[]) => {
                             <strong>Impact:</strong> {rec.impact || 'Unknown'}
                           </Typography>
                           <Typography variant="body2">
-                            <strong>Problem:</strong> {rec.short_description?.problem || 'No problem description available'}
+                            <strong>Problem:</strong> {rec.short_description?.problem || rec.problem || 'No problem description available'}
                           </Typography>
                         </>
                       }
