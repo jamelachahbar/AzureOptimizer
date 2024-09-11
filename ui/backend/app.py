@@ -564,6 +564,7 @@ def fetch_log_analytics_data():
 
 
 ### LLM Advice Generation ###
+### LLM Advice Generation ###
 MAX_TOKENS = 5000  # Maximum tokens for OpenAI API
 def generate_advice_with_llm(recommendations):
     advice_list = []
@@ -590,7 +591,9 @@ def generate_advice_with_llm(recommendations):
 
             Provide a maximum of 3 bullet points for actions to optimize costs + Conclude with a decision based on the information provided.
             """
-        else:  # Handling Azure API recommendations
+        
+        # Handling Azure API Recommendations
+        elif rec.get('source') == 'Azure API':
             problem = rec.get('short_description', {}).get('problem', 'No description available')
             solution = rec.get('short_description', {}).get('solution', 'No solution available')
             impact = rec.get('impact', 'Unknown')
@@ -608,11 +611,40 @@ def generate_advice_with_llm(recommendations):
 
             Provide a maximum of 3 bullet points for actions to optimize costs and conclude with a decision based on the information provided with the extended properties.
             """
+        
+        # Handling Log Analytics Recommendations
+        elif rec.get('source') == 'Log Analytics':
+            problem = rec.get('problem', 'No problem description available')
+            solution = rec.get('solution', 'No solution available')
+            impact = rec.get('impact', 'Unknown')
+            subscription_id = rec.get('subscription_id', 'N/A')
+            instance_name = rec.get('Instance', 'N/A')
+            savings_amount = rec.get('savingsAmount', 'N/A')
+            annual_savings = rec.get('annualSavingsAmount', 'N/A')
+
+            # Create prompt for Log Analytics recommendations
+            prompt = f"""
+            As an Azure consultant, analyze the following recommendation from Log Analytics and provide specific, actionable advice on how to address it. Focus on cost optimization only and provide a maximum of 3 bullet points for action. Here is the recommendation:
+
+            - Instance: {instance_name}
+            - Problem: {problem}
+            - Solution: {solution}
+            - Impact: {impact}
+            - Subscription ID: {subscription_id}
+            - Savings Amount: {savings_amount}
+            - Annual Savings: {annual_savings}
+
+            Provide a maximum of 3 bullet points for actions to optimize costs and conclude with a decision based on the information provided.
+            """
+
+        # Fallback for any other unknown sources (if any are added later)
+        else:
+            prompt = f"Unknown source recommendation. Please analyze manually."
 
         try:
             # Send prompt to OpenAI (GPT-4)
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a skilled Azure consultant who knows everything about FinOps and cost optimization."},
                     {"role": "user", "content": prompt}
@@ -711,7 +743,7 @@ def review_recommendations_route():
                 rec['problem'] = rec.get('problem', 'No problem description available')
                 rec['solution'] = rec.get('solution', 'No solution description available')
                 rec['fit_score'] = rec.get('FitScore_d', 'N/A')
-                rec['annualSavingsAmount'] = rec.get('annualSavingsAmount', 'N/A')
+                rec['annual_savings'] = rec.get('annualSavingsAmount', 'N/A')
             if not log_analytics_recommendations:
                 logger.warning("No recommendations found from Log Analytics.")
         except Exception as e:
