@@ -495,7 +495,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
                       primary={
                         <>
                           <Typography variant="body1">
-                            <strong>Subscription:</strong> {getSubscriptionId(rec)} - <strong>Recommendation {index + 1}:</strong> {rec.category || 'N/A'}
+                            <strong>Subscription:</strong> {getSubscriptionId(rec)} - <strong>Recommendation {index + 1}:</strong> {rec.category || 'Cost' || 'N/A'}
                             <strong> Source:</strong> {rec.source || 'N/A'}
                           </Typography>
                         </>

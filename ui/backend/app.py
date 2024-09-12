@@ -569,6 +569,68 @@ MAX_TOKENS = 5000  # Maximum tokens for OpenAI API
 def generate_advice_with_llm(recommendations):
     advice_list = []
 
+    # Few-shot examples to guide the LLM output format
+    few_shot_examples = """
+    Example 1:
+    To address the recommendation: **utilizing App Service Reserved Instances** for cost optimization effectively, consider implementing the following actionable steps:
+
+    1. **Purchase App Service Reserved Instance**: Acquire 1 Azure App Service Premium v3 Plan (Linux P1 v3) for a term of 3 years in the South Central US region. This purchase will enable you to save approximately $910 annually, translating to a significant reduction in your ongoing costs.
+
+    2. **Evaluate App Service Usage**: Review your current and forecasted usage of the App Service to ensure that it aligns with the reserved instance. Analyze the projected workload and confirm that this app service will be consistently utilized to maximize the annual savings of $910.
+
+    3. **Monitor and Adjust Resource Allocation**: After purchasing the reserved instance, utilize Azure’s monitoring tools to track the performance and usage of the app service. This will help validate ongoing alignment with your operational needs and allow adjustments in future resource planning.
+
+    **Conclusion**: Given the potential to save $910 annually and the high impact of this recommendation, it is advisable to take action by purchasing the App Service reserved instance. This decision aligns with your cost optimization goals in Azure and helps to ensure that resources are both effectively utilized and financially optimized.
+    Example 2:
+    **Recommendation: Reducing Costs with SQL DB Instance Rightsizing**
+    
+    The recommendation regarding oversized SQL Database instances can be addressed with the following steps:
+    
+    1. **Analyze SQL Database Utilization**: Review your current SQL database instance sizes and compare them against the actual workload usage metrics. If databases are oversized, there is an opportunity to downsize to a smaller instance tier.
+    
+    2. **Scale Down SQL DB**: For underutilized instances, scale down the SQL database to a lower pricing tier to reduce ongoing costs. Ensure that the new instance size meets the performance requirements of your application workloads.
+    
+    3. **Monitor Performance**: After downsizing, continuously monitor the performance of the SQL databases to ensure the new instance size meets workload demands.
+    
+    **Conclusion**: By rightsizing SQL Database instances and aligning them with actual usage, you can achieve significant cost savings while maintaining performance. 
+    
+    Example 3:
+    **Recommendation: Optimizing Costs with Reserved Instances**
+
+    To optimize costs effectively using Reserved Instances in Azure, consider the following actions:
+    
+
+    1. **Analyze Usage Patterns**: Evaluate your historical usage patterns to identify stable workloads that can benefit from Reserved Instances. Focus on services with consistent demand to maximize savings.
+
+    2. **Purchase Reserved Instances**: Once identified, purchase Reserved Instances for the appropriate services and regions. Leverage the Azure Hybrid Benefit for additional savings on Windows VMs.
+
+    3. **Monitor and Adjust**: Regularly monitor your usage and adjust Reserved Instances as needed to align with changing workload requirements. Optimize your reservations to avoid underutilization.
+
+    **Conclusion**: By strategically leveraging Reserved Instances based on usage patterns and monitoring your reservations, you can achieve significant cost savings in Azure.
+
+    **Recommendation: Optimizing Costs for Orphaned Public IP:**
+
+    1. **Audit Public IP Allocations**: Confirm the orphaned status of the public IP (appgw-pip) by reviewing its association with resources. Assess if it was meant for a service that is still under development or needs, which can justify keeping it.
+
+    2. **Delete Orphaned Public IP**: If you confirm that the public IP is indeed orphaned and lacks any associated resource utility, delete it to eliminate the ongoing costs. This will help reduce unnecessary expenses.
+
+    3. **Change Configuration to Dynamic Allocation (if needed)**: If you require a public IP for future use, consider changing its allocation method to dynamic instead of static. This ensures you avoid incurring costs when the IP isn’t in active use.
+
+    **Conclusion**: Deleting the orphaned public IP (appgw-pip) will result in immediate cost savings since it currently incurs no costs but is a potential liability for future charges if left unutilized. If there's potential to need it in the future, consider using dynamic allocation to minimize expenses.    
+   
+    Example 4:
+
+    To effectively address the recommendation regarding **unattached disks** and optimize costs, consider implementing the following actionable steps:
+
+    1. **Audit Unattached Disks**: Review all unattached disks within the specified subscription (e9b4640d-1f1f-45fe-a543-c0ea45ac34c1) to confirm which disks are indeed unnecessary. Cross-reference these disks with active VMs to validate they are not tied to any future deployments.
+
+    2. **Delete Unused Disks**: For the disks confirmed to have no ownership and no future use, proceed with deletion. This will immediately cease any unnecessary costs associated with these unattached disks.
+
+    3. **Evaluate Downgrade Options**: For disks that may be needed for future use but are currently unattached, assess the feasibility of downgrading these disks to a Standard SKU. This will reduce ongoing costs while still keeping the disks available for potential future use.
+
+    **Conclusion**: Given the medium impact of this recommendation and the modest savings of approximately $0.04 per hour, it is advisable to take action to optimize costs by auditing, deleting unnecessary disks, and considering downgrades where appropriate. While the immediate savings might be low, it supports overall cost management principles and reduces clutter in your Azure environment.
+    """
+
     for rec in recommendations:
         # Handling SQL DB Recommendations
         if rec.get('source') == 'SQL DB':
@@ -580,7 +642,10 @@ def generate_advice_with_llm(recommendations):
 
             # Create prompt for SQL DB recommendations
             prompt = f"""
-            As an Azure consultant, analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and don't make it too long. Here is the recommendation:
+            As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
+            {few_shot_examples}
+            Now, here is the recommendation:
+
             - Instance: {instance_name}
             - Problem: {problem}
             - Solution: {solution}
@@ -601,7 +666,9 @@ def generate_advice_with_llm(recommendations):
 
             # Create prompt for Azure API recommendations
             prompt = f"""
-            As an Azure consultant, analyze the following recommendation from Azure Advisor API and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and don't make it too long. Here is the recommendation:
+            As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
+            {few_shot_examples}
+            Now, here is the recommendation:
 
             - Problem: {problem}
             - Solution: {solution}
@@ -624,8 +691,9 @@ def generate_advice_with_llm(recommendations):
 
             # Create prompt for Log Analytics recommendations
             prompt = f"""
-            As an Azure consultant, analyze the following recommendation from Log Analytics and provide specific, actionable advice on how to address it. Focus on cost optimization only and provide a maximum of 3 bullet points for action. Here is the recommendation:
-
+            {few_shot_examples}
+            As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
+            Now, here is the recommendation:
             - Instance: {instance_name}
             - Problem: {problem}
             - Solution: {solution}
