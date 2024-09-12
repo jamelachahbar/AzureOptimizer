@@ -324,28 +324,36 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   // Filter recommendations by both source and search query
   const filteredRecommendations = recommendations.filter((rec) => {
     const matchesSource = filterSource ? rec.source === filterSource : true;
+    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+  
     const matchesSearch = searchQuery
-      ? rec.category.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        rec.impact?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        rec.short_description?.problem?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        rec.advice?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (rec.source === 'Azure API' && rec.extended_properties &&
-          Object.values(rec.extended_properties).some((prop) =>
-            prop.toLowerCase().includes(searchQuery.toLowerCase())
-          )) ||
-        (rec.source === 'SQL DB' &&
-            [rec.Instance, rec.generated_date, rec.fit_score]
-              .filter(Boolean)
-              .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(searchQuery.toLowerCase()
-            ))
-        ) ||
-        (rec.source === 'Log Analytics' &&
-            [rec.Instance, rec.generated_date, rec.fit_score]
-              .filter(Boolean)
-              .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(searchQuery.toLowerCase()
-            ))
+      ? (rec.category?.toLowerCase().includes(lowerCaseSearchQuery) || 
+          rec.impact?.toLowerCase().includes(lowerCaseSearchQuery) ||
+          rec.short_description?.problem?.toLowerCase().includes(lowerCaseSearchQuery) ||
+          rec.advice?.toLowerCase().includes(lowerCaseSearchQuery) ||
+          (rec.source === 'Azure API' && rec.extended_properties &&
+            Object.values(rec.extended_properties).some((prop) =>
+              typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
+            )) ||
+          (rec.source === 'SQL DB' &&
+              [rec.Instance, rec.generated_date, rec.fit_score]
+                .filter(Boolean)
+                .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
+              )) ||
+          (rec.source === 'Log Analytics' &&
+              [rec.Instance, rec.generated_date, rec.fit_score]
+                .filter(Boolean)
+                .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
+              )) ||
+          (rec.source === 'Log Analytics' && 
+              [rec.problem, rec.solution, rec.Instance, rec.generated_date, rec.fit_score, rec.savingsAmount, rec.annualSavingsAmount]
+                .filter(Boolean)
+                .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
+              ))
+
         )
       : true;    
+  
     return matchesSource && matchesSearch;
   });
 
@@ -356,14 +364,12 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
         return Object.values(rec.extended_properties);
       }
       if (rec.source === 'SQL DB') {
-        return [rec.Instance, rec.additional_info].filter(Boolean);
-      }
-      if (rec.source === 'Log Analytics') {
-        return [rec.Instance, rec.generated_date, rec.fit_score].filter(Boolean);
+        return [rec.Instance, rec.additional_info].filter(Boolean); // Filter out undefined or null values
       }
       return [];
     });
   };
+  
 
   return (
     <Box p={2} m={2} border={1} borderRadius={2} borderColor={theme.palette.mode === 'light' ? 'grey.300' : 'grey.700'}>
