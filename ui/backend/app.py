@@ -564,7 +564,6 @@ def fetch_log_analytics_data():
 
 
 ### LLM Advice Generation ###
-### LLM Advice Generation ###
 MAX_TOKENS = 5000  # Maximum tokens for OpenAI API
 def generate_advice_with_llm(recommendations):
     advice_list = []

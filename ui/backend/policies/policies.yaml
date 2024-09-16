@@ -3,7 +3,7 @@ policies:
   - type: stop
   description: Stop VMs that have not been used in the last x days and have an average
     CPU below the set threshold, and have a specific tag(optional)
-  enabled: false
+  enabled: true
   filters:
   - days: 30
     threshold: 10
@@ -13,7 +13,7 @@ policies:
 - actions:
   - type: delete
   description: Delete disks that are not attached to any VMs
-  enabled: false
+  enabled: true
   filters:
   - type: unattached
   name: delete-unused-disks
@@ -21,7 +21,7 @@ policies:
 - actions:
   - type: delete
   description: Delete unattached public IPs
-  enabled: false
+  enabled: true
   filters:
   - type: unattached
   name: delete-unattached-public-ips
@@ -30,7 +30,7 @@ policies:
   - type: delete
   description: Delete all resources in a resource group if the group contains the
     tag kill:dev
-  enabled: false
+  enabled: true
   exclusions:
   - key: exclude
     type: tag
@@ -45,7 +45,7 @@ policies:
   - sku: Standard_LRS
     type: update_sku
   description: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
-  enabled: false
+  enabled: true
   filters:
   - type: sku
     values:
@@ -57,7 +57,7 @@ policies:
   resource: azure.storage
 - actions:
   - type: delete
-  enabled: false
+  enabled: true
   filters:
   - key: Environment
     type: tag
@@ -92,7 +92,7 @@ policies:
   resource: azure.sql
 - actions:
   - type: delete
-  enabled: false
+  enabled: true
   exclusions: []
   filters:
   - type: unattached
