@@ -16,7 +16,14 @@ import {
 import Button from '@mui/material/Button';
 import axios from 'axios';
 import { createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
-import LLMInteraction from './components/LLMInteraction';
+
+import Header from './components/Header'; // Import the Header component
+import TracingBeamContainer from './components/TracingBeamContainer'; // Import the TracingBeamContainer
+import { Highlight } from './components/HeroHighlight';
+import TypewriterEffectSmooth from './components/TypewriterEffectSmooth'; // Import the TypewriterEffectSmooth component
+import TypewriterEffect from './components/TypewriterEffect';
+import FlipText from './components/FlipWords'; // Import the FlipWords component
+
 import SummaryMetricsCard from './components/SummaryMetricsCard';
 import CostTrendChart from './components/CostTrendChart';
 import ExecutionTable from './components/ExecutionTable';
@@ -25,12 +32,7 @@ import PolicyTable from './components/PolicyTable';
 import PolicyPieChart from './components/PolicyPieChart';
 import OptimizerLogs from './components/OptimizerLogs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import Header from './components/Header'; // Import the Header component
-import TracingBeamContainer from './components/TracingBeamContainer'; // Import the TracingBeamContainer
-import { Highlight } from './components/HeroHighlight';
-import TypewriterEffectSmooth from './components/TypewriterEffectSmooth'; // Import the TypewriterEffectSmooth component
-import TypewriterEffect from './components/TypewriterEffect';
-import FlipText from './components/FlipWords'; // Import the FlipWords component
+
 import PolicyEditor from './components/PolicyEditor'; // Import the new PolicyEditor component
 import {LandingScreen} from './components/LandingScreen'; // Import the LandingScreen component
 import LoginButton from './components/LoginButton';
@@ -38,7 +40,11 @@ import LogoutButton from './components/LogoutButton';  // Import the LogoutButto
 
 import AuthProvider from './providers/AuthProvider';
 import { useIsAuthenticated } from "@azure/msal-react";
+
+
+import LLMInteraction from './components/LLMInteraction';
 import LLMInteraction_FinopsHubs from './components/LLMInteraction_FinopsHubs';
+
 // Define the ColorModeContext here
 export const ColorModeContext = createContext({ toggleColorMode: () => {} });
 

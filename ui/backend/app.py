@@ -285,154 +285,6 @@ def delete_policy(policy_name):
         logger.error(f"Error deleting policy: {e}")
         return jsonify({'error': 'Error deleting policy'}), 500
 
-# def get_cost_recommendations(subscription_ids):
-#     """
-#     Fetch cost recommendations for multiple Azure subscriptions using Azure SDK.
-#     This function uses the Azure SDK to fetch cost recommendations from Azure Advisor
-#     for the specified list of subscription IDs. It filters the recommendations to only include
-#     those in the 'Cost' category.
-#     """
-#     all_cost_recommendations = {}
-
-#     for subscription_id in subscription_ids:
-#         try:
-#             client = AdvisorManagementClient(credential, subscription_id)
-#             recommendations = client.recommendations.list()
-#             cost_recommendations = [rec.as_dict() for rec in recommendations if rec.category == 'Cost']
-            
-#             # Log the content of the recommendations for debugging
-#             logger.info(f"Cost Recommendations for Subscription {subscription_id}: {cost_recommendations}")
-            
-#             all_cost_recommendations[subscription_id] = cost_recommendations
-#         except Exception as e:
-#             logger.error(f"Error fetching cost recommendations for subscription {subscription_id}: {str(e)}")
-#             all_cost_recommendations[subscription_id] = []
-
-#     return all_cost_recommendations
-
-# def generate_advice_with_llm(recommendations):
-#     advice_list = []
-
-#     for rec in recommendations:
-#         # Safely access shortDescription, problem, and solution
-#         short_description = rec.get('short_description', {})
-#         problem = short_description.get('problem', 'No problem description provided.')
-#         solution = short_description.get('solution', 'No solution description provided.')
-
-#         # Generate the prompt
-#         prompt = f"""
-#         As an expert consultant, your task is to analyze the following Azure Advisor recommendation and provide
-#         specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and don't make it too long. Here is the recommendation:
-        
-#         - Category: {rec.get('category', 'Unknown')}
-#         - Impact: {rec.get('impact', 'Unknown')}
-#         - Problem: {problem}
-#         - Solution: {solution}
-#         - Extended Properties: {rec.get('extended_properties', 'Unknown')}
-
-#         Please provide detailed advice on how to address this recommendation.
-#         """
-
-#         try:
-#             logger.info(f"Sending prompt to OpenAI: {prompt}")
-#             response = openai.ChatCompletion.create(
-#                 model="gpt-4o-mini",
-#                 messages=[
-#                     {"role": "system", "content": "You are a skilled Azure consultant who knows everything about FinOps and Cost Optimization."},
-#                     {"role": "user", "content": prompt}
-#                 ]
-
-#             )
-#             logger.info(f"Received response from OpenAI: {response}")
-
-#             if not response or not response.choices:
-#                 logger.error("No valid response received from OpenAI.")
-#                 advice_text = "No advice could be generated."
-#             else:
-#                 advice_text = response.choices[0].message["content"].strip()
-
-#             if not advice_text:
-#                 logger.error("Received empty advice from the AI.")
-#                 advice_text = "No advice could be generated."
-
-#             advice_list.append(advice_text)
-
-#         except Exception as e:
-#             logger.error(f"Error generating AI advice: {str(e)}")
-#             advice_list.append(f"An error occurred: {str(e)}")
-
-#     return advice_list
-
-
-
-# @app.route('/api/analyze-recommendations', methods=['POST'])
-# def analyze_recommendations_route():
-#     data = request.get_json()
-#     subscription_id = data.get('subscription_id')
-#     impacted_resources = data.get('impacted_resources', [])
-
-#     if not subscription_id:
-#         return jsonify({'error': 'Missing subscription ID'}), 400
-
-#     if not impacted_resources:
-#         return jsonify({'error': 'Missing impacted resources'}), 400
-
-#     try:
-#         # Use the agent to analyze recommendations and impacted resources
-#         prompt = f"Analyze cost recommendations and optimization for subscription {subscription_id} with the following impacted resources: {impacted_resources}."
-        
-#         # Pass the data as a prompt to the agent
-#         response = agent.run(prompt)
-
-#         return jsonify({'response': response}), 200
-#     except Exception as e:
-#         logger.error(f"Error analyzing recommendations: {str(e)}")
-#         return jsonify({'error': str(e)}), 500
-
-# @app.route('/api/analyze-recommendations', methods=['POST'])
-# def analyze_recommendations_route():
-#     data = request.get_json()
-#     subscription_id = data.get('subscription_id')  # Expect a single subscription ID
-#     if not subscription_id:
-#         return jsonify({'error': 'Missing subscription ID'}), 400
-
-#     try:
-#         # Fetch recommendations for the given subscription ID
-#         recommendations = get_cost_recommendations([subscription_id])  # Pass as a list with a single ID
-
-#         # Generate advice using the LLM
-#         advice = generate_advice_with_llm(recommendations[subscription_id])
-
-#         # Ensure the advice list is the correct length compared to the recommendations
-#         if len(advice) != len(recommendations[subscription_id]):
-#             logger.error(f"Mismatch between number of recommendations and AI advice for subscription {subscription_id}. Adjusting length...")
-#             advice += ["No advice available"] * (len(recommendations[subscription_id]) - len(advice))  # Add placeholders if mismatch
-
-#         # Convert the advice into a structured format for the frontend
-#         structured_advice = []
-#         for rec, adv in zip(recommendations[subscription_id], advice):  # Assuming the AI advice is split by double newline
-#             short_description = rec.get('short_description', {})
-#             problem = short_description.get('problem', 'No problem description provided.')
-#             solution = short_description.get('solution', 'No solution description provided.')
-
-#             structured_advice.append({
-#                 "subscription_id": subscription_id,  # Include the subscription ID for clarity
-#                 "category": rec.get("category", "Unknown"),
-#                 "impact": rec.get("impact", "Unknown"),
-#                 "short_description": {
-#                     "problem": problem,
-#                     "solution": solution,
-#                 },
-#                 "extended_properties": rec.get("extended_properties", {}),
-#                 "advice": adv  # AI generated advice for this specific recommendation
-#             })
-
-#         logger.info(f"Structured Advice Sent to Frontend: {structured_advice}")
-#         return jsonify({"advice": structured_advice}), 200
-#     except Exception as e:
-#         logger.error(f"Error analyzing recommendations: {str(e)}")
-#         return jsonify({'error': str(e)}), 500
-
 
 
 ### Work In Progress - Azure API and SQL DB Integration for Recommendations and Advice Generation ###
@@ -456,6 +308,7 @@ def get_cost_recommendations(subscription_ids):
                     'source': 'Azure API',
                     'subscription_id': subscription_id,  # Use the subscription_id
                     'impact': rec.impact if rec.impact else 'Unknown',  # Normalize impact
+                    'resource_id': 'N/A'  # Include this in the response, even if not provided by SQL
                 }
                 for rec in recommendations if rec.category == 'Cost'
             ]
@@ -515,7 +368,9 @@ def get_sql_recommendations():
                 'additional_info': row.AdditionalInfo,
                 'tenant_id': row.TenantGuid,
                 'fit_score': row.FitScore,
-                'generated_date': row.GeneratedDate
+                'generated_date': row.GeneratedDate,
+                'resource_id': 'N/A'  # Include this in the response, even if not provided by SQL
+
             })
         conn.close()
         return recommendations
@@ -553,7 +408,8 @@ def fetch_log_analytics_data():
         SubscriptionGuid_g,  // Keep original name for subscription ID
         savingsAmount = additionalInfo.savingsAmount,  // Include savingsAmount as is
         InstanceName_g,  // Include instance name
-        FitScore_d  // Fit score (if needed)
+        FitScore_d,  // Fit score (if needed)
+        resource_id = InstanceId_s
     | order by TimeGenerated desc
     """
     
@@ -687,6 +543,7 @@ def generate_advice_with_llm(recommendations):
             instance_name = rec.get('Instance', 'N/A')
             savings_amount = rec.get('savingsAmount', 'N/A')
             annual_savings = rec.get('annualSavingsAmount', 'N/A')
+            resource_id = rec.get('resource_id', 'N/A')
 
             # Create prompt for Log Analytics recommendations
             prompt = f"""
@@ -700,6 +557,7 @@ def generate_advice_with_llm(recommendations):
             - Subscription ID: {subscription_id}
             - Savings Amount: {savings_amount}
             - Annual Savings: {annual_savings}
+            - Resource ID: {resource_id}
 
             Provide a maximum of 3 bullet points for actions to optimize costs and conclude with a decision based on the information provided.
             """
@@ -793,7 +651,8 @@ def review_recommendations_route():
                 savingsAmount = additionalInfo.savingsAmount,  // Include savingsAmount as 
                 annualSavingsAmount = additionalInfo.annualSavingsAmount,  // Include annualSavingsAmount as well
                 InstanceName_g,  // Include instance name
-                FitScore_d  // Fit score (if needed)
+                FitScore_d,
+                resource_id = InstanceId_s
             | order by TimeGenerated desc
             """
             # Now pass the correct arguments: query, client_id_key, and timespan
@@ -804,6 +663,8 @@ def review_recommendations_route():
                 rec['source'] = 'Log Analytics'
                 rec['subscription_id'] = rec.get('SubscriptionGuid_g', 'N/A')
                 rec['impact'] = rec.get('impact', 'Unknown')
+                rec['resource_id'] = rec.get('resource_id', 'N/A')  # Ensure resource_id is included
+
                 # Normalize the structure to match other recommendations
                 rec['additional_info'] = rec.get('savingsAmount', 'N/A')
                 rec['Instance'] = rec.get('InstanceName_g', 'N/A')

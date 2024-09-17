@@ -31,7 +31,7 @@ type RecommendationItemProps = {
     savingsAmount?: string; // Added for Log Analytics
     annualSavingsAmount?: string; // Added for Log Analytics
     problem?: string;
-
+    resource_id?: string;
   };
 };
 

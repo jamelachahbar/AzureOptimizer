@@ -3,99 +3,78 @@
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "VM-LINUX-01",
         "Action": "stop",
-        "Status": "Success",
-        "Message": "VM deallocated successfully."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: VM-LINUX-01 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
+    },
+    {
+        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+        "Resource": "Sample-VM",
+        "Action": "stop",
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: Sample-VM in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "azdownvm_885b10b2",
         "Action": "stop",
-        "Status": "Success",
-        "Message": "VM deallocated successfully."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: azdownvm_885b10b2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "azdownvm_af5a1d4a",
         "Action": "stop",
-        "Status": "Success",
-        "Message": "VM deallocated successfully."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: azdownvm_af5a1d4a in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmtest",
         "Action": "stop",
-        "Status": "Success",
-        "Message": "VM deallocated successfully."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: vmtest in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmencrypted1",
         "Action": "stop",
-        "Status": "Success",
-        "Message": "VM deallocated successfully."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmwithhibernationmode",
-        "Action": "stop",
-        "Status": "Success",
-        "Message": "VM deallocated successfully."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: vmencrypted1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vm-forcedetachdemo1-1",
         "Action": "stop",
-        "Status": "Failed",
-        "Message": "Failed to deallocate VM: (BadRequest) Availability zone must not be changed on existing resource 'vm-forcedetachdemo1-1_OsDisk_1_6949d21282454a37b4387743c3fd6343'. Existing zone '', new zone '1'..  Target: 'VM: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-1', disk: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-1_OsDisk_1_6949d21282454a37b4387743c3fd6343''.\nCode: BadRequest\nMessage: Availability zone must not be changed on existing resource 'vm-forcedetachdemo1-1_OsDisk_1_6949d21282454a37b4387743c3fd6343'. Existing zone '', new zone '1'..  Target: 'VM: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-1', disk: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-1_OsDisk_1_6949d21282454a37b4387743c3fd6343''."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: vm-forcedetachdemo1-1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vm-forcedetachdemo1-2",
         "Action": "stop",
-        "Status": "Failed",
-        "Message": "Failed to deallocate VM: (BadRequest) Availability zone must not be changed on existing resource 'vm-forcedetachdemo1-2_OsDisk_1_128de3256d144260b5b4894b0ee0756b'. Existing zone '', new zone '2'..  Target: 'VM: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-2', disk: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-2_OsDisk_1_128de3256d144260b5b4894b0ee0756b''.\nCode: BadRequest\nMessage: Availability zone must not be changed on existing resource 'vm-forcedetachdemo1-2_OsDisk_1_128de3256d144260b5b4894b0ee0756b'. Existing zone '', new zone '2'..  Target: 'VM: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-2', disk: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-2_OsDisk_1_128de3256d144260b5b4894b0ee0756b''."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: vm-forcedetachdemo1-2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vm-forcedetachdemo1-3",
         "Action": "stop",
-        "Status": "Failed",
-        "Message": "Failed to deallocate VM: (BadRequest) Availability zone must not be changed on existing resource 'vm-forcedetachdemo1-3_OsDisk_1_2f86c1fb4868417891d91251ff99ca2d'. Existing zone '', new zone '3'..  Target: 'VM: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-3', disk: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-3_OsDisk_1_2f86c1fb4868417891d91251ff99ca2d''.\nCode: BadRequest\nMessage: Availability zone must not be changed on existing resource 'vm-forcedetachdemo1-3_OsDisk_1_2f86c1fb4868417891d91251ff99ca2d'. Existing zone '', new zone '3'..  Target: 'VM: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/virtualMachines/vm-forcedetachdemo1-3', disk: '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/RG-TUBDEMOS/providers/Microsoft.Compute/disks/vm-forcedetachdemo1-3_OsDisk_1_2f86c1fb4868417891d91251ff99ca2d''."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: vm-forcedetachdemo1-3 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmacoademospot",
         "Action": "stop",
-        "Status": "Success",
-        "Message": "VM deallocated successfully."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "aodemo-unattacheddisk",
-        "Action": "delete",
-        "Status": "Success",
-        "Message": "Disk deleted successfully."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "ao-unattachedpip",
-        "Action": "delete",
-        "Status": "Success",
-        "Message": "Public IP deleted successfully."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "rg-aodemo",
-        "Action": "delete",
-        "Status": "Success",
-        "Message": "Resource group deleted successfully."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: vmacoademospot in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "dbstorage6xgnebmgwml4c",
         "Action": "update_sku",
-        "Status": "Failed",
-        "Message": "Failed to update storage account SKU: (DenyAssignmentAuthorizationFailed) The client '8521b8d1-8fb5-438e-8647-ded7f91b421a' with object id '8521b8d1-8fb5-438e-8647-ded7f91b421a' has permission to perform action 'Microsoft.Storage/storageAccounts/write' on scope '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Storage/storageAccounts/dbstorage6xgnebmgwml4c'; however, the access is denied because of the deny assignment with name 'System deny assignment created by Azure Databricks /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/databricksdemo/providers/Microsoft.Databricks/workspaces/ecbdemodb' and Id '18f137425d8743d0b975241fec367e2d' at scope '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo'.\nCode: DenyAssignmentAuthorizationFailed\nMessage: The client '8521b8d1-8fb5-438e-8647-ded7f91b421a' with object id '8521b8d1-8fb5-438e-8647-ded7f91b421a' has permission to perform action 'Microsoft.Storage/storageAccounts/write' on scope '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo/providers/Microsoft.Storage/storageAccounts/dbstorage6xgnebmgwml4c'; however, the access is denied because of the deny assignment with name 'System deny assignment created by Azure Databricks /subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/databricksdemo/providers/Microsoft.Databricks/workspaces/ecbdemodb' and Id '18f137425d8743d0b975241fec367e2d' at scope '/subscriptions/38c26c07-ccce-4839-b504-cddac8e5b09d/resourceGroups/rg-manageddatabricksdemo'."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: update_sku on Resource: dbstorage6xgnebmgwml4c in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
@@ -115,156 +94,72 @@
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "VM-LINUX-01_OsDisk_1_765c8e478e9148afa4ba3d2dc370d52e",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk VM-LINUX-01_OsDisk_1_765c8e478e9148afa4ba3d2dc370d52e is already Standard_LRS"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "VM-LINUX-01",
         "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Disk downgrades processed."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "azdownvm_885b10b2_OsDisk_1_e372f9e866374bbc92ea2426bb0298ba",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk azdownvm_885b10b2_OsDisk_1_e372f9e866374bbc92ea2426bb0298ba is already Standard_LRS"
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: VM-LINUX-01 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "azdownvm_885b10b2",
         "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Disk downgrades processed."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "azdownvm_af5a1d4a_OsDisk_1_3aeddb5edee647a0ad083481d9d7bd26",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk azdownvm_af5a1d4a_OsDisk_1_3aeddb5edee647a0ad083481d9d7bd26 is already Standard_LRS"
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: azdownvm_885b10b2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "azdownvm_af5a1d4a",
         "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Disk downgrades processed."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmtest_OsDisk_1_40d66a908bdf4a84b14b88818a2d87ef",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk vmtest_OsDisk_1_40d66a908bdf4a84b14b88818a2d87ef is already Standard_LRS"
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: azdownvm_af5a1d4a in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmtest",
         "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Disk downgrades processed."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmencrypted1_OsDisk_1_1efe14002f2746539ccdbd04301ba7d7",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk vmencrypted1_OsDisk_1_1efe14002f2746539ccdbd04301ba7d7 is already Standard_LRS"
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: vmtest in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmencrypted1",
         "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Disk downgrades processed."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmwithhibernationmode_OsDisk_1_80889764746a4f4ebbf127a1fb7f6645",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk vmwithhibernationmode_OsDisk_1_80889764746a4f4ebbf127a1fb7f6645 is already Standard_LRS"
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: vmencrypted1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmwithhibernationmode",
         "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Disk downgrades processed."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vm-forcedetachdemo1-1_OsDisk_1_6949d21282454a37b4387743c3fd6343",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk vm-forcedetachdemo1-1_OsDisk_1_6949d21282454a37b4387743c3fd6343 is already Standard_LRS"
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: vmwithhibernationmode in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vm-forcedetachdemo1-1",
         "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Disk downgrades processed."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vm-forcedetachdemo1-2_OsDisk_1_128de3256d144260b5b4894b0ee0756b",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk vm-forcedetachdemo1-2_OsDisk_1_128de3256d144260b5b4894b0ee0756b is already Standard_LRS"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "zrsdisk",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk zrsdisk is already Standard_LRS"
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: vm-forcedetachdemo1-1 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vm-forcedetachdemo1-2",
         "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Disk downgrades processed."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vm-forcedetachdemo1-3_OsDisk_1_2f86c1fb4868417891d91251ff99ca2d",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk vm-forcedetachdemo1-3_OsDisk_1_2f86c1fb4868417891d91251ff99ca2d is already Standard_LRS"
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: vm-forcedetachdemo1-2 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vm-forcedetachdemo1-3",
         "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Disk downgrades processed."
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "vmacoademospot_OsDisk_1_9e7ee62ab5b34feaa27acac45990376c",
-        "Action": "downgrade_disks",
-        "Status": "No Action",
-        "Message": "Disk vmacoademospot_OsDisk_1_9e7ee62ab5b34feaa27acac45990376c is already Standard_LRS"
-    },
-    {
-        "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-        "Resource": "osdisk",
-        "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Successfully downgraded disk osdisk to Standard_LRS"
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: vm-forcedetachdemo1-3 in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     },
     {
         "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
         "Resource": "vmacoademospot",
         "Action": "downgrade_disks",
-        "Status": "Success",
-        "Message": "Disk downgrades processed."
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: downgrade_disks on Resource: vmacoademospot in Subscription: 38c26c07-ccce-4839-b504-cddac8e5b09d"
     }
 ]

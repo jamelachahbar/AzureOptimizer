@@ -31,7 +31,7 @@ interface Recommendation {
   problem?: string;
   solution?: string;
   annualSavingsAmount?: string;
-
+  resource_id?: string;
 }
 
 const LLMInteraction_FinopsHubs: React.FC = () => {
@@ -85,7 +85,9 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
               generated_date: rec.TimeGenerated || 'N/A',
               fit_score: rec.FitScore_s || 'N/A',
               savingsAmount: rec.savingsAmount || 'N/A',
-              annualSavingsAmount: rec.annualSavingsAmount || 'N/A'
+              annualSavingsAmount: rec.annualSavingsAmount || 'N/A',
+              resource_id: rec.resource_id || 'N/A',
+
               
             };
           } else if (rec.source === 'SQL DB') {
@@ -95,6 +97,8 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
               impact: rec.impact || 'Unknown',  // Properly map the impact field
               problem: rec.short_description?.problem || 'No problem description available',
               solution: rec.action || 'No solution available',
+              resource_id: rec.resource_id || 'N/A',
+
             };
           } else if (rec.source === 'Azure API') {
             return {
@@ -103,6 +107,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
               impact: rec.extended_properties?.impact || rec.impact || 'Unknown',  // Ensure correct impact mapping for Azure API
               problem: rec.short_description?.problem || 'No problem description available',
               solution: rec.extended_properties?.solution || 'No solution available',
+              resource_id: rec.resource_id || 'N/A',
             };
           } else {
             return rec;  // Fallback in case a new source is added later
@@ -295,6 +300,9 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
         <Typography variant="body2">
           <strong>Annual Savings Amount:</strong> {rec.annualSavingsAmount || 'N/A'}
         </Typography>
+        <Typography variant="body2">
+          <strong>Resource ID:</strong> {rec.resource_id || 'N/A'}
+        </Typography>
       </Box>
     );
   };
@@ -346,7 +354,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
                 .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
               )) ||
           (rec.source === 'Log Analytics' && 
-              [rec.problem, rec.solution, rec.Instance, rec.generated_date, rec.fit_score, rec.savingsAmount, rec.annualSavingsAmount]
+              [rec.problem, rec.solution, rec.Instance, rec.generated_date, rec.fit_score, rec.savingsAmount, rec.annualSavingsAmount, rec.resource_id]
                 .filter(Boolean)
                 .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
               ))
