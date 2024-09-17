@@ -2,10 +2,6 @@
 [
     {
         "model": "",
-        "api_key": ""
-    },
-    {
-        "model": "",
         "api_key": "",
         "base_url": "",
         "api_type": "azure",
