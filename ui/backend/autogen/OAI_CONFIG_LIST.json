@@ -1,0 +1,13 @@
+[
+    {
+        "model": "gpt-4o",
+        "api_key": "95eb99bf82f746029ddc0547169b790e"
+    },
+    {
+        "model": "gpt-4o",
+        "api_key": "95eb99bf82f746029ddc0547169b790e",
+        "base_url": "https://openai-virtual-dev.openai.azure.com/",
+        "api_type": "azure",
+        "api_version": "2024-02-15-preview"
+    }
+]
