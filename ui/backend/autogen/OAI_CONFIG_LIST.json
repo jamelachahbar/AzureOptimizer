@@ -1,0 +1,13 @@
+[
+    {
+        "model": "",
+        "api_key": ""
+    },
+    {
+        "model": "gpt-4o",
+        "api_key": "0baa3732307344248c83ebbcc10f0169",
+        "base_url": "https://oaioaipoc.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2023-03-15-preview",
+        "api_type": "azure",
+        "api_version": "2024-02-15-preview"
+    }
+]

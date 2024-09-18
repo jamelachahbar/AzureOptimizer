@@ -9,7 +9,7 @@ __pycache__/
 venv
 # Logs
 *.log
-
+autogenenv
 # Azure Functions
 .local.settings.json
 
