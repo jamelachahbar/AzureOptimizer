@@ -3,13 +3,12 @@ from azure.identity import DefaultAzureCredential
 from azure.mgmt.resourcegraph import ResourceGraphClient
 from azure.mgmt.resourcegraph.models import QueryRequest
 
-def run_kusto_query(query, subscription_id):
+def run_kusto_query(query):
     """
     Executes a Kusto query against the Azure Resource Graph for a given subscription.
     
     Parameters:
     - query (str): The Kusto query to execute.
-    - subscription_id (str): The Azure subscription ID.
 
     Returns:
     - The result of the Kusto query as a list of resources.
@@ -22,7 +21,6 @@ def run_kusto_query(query, subscription_id):
 
     # Define the query request
     request = QueryRequest(
-        subscriptions=[subscription_id],
         query=query
     )
 

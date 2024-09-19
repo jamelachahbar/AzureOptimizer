@@ -18,7 +18,7 @@ SOLUTION: {solution}
 RESOURCE_ID: {resource_id}
 Analyze and provide the best advice possible.
 Analyze the environment first and output a summary of the environment (output of important resource information from Azure). Also provide the actual cost of the resources in the environment.
-The final output should be a summary of the environment, the cost of the resources and the best advice possible. If you don't get the cost, make an estimate based on retail price, the resource properties from Azure and give the annual potential saving amount if the problem is fixed.
+The final output should be a summary of the environment, the cost of the resources and the best advice possible. If you don't get the cost, make an estimate based on retail price, the resource properties from Azure and give the annual potential saving amount if the problem is fixed. Do not fix the issue.
 """
 prompt3 = """
 Given the following Azure Cost Recommendation:
