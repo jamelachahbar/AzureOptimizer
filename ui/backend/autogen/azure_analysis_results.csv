@@ -1,0 +1,5 @@
+Type,Name,ResourceGroup,Location,SizeOrCPUUtilization,Tier,Recommendation
+Disk,unattacheddisk-1,rg-mgmt,swedencentral,1024 GB,Premium,Consider deleting to save costs
+Disk,unattacheddisk-2,rg-mgmt,swedencentral,1024 GB,Premium,Consider deleting to save costs
+VM,vm-1,rg-dev,,2.5% CPU,,Consider scaling down or deallocating
+VM,vm-2,rg-prod,,4.0% CPU,,Consider scaling down or deallocating
