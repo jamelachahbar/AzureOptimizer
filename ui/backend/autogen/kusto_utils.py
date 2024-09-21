@@ -1,30 +1,31 @@
-# kusto_utils.py
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.resourcegraph import ResourceGraphClient
 from azure.mgmt.resourcegraph.models import QueryRequest
 
-def run_kusto_query(query):
+@user_proxy.register_for_execution()
+@coder.register_for_llm()
+def run_kusto_query(query, subscriptions):
     """
-    Executes a Kusto query against the Azure Resource Graph for a given subscription.
-    
-    Parameters:
-    - query (str): The Kusto query to execute.
+    Executes a Kusto Query Language (KQL) query using Azure Resource Graph.
+
+    Args:
+        query (str): The KQL query to run.
+        subscriptions (list): List of subscription IDs to query.
 
     Returns:
-    - The result of the Kusto query as a list of resources.
+        dict: The response from Azure Resource Graph.
     """
-    # Authenticate using the DefaultAzureCredential
     credential = DefaultAzureCredential()
+    resourcegraph_client = ResourceGraphClient(credential)
 
-    # Initialize the Azure Resource Graph client
-    client = ResourceGraphClient(credential)
-
-    # Define the query request
-    request = QueryRequest(
-        query=query
+    # Create the query request object
+    query_request = QueryRequest(
+        query=query,
+        subscriptions=subscriptions
     )
 
-    # Execute the query and return the result
-    response = client.resources(request)
+    # Execute the query
+    query_response = resourcegraph_client.resources(query_request)
 
-    return response.data
+    # Return the query result data
+    return query_response.data

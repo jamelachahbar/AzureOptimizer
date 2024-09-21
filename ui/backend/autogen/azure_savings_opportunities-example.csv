@@ -1,0 +1,25 @@
+Resource Name,Type,Current Cost,Estimated Savings,Recommendation
+aoejmlsa,Storage Account,150,50,Move to lower-cost tier
+finopshubfjeq2enxw6anc,Storage Account,150,50,Move to lower-cost tier
+hacktest07,Storage Account,150,50,Move to lower-cost tier
+ssawafjml001,Storage Account,150,50,Move to lower-cost tier
+stgacctjmlaoetest,Storage Account,150,50,Move to lower-cost tier
+myVM0_OsDisk_1_3b125947f0494013b4f6ed1897127f3f,Disk,200,75,Deallocate unattached disks
+myVM1_OsDisk_1_c7ee9cde79704afbb0cc5a076c20e2cb,Disk,200,75,Deallocate unattached disks
+unattacheddisk-1,Disk,200,75,Deallocate unattached disks
+unattacheddisk-2,Disk,200,75,Deallocate unattached disks
+AZFW-Management-PIP,Public IP Address,80,50,Release unused IP addresses
+AZFW-PIP,Public IP Address,80,50,Release unused IP addresses
+bastion-pip,Public IP Address,80,50,Release unused IP addresses
+myPublicIP,Public IP Address,80,50,Release unused IP addresses
+finops-hub-engine-fjeq2enxw6anc_triggerManager,Managed Identity,50,20,Remove inactive managed identities
+finopshubfjeq2enxw6anc-adxManager,Managed Identity,50,20,Remove inactive managed identities
+finopshubfjeq2enxw6anc_blobManager,Managed Identity,50,20,Remove inactive managed identities
+fjeq2enxw6anc_cleanup,Managed Identity,50,20,Remove inactive managed identities
+id-lzj-tst-uksouth-apply-001,Managed Identity,50,20,Remove inactive managed identities
+id-lzj-tst-uksouth-plan-001,Managed Identity,50,20,Remove inactive managed identities
+CleanUp-OlderRecommendationsFromSqlServer,Automation Runbook,300,100,Clean-up unnecessary runbooks
+Export-AADObjectsToBlobStorage,Automation Runbook,300,100,Clean-up unnecessary runbooks
+Export-ARGAppGatewayPropertiesToBlobStorage,Automation Runbook,300,100,Clean-up unnecessary runbooks
+Export-ARGAppServicePlanPropertiesToBlobStorage,Automation Runbook,300,100,Clean-up unnecessary runbooks
+Export-ARGAvailabilitySetPropertiesToBlobStorage,Automation Runbook,300,100,Clean-up unnecessary runbooks

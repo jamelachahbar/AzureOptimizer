@@ -1,0 +1,14 @@
+Name,ResourceGroup,Location,Recommendation
+aoejmlsa,aoejml-rg,uksouth,Consider reviewing access patterns and deleting if not used.
+finopshubfjeq2enxw6anc,rg-finopshubs-0.5,westeurope,Consider reviewing access patterns and deleting if not used.
+hacktest07,rg-mgmt,swedencentral,Consider reviewing access patterns and deleting if not used.
+ssawafjml001,rg-avmdemos,uksouth,Consider reviewing access patterns and deleting if not used.
+stgacctjmlaoetest,aoetestresources,uksouth,Consider reviewing access patterns and deleting if not used.
+stgarchivecostdata,rg-mgmt,germanywestcentral,Consider reviewing access patterns and deleting if not used.
+stolzjtstuks001cmaa,rg-lzj-tst-state-uksouth-001,uksouth,Consider reviewing access patterns and deleting if not used.
+unattacheddisk-1,rg-mgmt,swedencentral,Consider deleting to save cost.
+unattacheddisk-2,rg-mgmt,swedencentral,Consider deleting to save cost.
+AZFW-Management-PIP,eslz-hub,centralus,Consider deleting to avoid unnecessary charges.
+AZFW-PIP,eslz-hub,centralus,Consider deleting to avoid unnecessary charges.
+bastion-pip,eslz-hub,centralus,Consider deleting to avoid unnecessary charges.
+myPublicIP,aoetestresources,uksouth,Consider deleting to avoid unnecessary charges.

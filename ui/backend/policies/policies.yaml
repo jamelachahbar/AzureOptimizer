@@ -3,7 +3,7 @@ policies:
   - type: stop
   description: Stop VMs that have not been used in the last x days and have an average
     CPU below the set threshold, and have a specific tag(optional)
-  enabled: true
+  enabled: false
   filters:
   - days: 30
     threshold: 10
@@ -21,7 +21,7 @@ policies:
 - actions:
   - type: delete
   description: Delete unattached public IPs
-  enabled: true
+  enabled: false
   filters:
   - type: unattached
   name: delete-unattached-public-ips
@@ -30,7 +30,7 @@ policies:
   - type: delete
   description: Delete all resources in a resource group if the group contains the
     tag kill:dev
-  enabled: true
+  enabled: false
   exclusions:
   - key: exclude
     type: tag
@@ -45,7 +45,7 @@ policies:
   - sku: Standard_LRS
     type: update_sku
   description: Update Storage Account SKU to Standard_LRS for specific SKUs and tags
-  enabled: true
+  enabled: false
   filters:
   - type: sku
     values:
@@ -57,7 +57,7 @@ policies:
   resource: azure.storage
 - actions:
   - type: delete
-  enabled: true
+  enabled: false
   filters:
   - key: Environment
     type: tag
@@ -83,7 +83,7 @@ policies:
       peak_dtu: 1000
     type: scale_dtu
   description: Scale SQL databases during off-peak hours
-  enabled: true
+  enabled: false
   filters:
   - key: environment
     type: tag
@@ -92,7 +92,7 @@ policies:
   resource: azure.sql
 - actions:
   - type: delete
-  enabled: true
+  enabled: false
   exclusions: []
   filters:
   - type: unattached
@@ -100,7 +100,7 @@ policies:
   resource: azure.nic
 - actions:
   - type: downgrade_disks
-  enabled: true
+  enabled: false
   filters:
   - type: stopped
   name: downgrade-disks-of-stopped-vms

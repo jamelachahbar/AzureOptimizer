@@ -15,3 +15,8 @@ autogenenv
 
 node_modules/
 WasteReport.xlsx
+
+.cache
+autogenvenv
+autogenvenvwsl/
+OAI_CONFIG_LIST.json
