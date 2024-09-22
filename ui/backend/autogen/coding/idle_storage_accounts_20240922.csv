@@ -1,0 +1,5 @@
+Name,ResourceGroup,LastAccessTime,SubscriptionId,Recommendation
+aoejmlsa,aoejml-rg,2024-09-14T10:01:00.225698,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deleting or reviewing for cost savings
+hacktest07,rg-mgmt,2024-09-12T10:01:00.225900,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deleting or reviewing for cost savings
+stgacctjmlaoetest,aoetestresources,2024-09-07T10:01:00.225917,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deleting or reviewing for cost savings
+stgarchivecostdata,rg-mgmt,2024-09-02T10:01:00.225926,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deleting or reviewing for cost savings

@@ -2,29 +2,34 @@ from typing import Literal
 import logging
 import autogen
 from typing_extensions import Annotated
-from auto_gen_assistant import AutoGenAssistant
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.resourcegraph import ResourceGraphClient
 from azure.mgmt.resourcegraph.models import QueryRequest
 from pydantic import BaseModel
 from typing import List, Dict  # Add the correct import for List and Dict
-from datetime import timedelta
+from datetime import datetime, timedelta
+import pytz
 import csv
 import azure.monitor.query
+from azure.monitor.query import LogsQueryClient
 print(azure.monitor.query.__version__)
 from autogen import register_function
-
+from azure.identity import AzureCliCredential
+ 
 # Load configuration from JSON
 config_list = autogen.config_list_from_json("./OAI_CONFIG_LIST.json")
 llm_config = {
     "config_list": config_list, 
-    "cache_seed": 42,
+    "cache_seed": 30,
     "timeout": 30
-                }
+}
 
 subscription_id = "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1"
-threshold = 5
-days = 30
+threshold = 3
+days = 7
+
+# Define the prompt
+
 # Define the prompt
 # prompt =f"""
 #     Please analyze my Azure environment and find all unattached disks and vm's that have a CPU threshold below {threshold}% for the last {days} days in my Azure subscription id:{subscription_id} and output 
@@ -33,10 +38,18 @@ days = 30
 
 
 # Define the prompt for storage account -> working
-# prompt =f"""
-#     Please analyze my Azure environment and find all idle storage accounts since last {days} days in my Azure subscription id:{subscription_id} and output 
-#     the results in a table format and save the results to a csv file. Provide advice on what to do with this information and output it along with the results in the csv file.
-#     """
+prompt =f"""
+    Please analyze my Azure environment and find all idle storage accounts since last {days} days in my Azure subscription id:{subscription_id} and output 
+    the results in a table format and save the results to a csv file. Provide advice on what to do with this information and output it along with the results in the csv file.
+    1. First create a plan
+    2. The plan should first get a list of all storage accounts in the subscription, then check the last access time of each storage account.
+    3. If the storage account has not been accessed in the last {days} days, mark it as idle.
+    4. Output the list of idle storage accounts in a table format.
+    5. Save the results to a csv file.
+    6. Provide advice on what to do with this information and output it along with the results in the csv file.
+    7. Make sure you mention the storage account name, resource group, last access time, subscription id and the recommendation.
+
+    """
 
 # Define the prompt for storage account and unutilized resources like disks, public ip's and network interfaces
 # prompt =f"""
@@ -44,30 +57,32 @@ days = 30
 #     the results in a table format and save the results to a csv file. 
 #     Provide advise on what to do with this information, output it along with the results in the csv file.
 #     """
-prompt =f"""
-    You are a FinOps Expert Team and Azure Guru with 10 years experience.
-    Please analyze my Azure environment based on status and usage using platform metrics and find top 5 savings opportunities and the resources related to this in my subscription id:{subscription_id} and output
-    the results in a table format and save the results to a csv file. 
-    Provide advise on what to do with this information, output it along with the results in the csv file."""
+# prompt =f"""
+#     You are a FinOps Expert Team and Azure Guru with 10 years experience.
+#     Please analyze my Azure environment based on status and usage using platform metrics from last {days} days and find top 5 savings opportunities and the resources related to this in my subscription id:{subscription_id} and output
+#     the results in a table format and save the results to a csv file. 
+#     Provide advise on what to do with this information, output it along with the results in the csv file.
+#     Make sure you mention the resource type, resource name, resourcegroup, additional properties, subscriptionid and the recommendation."""
+
+# prompt = f"""
+#     You are a FinOps Expert Team and Azure Gurus with 10 years experience.
+#     Please analyze my Azure environment based on status and usage using platform metrics and find top 5 savings opportunities and the resources related to this in my subscription id:{subscription_id} and output
+#     the results in a table format and save the results to a csv file. 
+#     Provide advice on what to do with this information, output it along with the results in the csv file.
+# """
+
 # Initialize the Planner
 planner = autogen.AssistantAgent(
-            name="Planner",
-            system_message="""You are a helpful AI Assistant. You are the planner of this team of assistants. You plan the tasks and make sure everything is on track.
-            Suggest a plan. Revise the plan if needed.""",
-            llm_config=llm_config
-        )
-def ask_planner( message):
-        """A placeholder ask_planner method for testing."""
-        logging.info(f"Planner received the following message: {message}")
-        return f"Planner response to: {message}"
+    name="Planner",
+    system_message="""You are a helpful AI Assistant. You are the planner of this team of assistants. You plan the tasks and make sure everything is on track.
+    Suggest a plan. Revise the plan if needed.""",
+    llm_config=llm_config
+)
 
-
-
-
-            # code_execution_config={
-            #     "work_dir": "coding",
-            #     "use_docker": "python:3.11"
-            # },
+def ask_planner(message):
+    """A placeholder ask_planner method for testing."""
+    logging.info(f"Planner received the following message: {message}")
+    return f"Planner response to: {message}"
 
 # Create UserProxyAgent
 user_proxy = autogen.UserProxyAgent(
@@ -79,16 +94,16 @@ user_proxy = autogen.UserProxyAgent(
     max_consecutive_auto_reply=10,
     code_execution_config=
     {
-            "work_dir": "coding",
-            "use_docker": "python:3.10"
-            }
-    )
+        "work_dir": "coding",
+        "use_docker": "python:3.10"
+    }
+)
 
 # Create an AssistantAgent for coding with external KQL handling
 coder = autogen.AssistantAgent(
     name="Code_Guru",
     system_message="""You are a helpful AI Assistant. You are a highly experienced programmer specialized in Azure. 
-    Follow the approved plan and save the code to disk. 
+    Follow the approved plan and save the code to disk. Always use functions you have access to and start with run_kusto_query
     When using code, you must indicate the script type in the code block. 
     The user cannot provide any other feedback or perform any other action beyond executing the code you suggest. 
     The user can't change your code. 
@@ -101,136 +116,170 @@ coder = autogen.AssistantAgent(
     When you find an answer, verify the answer carefully. Include verifiable evidence in your response 
     if possible.
     Reply "TERMINATE" in the end when everything is done""", 
-    description="I'm a highly exmperienced programmer specialized in Azure, bash, linux and azure cli. I am **ONLY** allowed to speak **immediately** after `Planner`.",
+    description="I'm a highly experienced programmer specialized in Python, bash. I am **ONLY** allowed to speak **immediately** after `Planner`.",
     llm_config={
         "cache_seed": 0,  # Seed for caching and reproducibility was 42
         "config_list": config_list,  # List of OpenAI API configurations
         "temperature": 0  # Temperature for sampling
     },
     human_input_mode="NEVER"
-    # function_map={"run_kusto_query": run_kusto_query}
 )
 
 critic = autogen.AssistantAgent(
     name="Critic",
-    system_message="""Critic. You are a helpful assistant highly skilled in evaluating the quality of a given code by providing a score from 1 (bad) - 10 (good) while providing clear rationale. YOU MUST CONSIDER VISUALIZATION BEST PRACTICES for each evaluation. Specifically, you can carefully evaluate the code across the following dimensions
+    system_message="""Critic. You are a helpful assistant highly skilled in evaluating the quality of a given code by providing a score from 1 (bad) - 10 (good) while providing clear rationale. YOU MUST CONSIDER VISUALIZATION BEST PRACTICES for each evaluation. Specifically, you can carefully evaluate the code across the following dimensions:
 - bugs (bugs):  are there bugs, logic errors, syntax error or typos? Are there any reasons why the code may fail to compile? How should it be fixed? If ANY bug exists, the bug score MUST be less than 5.
-- Data transformation (transformation): Is the data transformed appropriately for the  type? E.g., is the dataset appropriated filtered, aggregated, or grouped  if needed? If a date field is used, is the date field first converted to a date object etc?
-- Goal compliance (compliance): how well the code meets the specified  goals?
-- Visualization type (type): CONSIDERING BEST PRACTICES, is the  type appropriate for the data and intent? Is there a type that would be more effective in conveying insights? If a different type is more appropriate, the score MUST BE LESS THAN 5.
-- Data encoding (encoding): Is the data encoded appropriately for the  type?
-- aesthetics (aesthetics): Are the aesthetics of the appropriate for the type and the data?
+- Data transformation (transformation): Is the data transformed appropriately for the type? E.g., is the dataset appropriated filtered, aggregated, or grouped if needed? If a date field is used, is the date field first converted to a date object etc?
+- Goal compliance (compliance): how well the code meets the specified goals?
+- Visualization type (type): CONSIDERING BEST PRACTICES, is the type appropriate for the data and intent? Is there a type that would be more effective in conveying insights? If a different type is more appropriate, the score MUST BE LESS THAN 5.
+- Data encoding (encoding): Is the data encoded appropriately for the type?
+- Aesthetics (aesthetics): Are the aesthetics of the appropriate for the type and the data?
 
 YOU MUST PROVIDE A SCORE for each of the above dimensions.
 {bugs: 0, transformation: 0, compliance: 0, type: 0, encoding: 0, aesthetics: 0}
 Do not suggest code.
-Finally, based on the critique above, suggest a concrete list of actions that the coder should take to improve the code.
-""",
+Finally, based on the critique above, suggest a concrete list of actions that the coder should take to improve the code.""",
     llm_config=llm_config,
 )
-
-
 
 # Custom Pydantic model to handle query results
 class KustoQueryResult(BaseModel):
     data: List[dict]  # You can customize this to fit the exact structure of your query response
 
-# @user_proxy.register_for_execution()
-# @coder.register_for_llm(description="Kusto Query code creator")
-
-def run_kusto_query(query: str, subscriptions: List[str]) -> List[Dict]:
-    """
-    Executes a Kusto Query Language (KQL) query using Azure Resource Graph.
-
-    Args:
-        query (str): The KQL query to run.
-        subscriptions (list): List of subscription IDs to query.
-
-    Returns:
-        List[Dict]: The response from Azure Resource Graph as a list of dictionaries.
-    """
+# Define Kusto Query Function
+def run_kusto_query(query: Annotated[str, "The KQL query"], subscriptions: Annotated[List[str], "List of subscription IDs"]) -> List[Dict]:
     credential = DefaultAzureCredential()
     resourcegraph_client = ResourceGraphClient(credential)
-
-    # Create the query request object
-    query_request = QueryRequest(
-        query=query,
-        subscriptions=subscriptions
-    )
-
-    # Execute the query
+    
+    query_request = QueryRequest(query=query, subscriptions=subscriptions)
     query_response = resourcegraph_client.resources(query_request)
+    
+    return query_response.data
 
-    # Return the query result as a list of dictionaries
-    return query_response.data  # Already a list of dictionaries
-
-# user_proxy.register_for_execution()(run_kusto_query)
-# coder.register_for_llm(
-#     name="run_kusto_query",
-#     description="This function generates the code to run a Kusto Query Language (KQL) query using Azure Resource Graph.",
-# )(run_kusto_query)
-
-# Register the function to the two agents.
+# Register Kusto Query Function
 register_function(
     run_kusto_query,
-    caller=coder,  # The assistant agent can suggest calls to the kusto_query.
-    executor=user_proxy,  # The user proxy agent can execute the kusto_query calls.
-    name="run_kusto_query",  # By default, the function name is used as the tool name.
+    caller=coder,
+    executor=user_proxy,
+    name="run_kusto_query",
     description="This function generates the code to run a Kusto Query Language (KQL) query using Azure Resource Graph.",
 )
 
-
-
-# @user_proxy.register_for_execution()
-# @coder.register_for_llm(description="save results to csv")
-def save_results_to_csv(results: List[Dict], filename: str = "azure_analysis_results.csv") -> str:
+# Define Log Query Function with Annotations
+def run_log_query(
+    workspace_id: Annotated[str, "The Log Analytics Workspace GUID"],
+    query: Annotated[str, "The KQL query to run on the log data"],
+    days: Annotated[int, "The number of days to query logs for"] = 1,
+    use_cli_credential: bool = False
+) -> List[Dict]:
     """
-    Saves the results to a CSV file and returns a confirmation message.
-    
+    Executes a log query on Azure Monitor Logs for a specified Log Analytics Workspace.
+
     Args:
-        results (List[Dict]): The list of results to save.
-        filename (str): The name of the CSV file.
+        workspace_id (str): The Log Analytics Workspace GUID.
+        query (str): The KQL query to run on the log data.
+        days (int): The number of days to query logs for.
+        use_cli_credential (bool): Whether to use Azure CLI Credential for authentication (default is False).
 
     Returns:
-        str: A confirmation message with the path to the saved file.
+        List[Dict]: The logs data as a list of dictionaries or an empty list in case of an error.
     """
+    # Choose the credential type based on the input parameter
+    if use_cli_credential:
+        logging.info("Using Azure CLI Credential for authentication.")
+        credential = AzureCliCredential()  # CLI context
+    else:
+        logging.info("Using Default Azure Credential for authentication.")
+        credential = DefaultAzureCredential()  # Default context for broader use cases
+
+    logs_client = LogsQueryClient(credential)
+    # workspace_id = "608cd3e5-cf6b-4fa0-ac79-b5db5136c18f"  # This should be the Workspace GUID, not the full ARM path
+
+    # Calculate the time range for the query
+    utc = pytz.UTC
+    end_time = utc.localize(datetime.utcnow())
+    start_time = end_time - timedelta(days=days)
+
+    log_data = []
+
+    # Debug: log start and end time
+    logging.info(f"Querying logs from {start_time} to {end_time} in workspace {workspace_id}")
+
+    try:
+        # Execute the log query
+        response = logs_client.query_workspace(
+            workspace_id="608cd3e5-cf6b-4fa0-ac79-b5db5136c18f",
+            query=query,
+            timespan=(start_time, end_time)
+        )
+
+        # Check for empty response
+        if not response.tables:
+            logging.warning("No tables found in the response.")
+            return []
+
+        # Process the response
+        for table in response.tables:
+            for row in table.rows:
+                log_data.append({col.name: val for col, val in zip(table.columns, row)})
+
+        logging.info(f"Successfully retrieved {len(log_data)} rows of data.")
+        return log_data
+
+    except Exception as e:
+        # Improved error handling with logging
+        logging.error(f"Error querying logs: {str(e)}", exc_info=True)
+        return []
+# Register Log Query Function
+register_function(
+    run_log_query,
+    caller=coder,
+    executor=user_proxy,
+    name="run_log_query",
+    description="This function executes a log query using Azure Monitor Logs.",
+)
+
+# Define the function to save results to CSV
+# Define the function to save results to CSV
+def save_results_to_csv(results: List[Dict], filename: str = "azure_analysis_results.csv") -> str:
+    if not results:
+        return "No results to save."
+
+    # Extract keys from the first result to use as column headers
     keys = results[0].keys() if results else []
     
+    # Save results to a CSV file
     with open(filename, mode='w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=keys)
         writer.writeheader()
         writer.writerows(results)
     
-    # Return a confirmation message
     return f"Results successfully saved to {filename}"
 
-speaker_list = ["Planner", "Code_Guru", "Critic", "User_Proxy"]
-
-groupchat = autogen.GroupChat(
-            agents=[planner, coder, critic, user_proxy ], 
-            messages=[],  # Start with no messages
-            max_round=40,
-            speaker_selection_method="round_robin",
-            select_speaker_prompt_template="Please select the next speaker from the list: {speaker_list}",
-        )
-
-# Register the function to the two agents.,
-
+# Register Save to CSV Function
 register_function(
     save_results_to_csv,
-    caller=coder,  # The assistant agent can suggest calls to the kusto_query.
-    executor=user_proxy,  # The user proxy agent can execute the kusto_query calls.
-    name="save_results_to_csv",  # By default, the function name is used as the tool name.
-    description="A tool to save results to csv",  # A description of the tool.
+    caller=coder,
+    executor=user_proxy,
+    name="save_results_to_csv",
+    description="A tool to save results to CSV.",
 )
 
+# Initialize GroupChat
+groupchat = autogen.GroupChat(
+    agents=[planner, coder, critic, user_proxy], 
+    messages=[],  # Start with no messages
+    max_round=50,
+    speaker_selection_method="round_robin",
+    select_speaker_prompt_template="Please select the next speaker from the list: {speaker_list}",
+)
 
+# Initiate chat between the user_proxy and assistant
 manager = autogen.GroupChatManager(groupchat=groupchat, llm_config=llm_config)
 
-# Initiate a chat between the user_proxy and the assistant
+# Initiate chat
 user_proxy.initiate_chat(
-            manager,
-            message=prompt,
-            summary_method="reflection_with_llm"
-
-        )
+    manager,
+    message=prompt,
+    summary_method="reflection_with_llm"
+)

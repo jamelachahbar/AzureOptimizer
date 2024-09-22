@@ -8,12 +8,13 @@ from typing import List, Dict
 # Replace with your workspace GUID
 workspace_id = "608cd3e5-cf6b-4fa0-ac79-b5db5136c18f"  # This should be the Workspace GUID, not the full ARM path
 
-def query_resource_logs(workspace_id: str, days: int = 1) -> List[Dict]:
+def query_resource_logs(workspace_id: str, query: str, days: int = 1) -> List[Dict]:
     """
     Queries Azure Monitor logs for the Log Analytics Workspace.
 
     Args:
         workspace_id (str): The Log Analytics Workspace GUID.
+        query (str): The KQL query to run on the log data.
         days (int): The number of days to query logs for.
 
     Returns:
@@ -31,13 +32,11 @@ def query_resource_logs(workspace_id: str, days: int = 1) -> List[Dict]:
 
     print(f"Start time: {start_time}, End time: {end_time}")
 
-    query = """
-    AzureDiagnostics
-    | limit 10
-    """
+    # Initialize an empty list to store the log data
+    log_data = []
 
     try:
-        # Query Azure Monitor Logs using the workspace GUID
+        # Query Azure Monitor Logs using the workspace GUID and provided query
         print("Running query in workspace...")
         response = logs_client.query_workspace(
             workspace_id=workspace_id,  # Use the Workspace GUID, not the full ARM path
@@ -57,8 +56,7 @@ def query_resource_logs(workspace_id: str, days: int = 1) -> List[Dict]:
             if table.rows:
                 print(f"Table found with {len(table.rows)} rows.")
                 for row in table.rows:
-                    print(f"Row: {row}")  # Print the row data
-                    # Try to process the rows correctly
+                    # Process the row data
                     log_data.append({col.name: val for col, val in zip(table.columns, row)})
 
         if log_data:
@@ -72,8 +70,15 @@ def query_resource_logs(workspace_id: str, days: int = 1) -> List[Dict]:
         logging.error(f"Error querying logs for workspace {workspace_id}: {e}")
         return []
 
-# Test the function
-logs = query_resource_logs(workspace_id, days=1)
+# Example usage of the function with a dynamic query
+# kql_query = """
+# AzureDiagnostics
+# | where TimeGenerated > ago(1d)
+# | limit 10
+# """
+
+# The LLM agent can generate or modify this query dynamically
+logs = query_resource_logs(workspace_id, query=kql_query, days=1)
 
 if logs:
     print("Logs retrieved:")
