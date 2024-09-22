@@ -1,0 +1,11 @@
+resource,type,location,size_gb,state,tier,recommendation
+unattacheddisk-1,Microsoft.Compute/disks,swedencentral,1024,Unattached,P30,Deallocate or delete unattached disk if not needed.
+unattacheddisk-2,Microsoft.Compute/disks,swedencentral,1024,Unattached,P30,Deallocate or delete unattached disk if not needed.
+myVM0,Microsoft.Compute/virtualMachines,uksouth,,Running,,Review utilization. Consider resizing to a smaller instance if underutilized.
+myVM1,Microsoft.Compute/virtualMachines,uksouth,,Running,,Review utilization. Consider resizing to a smaller instance if underutilized.
+myPublicIP,Microsoft.Network/publicIPAddresses,uksouth,,,,Validate if the IP is still required. Remove if not in use.
+AZFW-Management-PIP,Microsoft.Network/publicIPAddresses,centralus,,,,Validate if the IP is still required. Remove if not in use.
+AZFW-PIP,Microsoft.Network/publicIPAddresses,centralus,,,,Validate if the IP is still required. Remove if not in use.
+bastion-pip,Microsoft.Network/publicIPAddresses,centralus,,,,Validate if the IP is still required. Remove if not in use.
+nic0,Microsoft.Network/networkInterfaces,uksouth,,,,No optimization needed for attached NICs if VM is necessary.
+nic1,Microsoft.Network/networkInterfaces,uksouth,,,,No optimization needed for attached NICs if VM is necessary.

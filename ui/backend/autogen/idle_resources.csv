@@ -1,0 +1,11 @@
+Resource Name,Resource Group,Last Activity,Type of Activity,Subscription ID,Recommendation
+myVM0_OsDisk_1_3b125947f0494013b4f6ed1897127f3f,aoetestresources,2023-10-03 00:00:00,idle,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deallocating/deleting if not needed
+myVM1_OsDisk_1_c7ee9cde79704afbb0cc5a076c20e2cb,aoetestresources,2023-10-03 00:00:00,idle,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deallocating/deleting if not needed
+unattacheddisk-1,rg-mgmt,2023-10-03 00:00:00,idle,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deallocating/deleting if not needed
+unattacheddisk-2,rg-mgmt,2023-10-03 00:00:00,idle,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deallocating/deleting if not needed
+nic0,aoetestresources,2023-10-03 00:00:00,idle,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deallocating/deleting if not needed
+nic1,aoetestresources,2023-10-03 00:00:00,idle,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deallocating/deleting if not needed
+myPublicIP,aoetestresources,2023-10-03 00:00:00,idle,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deallocating/deleting if not needed
+AZFW-Management-PIP,eslz-hub,2023-10-03 00:00:00,idle,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deallocating/deleting if not needed
+AZFW-PIP,eslz-hub,2023-10-03 00:00:00,idle,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deallocating/deleting if not needed
+bastion-pip,eslz-hub,2023-10-03 00:00:00,idle,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deallocating/deleting if not needed
