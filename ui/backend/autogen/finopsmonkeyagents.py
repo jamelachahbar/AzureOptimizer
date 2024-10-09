@@ -21,7 +21,7 @@ config_list = autogen.config_list_from_json("./OAI_CONFIG_LIST.json")
 llm_config = {
     "config_list": config_list, 
     "cache_seed": 30,
-    "timeout": 30
+    "timeout": 180
 }
 
 subscription_id = "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1"
@@ -40,22 +40,22 @@ days = 7
 
 # Define the prompt for different types of resources, this prompt gives us good results
 resources = ["Microsoft.Compute/disks", "Microsoft.Compute/virtualMachines", "Microsoft.Network/publicIPAddresses", "Microsoft.Network/networkInterfaces"]
-prompt= f"""
-Please analyze my Azure environment and find opportunities to save money. Give me a shortlist. Look for these types of resources {resources}
-"""
+# prompt= f"""
+# Please analyze my Azure environment and find opportunities to save money. Give me a shortlist. Look for these types of resources {resources}
+# """
 # Define the prompt for storage account -> working
-# prompt =f"""
-#     Please analyze my Azure environment and find all potential saving for these resources: {resources}, and check if possible if they haven't been used or not used much based on usage since last {days} days in my Azure subscription id:{subscription_id} and output 
-#     the results in a table format and save the results to a csv file. Provide advice on what to do with this information and output it along with the results in the csv file.
-#     1. First create a plan
-#     2. The plan should first get a list of all impacted resources: {resources} in the subscription, then check the last usage data.
-#     3. If the impacted resources: {resources} show low to no usage in the last {days} days, mark it as idle. You can leverage logs like activity logs in azure monitor to get this data.
-#     4. Output the list of impacted resources: {resources} in a table format.
-#     5. Save the results to a csv file.
-#     6. Provide advice on what to do with this information and output it along with the results in the csv file.
-#     7. Make sure you mention the impacted resources: {resources} name, resource group, last activity and type of activity depending on the resource, subscription id and the recommendation.
-#     When we talk about activity, for disks it is the unattached state and VM's it's CPU usage below threshold of {threshold}, for public IP's it's the number of connections and for network interfaces it's the number of connections. For storage accounts it's the number of read and write operations and last access time.
-#     """
+prompt =f"""
+    Please analyze my Azure environment and find all potential saving for these resources: {resources}, and check if possible if they haven't been used or not used much based on usage since last {days} days in my Azure subscription id:{subscription_id} and output 
+    the results in a table format and save the results to a csv file. Provide advice on what to do with this information and output it along with the results in the csv file.
+    1. First create a plan
+    2. The plan should first get a list of all impacted resources: {resources} in the subscription, then check the last usage data.
+    3. If the impacted resources: {resources} show low to no usage in the last {days} days, mark it as idle. You can leverage logs like activity logs in azure monitor to get this data.
+    4. Output the list of impacted resources: {resources} in a table format.
+    5. Save the results to a csv file.
+    6. Provide advice on what to do with this information and output it along with the results in the csv file.
+    7. Make sure you mention the impacted resources: {resources} name, resource group, last activity and type of activity depending on the resource, subscription id and the recommendation.
+    When we talk about activity, for disks it is the unattached state and VM's it's CPU usage below threshold of {threshold}, for public IP's it's the number of connections and for network interfaces it's the number of connections. For storage accounts it's the number of read and write operations and last access time.
+    """
 
 # Define the prompt for storage account and unutilized resources like disks, public ip's and network interfaces
 # prompt =f"""

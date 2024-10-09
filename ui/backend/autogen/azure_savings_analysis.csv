@@ -1,0 +1,4 @@
+Resource Name,Resource Group,Type,Subscription ID,Recommendation
+AZFW-Management-PIP,eslz-hub,Public IP,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Review necessity
+myVM0,aoetestresources,Virtual Machine,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Monitor CPU usage
+unattacheddisk-1,rg-mgmt,Disk,e9b4640d-1f1f-45fe-a543-c0ea45ac34c1,Consider deletion

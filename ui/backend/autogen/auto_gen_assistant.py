@@ -58,5 +58,5 @@ class AutoGenAssistant:
         return chat_res
 
 # Example usage:   
-# assistant = AutoGenAssistant()
-# assistant.initiate_chat("What date is today? Compare the year-to-date gain for MICROSOFT and TESLA.")
+assistant = AutoGenAssistant()
+assistant.initiate_chat("What date is today? Compare the year-to-date gain for MICROSOFT and TESLA.")
