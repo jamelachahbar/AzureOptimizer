@@ -323,61 +323,61 @@ def get_cost_recommendations(subscription_ids):
 
 ### Function to get recommendations from SQL database ###
 
-def get_sql_recommendations():
-    conn_str = (
-        "DRIVER={ODBC Driver 18 for SQL Server};"
-        "SERVER=aoejml-sql.database.windows.net,1433;"
-        "DATABASE=azureoptimization;"
-        "UID=azureadmin@aoejml-sql;"
-        "PWD=Achahbar2019;"
-        "Encrypt=yes;"
-        "TrustServerCertificate=no;"
-        "Connection Timeout=30;"
-    )
+# def get_sql_recommendations():
+#     conn_str = (
+#         "DRIVER={ODBC Driver 18 for SQL Server};"
+#         "SERVER=aoejml-sql.database.windows.net,1433;"
+#         "DATABASE=azureoptimization;"
+#         "UID=azureadmin@aoejml-sql;"
+#         "PWD=Achahbar2019;"
+#         "Encrypt=yes;"
+#         "TrustServerCertificate=no;"
+#         "Connection Timeout=30;"
+#     )
 
-    query = """
-    SELECT RecommendationId, Category, Impact, 
-           RecommendationDescription, RecommendationAction, 
-           InstanceName, SubscriptionGuid, AdditionalInfo, 
-           TenantGuid, FitScore, GeneratedDate
-    FROM dbo.Recommendations
-    WHERE Category = 'Cost';
-    """
+#     query = """
+#     SELECT RecommendationId, Category, Impact, 
+#            RecommendationDescription, RecommendationAction, 
+#            InstanceName, SubscriptionGuid, AdditionalInfo, 
+#            TenantGuid, FitScore, GeneratedDate
+#     FROM dbo.Recommendations
+#     WHERE Category = 'Cost';
+#     """
 
-    try:
-        conn = pyodbc.connect(conn_str)
-        cursor = conn.cursor()
-        cursor.execute(query)
+#     try:
+#         conn = pyodbc.connect(conn_str)
+#         cursor = conn.cursor()
+#         cursor.execute(query)
 
-        recommendations = []
-        for row in cursor.fetchall():
-            # Always generate a UUID, even if other IDs are present
-            rec_uuid = str(uuid.uuid4())  
-            recommendations.append({
-                'uuid': rec_uuid,
-                'RecommendationId': row.RecommendationId if row.RecommendationId else rec_uuid,
-                'category': row.Category,
-                'impact': row.Impact if row.Impact else 'Unknown',  # Normalize impact
-                'short_description': {
-                    'problem': row.RecommendationDescription if row.RecommendationDescription else 'No problem description available'
-                },
-                'action': row.RecommendationAction if row.RecommendationAction else 'No action available',
-                'Instance': row.InstanceName,
-                'subscription_id': row.SubscriptionGuid or rec_uuid,
-                'source': 'SQL DB',
-                'additional_info': row.AdditionalInfo,
-                'tenant_id': row.TenantGuid,
-                'fit_score': row.FitScore,
-                'generated_date': row.GeneratedDate,
-                'resource_id': 'N/A'  # Include this in the response, even if not provided by SQL
+#         recommendations = []
+#         for row in cursor.fetchall():
+#             # Always generate a UUID, even if other IDs are present
+#             rec_uuid = str(uuid.uuid4())  
+#             recommendations.append({
+#                 'uuid': rec_uuid,
+#                 'RecommendationId': row.RecommendationId if row.RecommendationId else rec_uuid,
+#                 'category': row.Category,
+#                 'impact': row.Impact if row.Impact else 'Unknown',  # Normalize impact
+#                 'short_description': {
+#                     'problem': row.RecommendationDescription if row.RecommendationDescription else 'No problem description available'
+#                 },
+#                 'action': row.RecommendationAction if row.RecommendationAction else 'No action available',
+#                 'Instance': row.InstanceName,
+#                 'subscription_id': row.SubscriptionGuid or rec_uuid,
+#                 'source': 'SQL DB',
+#                 'additional_info': row.AdditionalInfo,
+#                 'tenant_id': row.TenantGuid,
+#                 'fit_score': row.FitScore,
+#                 'generated_date': row.GeneratedDate,
+#                 'resource_id': 'N/A'  # Include this in the response, even if not provided by SQL
 
-            })
-        conn.close()
-        return recommendations
+#             })
+#         conn.close()
+#         return recommendations
 
-    except Exception as e:
-        logger.error(f"Error fetching recommendations from SQL: {e}")
-        return []
+#     except Exception as e:
+#         logger.error(f"Error fetching recommendations from SQL: {e}")
+#         return []
 
 
 ### API Endpoint to Query Recommendations from Log Analytics ###
@@ -488,32 +488,32 @@ def generate_advice_with_llm(recommendations):
 
     for rec in recommendations:
         # Handling SQL DB Recommendations
-        if rec.get('source') == 'SQL DB':
-            problem = rec.get('short_description', {}).get('problem', 'No description available')
-            solution = rec.get('action', 'No action available')
-            impact = rec.get('impact', 'Unknown')
-            subscription_id = rec.get('subscription_id', 'N/A')
-            instance_name = rec.get('Instance', 'N/A')
+        # if rec.get('source') == 'SQL DB':
+        #     problem = rec.get('short_description', {}).get('problem', 'No description available')
+        #     solution = rec.get('action', 'No action available')
+        #     impact = rec.get('impact', 'Unknown')
+        #     subscription_id = rec.get('subscription_id', 'N/A')
+        #     instance_name = rec.get('Instance', 'N/A')
 
-            # Create prompt for SQL DB recommendations
-            prompt = f"""
-            As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
-            {few_shot_examples}
-            Now, here is the recommendation:
+        #     # Create prompt for SQL DB recommendations
+        #     prompt = f"""
+        #     As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
+        #     {few_shot_examples}
+        #     Now, here is the recommendation:
 
-            - Instance: {instance_name}
-            - Problem: {problem}
-            - Solution: {solution}
-            - Impact: {impact}
-            - Subscription ID: {subscription_id}
-            - Instance Name: {instance_name}
-            - Additional Info: {rec.get('additional_info', 'N/A')}
+        #     - Instance: {instance_name}
+        #     - Problem: {problem}
+        #     - Solution: {solution}
+        #     - Impact: {impact}
+        #     - Subscription ID: {subscription_id}
+        #     - Instance Name: {instance_name}
+        #     - Additional Info: {rec.get('additional_info', 'N/A')}
 
-            Provide a maximum of 3 bullet points for actions to optimize costs + Conclude with a decision based on the information provided.
-            """
+        #     Provide a maximum of 3 bullet points for actions to optimize costs + Conclude with a decision based on the information provided.
+        #     """
         
         # Handling Azure API Recommendations
-        elif rec.get('source') == 'Azure API':
+        if rec.get('source') == 'Azure API':
             problem = rec.get('short_description', {}).get('problem', 'No description available')
             solution = rec.get('short_description', {}).get('solution', 'No solution available')
             impact = rec.get('impact', 'Unknown')
@@ -618,18 +618,18 @@ def review_recommendations_route():
                 logger.error(f"Error fetching Azure Advisor recommendations for subscription {subscription_id}: {e}")
         
         # Fetch recommendations from SQL database
-        sql_recommendations = []
-        try:
-            sql_recommendations = get_sql_recommendations()
-            if not sql_recommendations:
-                logger.warning(f"No recommendations found for SQL subscription: {sql_subscription_id}")
-            else:
-                # Ensure each SQL recommendation has the subscription_id set correctly
-                for rec in sql_recommendations:
-                    if 'subscription_id' not in rec:
-                        rec['subscription_id'] = sql_subscription_id
-        except Exception as e:
-            logger.error(f"Error fetching SQL recommendations: {e}")
+        # sql_recommendations = []
+        # try:
+        #     sql_recommendations = get_sql_recommendations()
+        #     if not sql_recommendations:
+        #         logger.warning(f"No recommendations found for SQL subscription: {sql_subscription_id}")
+        #     else:
+        #         # Ensure each SQL recommendation has the subscription_id set correctly
+        #         for rec in sql_recommendations:
+        #             if 'subscription_id' not in rec:
+        #                 rec['subscription_id'] = sql_subscription_id
+        # except Exception as e:
+        #     logger.error(f"Error fetching SQL recommendations: {e}")
     
         # Fetch recommendations from Log Analytics
         log_analytics_recommendations = []

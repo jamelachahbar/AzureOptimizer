@@ -41,15 +41,17 @@ const RecommendationItem: React.FC<RecommendationItemProps> = ({ rec }) => {
   // Determine savings amount based on the source
   if (rec.source === 'Azure API' && rec.extended_properties) {
     savingsAmount = parseFloat(rec.extended_properties.annualSavingsAmount || '0');
-  } else if (rec.source === 'SQL DB' && rec.additional_info) {
-    try {
-      // Parse additional_info (which is a JSON string)
-      const additionalInfoObj = JSON.parse(rec.additional_info);
-      savingsAmount = parseFloat(additionalInfoObj.annualSavingsAmount || '0');
-    } catch (error) {
-      console.error('Error parsing additional_info JSON:', error);
-    }
-  } else if (rec.source === 'Log Analytics' && rec.annualSavingsAmount) {
+  } 
+  // else if (rec.source === 'SQL DB' && rec.additional_info) {
+  //   try {
+  //     // Parse additional_info (which is a JSON string)
+  //     const additionalInfoObj = JSON.parse(rec.additional_info);
+  //     savingsAmount = parseFloat(additionalInfoObj.annualSavingsAmount || '0');
+  //   } catch (error) {
+  //     console.error('Error parsing additional_info JSON:', error);
+  //   }
+  // } 
+  else if (rec.source === 'Log Analytics' && rec.annualSavingsAmount) {
     savingsAmount = parseFloat(rec.annualSavingsAmount || '0');
 
   }

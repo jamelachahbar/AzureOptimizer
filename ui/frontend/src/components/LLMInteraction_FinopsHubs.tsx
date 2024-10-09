@@ -90,17 +90,19 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
 
               
             };
-          } else if (rec.source === 'SQL DB') {
-            return {
-              ...rec,
-              recommendation_name: rec.RecommendationDescription || 'Unnamed Recommendation',
-              impact: rec.impact || 'Unknown',  // Properly map the impact field
-              problem: rec.short_description?.problem || 'No problem description available',
-              solution: rec.action || 'No solution available',
-              resource_id: rec.resource_id || 'N/A',
+          } 
+          // else if (rec.source === 'SQL DB') {
+          //   return {
+          //     ...rec,
+          //     recommendation_name: rec.RecommendationDescription || 'Unnamed Recommendation',
+          //     impact: rec.impact || 'Unknown',  // Properly map the impact field
+          //     problem: rec.short_description?.problem || 'No problem description available',
+          //     solution: rec.action || 'No solution available',
+          //     resource_id: rec.resource_id || 'N/A',
 
-            };
-          } else if (rec.source === 'Azure API') {
+          //   };
+          // } 
+          else if (rec.source === 'Azure API') {
             return {
               ...rec,
               recommendation_name: rec.short_description?.problem || 'Unnamed Recommendation',  // Use problem field for Azure API recommendations
@@ -247,27 +249,27 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   };
 
   // Renders properties specific to SQL DB recommendations
-  const renderSqlDbProperties = (rec: Recommendation) => {
-    return (
-      <Box sx={{ mt: 2, p: 2, border: '1px solid', borderRadius: 2 }}>
-        <Typography variant="subtitle2" fontWeight="bold">
-          Additional SQL DB Information:
-        </Typography>
-        <Typography variant="body2">
-          <strong>Instance Name:</strong> {rec.Instance || 'N/A'}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Generated Date:</strong> {rec.generated_date || 'N/A'}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Fit Score:</strong> {rec.fit_score || 'N/A'}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Subscription ID:</strong> {rec.subscription_id || 'N/A'}
-        </Typography>
-      </Box>
-    );
-  };
+  // const renderSqlDbProperties = (rec: Recommendation) => {
+  //   return (
+  //     <Box sx={{ mt: 2, p: 2, border: '1px solid', borderRadius: 2 }}>
+  //       <Typography variant="subtitle2" fontWeight="bold">
+  //         Additional SQL DB Information:
+  //       </Typography>
+  //       <Typography variant="body2">
+  //         <strong>Instance Name:</strong> {rec.Instance || 'N/A'}
+  //       </Typography>
+  //       <Typography variant="body2">
+  //         <strong>Generated Date:</strong> {rec.generated_date || 'N/A'}
+  //       </Typography>
+  //       <Typography variant="body2">
+  //         <strong>Fit Score:</strong> {rec.fit_score || 'N/A'}
+  //       </Typography>
+  //       <Typography variant="body2">
+  //         <strong>Subscription ID:</strong> {rec.subscription_id || 'N/A'}
+  //       </Typography>
+  //     </Box>
+  //   );
+  // };
 
   // Renders properties specific to Log Analytics recommendations
   const renderLogAnalyticsProperties = (rec: Recommendation) => {
@@ -308,9 +310,10 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   };
 
   const renderExtendedProperties = (rec: Recommendation) => {
-    if (rec.source === 'SQL DB') {
-      return renderSqlDbProperties(rec);
-    } else if (rec.source === 'Log Analytics') {
+    // if (rec.source === 'SQL DB') {
+    //   return renderSqlDbProperties(rec);
+    // } 
+    if (rec.source === 'Log Analytics') {
       return renderLogAnalyticsProperties(rec);
     } else if (rec.extended_properties) {
       return (
@@ -343,11 +346,11 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
             Object.values(rec.extended_properties).some((prop) =>
               typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
             )) ||
-          (rec.source === 'SQL DB' &&
-              [rec.Instance, rec.generated_date, rec.fit_score]
-                .filter(Boolean)
-                .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
-              )) ||
+          // (rec.source === 'SQL DB' &&
+          //     [rec.Instance, rec.generated_date, rec.fit_score]
+          //       .filter(Boolean)
+          //       .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
+          //     )) ||
           (rec.source === 'Log Analytics' &&
               [rec.Instance, rec.generated_date, rec.fit_score]
                 .filter(Boolean)
@@ -371,9 +374,9 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       if (rec.source === 'Azure API' && rec.extended_properties) {
         return Object.values(rec.extended_properties);
       }
-      if (rec.source === 'SQL DB') {
-        return [rec.Instance, rec.additional_info].filter(Boolean); // Filter out undefined or null values
-      }
+      // if (rec.source === 'SQL DB') {
+      //   return [rec.Instance, rec.additional_info].filter(Boolean); // Filter out undefined or null values
+      // }
       return [];
     });
   };
@@ -426,7 +429,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
                   <em>All Sources</em>
                 </MenuItem>
                 <MenuItem value="Azure API">Azure API</MenuItem>
-                <MenuItem value="SQL DB">SQL DB</MenuItem>
+                {/* <MenuItem value="SQL DB">SQL DB</MenuItem> */}
                 <MenuItem value="Log Analytics">Log Analytics</MenuItem> {/* Add Log Analytics filter */}
               </Select>
             </Box>

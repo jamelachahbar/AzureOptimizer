@@ -1,0 +1,13 @@
+ResourceType,ResourceName,Location,Size
+Virtual Machine,myVM0,uksouth,Standard_D2s_v3
+Virtual Machine,myVM1,uksouth,Standard_D2s_v3
+Disk,myVM0_OsDisk_1_3b125947f0494013b4f6ed1897127f3f,uksouth,
+Disk,myVM1_OsDisk_1_c7ee9cde79704afbb0cc5a076c20e2cb,uksouth,
+Disk,unattacheddisk-1,swedencentral,
+Disk,unattacheddisk-2,swedencentral,
+Public IP,myPublicIP,uksouth,
+Public IP,AZFW-Management-PIP,centralus,
+Public IP,AZFW-PIP,centralus,
+Public IP,bastion-pip,centralus,
+Network Interface,nic0,uksouth,
+Network Interface,nic1,uksouth,
