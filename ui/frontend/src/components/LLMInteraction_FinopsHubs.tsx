@@ -6,8 +6,8 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
 import { AnimatedTooltip } from './AnimatedTooltip';  // Reintroducing the Tooltip
-import { SelectChangeEvent } from '@mui/material';  
-import { v4 as uuidv4 } from 'uuid';  
+import { SelectChangeEvent } from '@mui/material';
+import { v4 as uuidv4 } from 'uuid';
 import RecommendationItem from './RecommendationItem';
 import { Autocomplete, TextField } from '@mui/material';
 
@@ -22,7 +22,7 @@ interface Recommendation {
   advice?: string;
   subscription_id?: string;
   source?: string;
-  SubscriptionGuid?: string; 
+  SubscriptionGuid?: string;
   Instance?: string;
   generated_date?: string;
   fit_score?: string;
@@ -37,6 +37,8 @@ interface Recommendation {
 const LLMInteraction_FinopsHubs: React.FC = () => {
   const theme = useTheme();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [isFetching, setIsFetching] = useState(false); // For fetching recommendations
+  const [isSending, setIsSending] = useState(false); // For sending recommendations to AI
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -60,129 +62,75 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   const handleFilterChange = (event: SelectChangeEvent) => {
     setFilterSource(event.target.value);
   };
-
   const handleFetchRecommendations = async () => {
-    startTransition(() => {
-      setIsLoading(true);
-      setRecommendations([]);
-      setError(null);
-    });
+    setIsFetching(true); // Start fetching progress
+    setError(null); // Clear errors
+    setRecommendations([]); // Reset recommendations
   
     try {
       const res = await axios.get('http://localhost:5000/api/review-recommendations');
       if (res.data.length === 0) {
         setError('No recommendations available.');
       } else {
-        // Ensure proper mapping based on the source of the recommendation
-        const mappedData = res.data.map((rec: any) => {
-          if (rec.source === 'Log Analytics') {
-            return {
-              ...rec,
-              recommendation_name: rec.problem || 'Unnamed Recommendation',  // Ensure the correct recommendation title is mapped
-              impact: rec.impact || 'Unknown',  // Ensure correct impact mapping for Log Analytics
-              problem: rec.problem|| 'No problem description available',
-              solution: rec.solution || 'No solution available',
-              generated_date: rec.TimeGenerated || 'N/A',
-              fit_score: rec.FitScore_s || 'N/A',
-              savingsAmount: rec.savingsAmount || 'N/A',
-              annualSavingsAmount: rec.annualSavingsAmount || 'N/A',
-              resource_id: rec.resource_id || 'N/A',
-
-              
-            };
-          } 
-          // else if (rec.source === 'SQL DB') {
-          //   return {
-          //     ...rec,
-          //     recommendation_name: rec.RecommendationDescription || 'Unnamed Recommendation',
-          //     impact: rec.impact || 'Unknown',  // Properly map the impact field
-          //     problem: rec.short_description?.problem || 'No problem description available',
-          //     solution: rec.action || 'No solution available',
-          //     resource_id: rec.resource_id || 'N/A',
-
-          //   };
-          // } 
-          else if (rec.source === 'Azure API') {
-            return {
-              ...rec,
-              recommendation_name: rec.short_description?.problem || 'Unnamed Recommendation',  // Use problem field for Azure API recommendations
-              impact: rec.extended_properties?.impact || rec.impact || 'Unknown',  // Ensure correct impact mapping for Azure API
-              problem: rec.short_description?.problem || 'No problem description available',
-              solution: rec.extended_properties?.solution || 'No solution available',
-              resource_id: rec.resource_id || 'N/A',
-            };
-          } else {
-            return rec;  // Fallback in case a new source is added later
-          }
-        });
-  
+        const mappedData = res.data.map((rec: any) => ({
+          ...rec,
+          recommendation_name: rec.problem || rec.short_description?.problem || 'Unnamed Recommendation',
+          impact: rec.impact || 'Unknown',
+          problem: rec.problem || 'No problem description available',
+          solution: rec.solution || 'No solution available',
+          resource_id: rec.resource_id || 'N/A',
+        }));
         setRecommendations(mappedData);
       }
     } catch (error) {
       console.error('Error fetching recommendations:', error);
       setError('Failed to fetch recommendations. Please try again later.');
     } finally {
-      setIsLoading(false);
+      setIsFetching(false); // End fetching progress
     }
   };
-  
-  
-  
-  
-  
-  
-  
 
   const handleSendToLLM = async () => {
     if (selectedRecommendations.size === 0) {
-      console.error("No recommendations selected");
+      console.error('No recommendations selected');
       return;
     }
-
-    startTransition(() => {
-      setIsLoading(true);
-      setError(null);
-    });
-
+  
+    setIsSending(true); // Start sending progress
+    setError(null); // Clear previous errors
+  
     try {
-      const mappedRecommendations = Array.from(selectedRecommendations).map((index) => {
-        const rec = filteredRecommendations[index];
-        if (!rec) {
-          console.error(`Recommendation at index ${index} is undefined`);
-          return null;
-        }
-
-        return {
+      const mappedRecommendations = Array.from(selectedRecommendations)
+        .map(index => filteredRecommendations[index])
+        .filter(Boolean)
+        .map(rec => ({
           ...rec,
-          subscription_id: rec.subscription_id || "N/A",
-          uuid: rec.uuid || uuidv4(),  // Ensure UUID is always present
-        };
-      }).filter(rec => rec !== null);
-
+          subscription_id: rec.subscription_id || 'N/A',
+          uuid: rec.uuid || uuidv4(),
+        }));
+  
       if (mappedRecommendations.length === 0) {
-        console.error("No valid recommendations to send");
+        console.error('No valid recommendations to send');
         return;
       }
-
+  
       const res = await axios.post(
-        "http://localhost:5000/api/analyze-recommendations",
+        'http://localhost:5000/api/analyze-recommendations',
         { recommendations: mappedRecommendations },
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { 'Content-Type': 'application/json' } }
       );
-
-      console.log('Response from LLM:', res.data);
-
-      setRecommendations(prev => prev.map((rec) => {
-        const updatedRec = res.data.find(
-          (r: { recommendation: { uuid: string } }) => r.recommendation?.uuid === rec.uuid  // Use uuid for matching
-        );
-        return updatedRec ? { ...rec, advice: updatedRec.advice } : rec;
-      }));
+  
+      setRecommendations(prev =>
+        prev.map(rec => {
+          const updatedRec = res.data.find((r: { recommendation: { uuid: string } }) => r.recommendation?.uuid === rec.uuid);
+          return updatedRec ? { ...rec, advice: updatedRec.advice } : rec;
+        })
+      );
     } catch (error) {
-      console.error("Error querying AI Assistant:", error);
-      setError("Failed to query the AI Assistant. Please try again later.");
+      console.error('Error querying AI Assistant:', error);
+      setError('Failed to query the AI Assistant. Please try again later.');
     } finally {
-      setIsLoading(false);
+      setIsSending(false); // End sending progress
     }
   };
 
@@ -247,29 +195,6 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
 
     return <>{lines}</>;
   };
-
-  // Renders properties specific to SQL DB recommendations
-  // const renderSqlDbProperties = (rec: Recommendation) => {
-  //   return (
-  //     <Box sx={{ mt: 2, p: 2, border: '1px solid', borderRadius: 2 }}>
-  //       <Typography variant="subtitle2" fontWeight="bold">
-  //         Additional SQL DB Information:
-  //       </Typography>
-  //       <Typography variant="body2">
-  //         <strong>Instance Name:</strong> {rec.Instance || 'N/A'}
-  //       </Typography>
-  //       <Typography variant="body2">
-  //         <strong>Generated Date:</strong> {rec.generated_date || 'N/A'}
-  //       </Typography>
-  //       <Typography variant="body2">
-  //         <strong>Fit Score:</strong> {rec.fit_score || 'N/A'}
-  //       </Typography>
-  //       <Typography variant="body2">
-  //         <strong>Subscription ID:</strong> {rec.subscription_id || 'N/A'}
-  //       </Typography>
-  //     </Box>
-  //   );
-  // };
 
   // Renders properties specific to Log Analytics recommendations
   const renderLogAnalyticsProperties = (rec: Recommendation) => {
@@ -336,35 +261,35 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   const filteredRecommendations = recommendations.filter((rec) => {
     const matchesSource = filterSource ? rec.source === filterSource : true;
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
-  
-    const matchesSearch = searchQuery
-      ? (rec.category?.toLowerCase().includes(lowerCaseSearchQuery) || 
-          rec.impact?.toLowerCase().includes(lowerCaseSearchQuery) ||
-          rec.short_description?.problem?.toLowerCase().includes(lowerCaseSearchQuery) ||
-          rec.advice?.toLowerCase().includes(lowerCaseSearchQuery) ||
-          (rec.source === 'Azure API' && rec.extended_properties &&
-            Object.values(rec.extended_properties).some((prop) =>
-              typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
-            )) ||
-          // (rec.source === 'SQL DB' &&
-          //     [rec.Instance, rec.generated_date, rec.fit_score]
-          //       .filter(Boolean)
-          //       .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
-          //     )) ||
-          (rec.source === 'Log Analytics' &&
-              [rec.Instance, rec.generated_date, rec.fit_score]
-                .filter(Boolean)
-                .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
-              )) ||
-          (rec.source === 'Log Analytics' && 
-              [rec.problem, rec.solution, rec.Instance, rec.generated_date, rec.fit_score, rec.savingsAmount, rec.annualSavingsAmount, rec.resource_id]
-                .filter(Boolean)
-                .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
-              ))
 
-        )
-      : true;    
-  
+    const matchesSearch = searchQuery
+      ? (rec.category?.toLowerCase().includes(lowerCaseSearchQuery) ||
+        rec.impact?.toLowerCase().includes(lowerCaseSearchQuery) ||
+        rec.short_description?.problem?.toLowerCase().includes(lowerCaseSearchQuery) ||
+        rec.advice?.toLowerCase().includes(lowerCaseSearchQuery) ||
+        (rec.source === 'Azure API' && rec.extended_properties &&
+          Object.values(rec.extended_properties).some((prop) =>
+            typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
+          )) ||
+        // (rec.source === 'SQL DB' &&
+        //     [rec.Instance, rec.generated_date, rec.fit_score]
+        //       .filter(Boolean)
+        //       .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
+        //     )) ||
+        (rec.source === 'Log Analytics' &&
+          [rec.Instance, rec.generated_date, rec.fit_score]
+            .filter(Boolean)
+            .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
+            )) ||
+        (rec.source === 'Log Analytics' &&
+          [rec.problem, rec.solution, rec.Instance, rec.generated_date, rec.fit_score, rec.savingsAmount, rec.annualSavingsAmount, rec.resource_id]
+            .filter(Boolean)
+            .some((prop) => typeof prop === 'string' && prop.toLowerCase().includes(lowerCaseSearchQuery)
+            ))
+
+      )
+      : true;
+
     return matchesSource && matchesSearch;
   });
 
@@ -380,7 +305,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       return [];
     });
   };
-  
+
 
   return (
     <Box p={2} m={2} border={1} borderRadius={2} borderColor={theme.palette.mode === 'light' ? 'grey.300' : 'grey.700'}>
@@ -398,21 +323,22 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
         variant="contained"
         color="primary"
         onClick={handleFetchRecommendations}
-        disabled={isLoading || isPending}
+        disabled={isFetching}
         sx={{ mb: 4 }}
       >
-        {isLoading ? <CircularProgress size={24} /> : 'Fetch Recommendations for Review'}
+        {isFetching ? <CircularProgress size={24} /> : 'Fetch Recommendations for Review'}
       </Button>
 
       <Button
         variant="contained"
         color="secondary"
         onClick={handleSendToLLM}
-        disabled={isLoading || selectedRecommendations.size === 0}
+        disabled={isSending || selectedRecommendations.size === 0}
         sx={{ mb: 4, ml: 2 }}
       >
-        {isLoading ? <CircularProgress size={24} /> : `Send to AI Assistant for Analysis (${selectedRecommendations.size})`}
+        {isSending ? <CircularProgress size={24} /> : `Send to AI Assistant for Analysis (${selectedRecommendations.size})`}
       </Button>
+
 
       {recommendations.length > 0 && (
         <>
@@ -489,17 +415,17 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
                   <ListItem
                     button
                     onClick={() => handleToggleExpand(index)}
-                    sx= {{mb: 2, borderRadius: 1}}
+                    sx={{ mb: 2, borderRadius: 1 }}
                   >
                     <Box display="flex" alignItems="center" sx={{ mr: 2 }}>
                       {/* Priority Badge */}
                       <RecommendationItem rec={rec} />
-                    
+
                       <Checkbox
                         checked={selectedRecommendations.has(index)}
                         onChange={() => handleSelectRecommendation(index)}
                         inputProps={{ 'aria-label': `select recommendation ${index}` }}
-                      /> 
+                      />
                     </Box>
 
                     <ListItemText
