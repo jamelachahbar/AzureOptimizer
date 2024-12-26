@@ -16,6 +16,7 @@ LOCAL_SCHEMA_PATH = os.path.join('src', SCHEMA_FILE)      # Update with your act
 
 # Initialize BlobServiceClient
 blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
+
 container_client = blob_service_client.get_container_client(CONTAINER_NAME)
 
 def ensure_container_and_files_exist():

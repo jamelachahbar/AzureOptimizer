@@ -594,8 +594,8 @@ def generate_advice_with_llm(recommendations):
 @app.route('/api/review-recommendations', methods=['GET'])
 def review_recommendations_route():
     try:
-        azure_subscription_ids = ['38c26c07-ccce-4839-b504-cddac8e5b09d', 'c916841c-459e-4bbd-aff7-c235ae45f0dd']
-        sql_subscription_id = '9d923c47-1aa2-4fc9-856f-16ca53e97b76'
+        azure_subscription_ids = ['e9b4640d-1f1f-45fe-a543-c0ea45ac34c1','34f635ef-9210-4e8f-b9a9-8c3327604b23','b26069e9-79e1-49d1-a47c-877dfdc1fb20','b640da53-da83-438f-8c1d-dbc3de526d65','6d03d786-1501-4575-8d34-643ceca8af07']
+        # sql_subscription_id = '9d923c47-1aa2-4fc9-856f-16ca53e97b76'
         
         all_recommendations = []
 
@@ -679,7 +679,7 @@ def review_recommendations_route():
 
         # Combine recommendations from all sources
         all_recommendations.extend(azure_recommendations)
-        all_recommendations.extend(sql_recommendations)
+        # all_recommendations.extend(sql_recommendations)
         all_recommendations.extend(log_analytics_recommendations)
 
         if not all_recommendations:

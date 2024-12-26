@@ -16,6 +16,8 @@ import {
 import Button from '@mui/material/Button';
 import axios from 'axios';
 import { createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
+import { customLightTheme } from './theme/customLightTheme';  // Import your themes
+import { customDarkTheme } from './theme/customDarkTheme';   // Import your custom dark theme
 
 import Header from './components/Header'; // Import the Header component
 import TracingBeamContainer from './components/TracingBeamContainer'; // Import the TracingBeamContainer
@@ -34,19 +36,20 @@ import OptimizerLogs from './components/OptimizerLogs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import PolicyEditor from './components/PolicyEditor'; // Import the new PolicyEditor component
-import {LandingScreen} from './components/LandingScreen'; // Import the LandingScreen component
+import { LandingScreen } from './components/LandingScreen'; // Import the LandingScreen component
 import LoginButton from './components/LoginButton';
 import LogoutButton from './components/LogoutButton';  // Import the LogoutButton
 
-import AuthProvider from './providers/AuthProvider';
+import { AuthProvider, useAuth } from './providers/AuthProvider';
 import { useIsAuthenticated } from "@azure/msal-react";
+
 
 
 import LLMInteraction from './components/LLMInteraction';
 import LLMInteraction_FinopsHubs from './components/LLMInteraction_FinopsHubs';
 
 // Define the ColorModeContext here
-export const ColorModeContext = createContext({ toggleColorMode: () => {} });
+export const ColorModeContext = createContext({ toggleColorMode: () => { } });
 
 interface Policy {
   name: string;
@@ -96,6 +99,8 @@ interface AnomalyData {
 
 // App component definition with functional component
 const App: React.FC = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false); // State to toggle between themes
+
   const isAuthenticated = useIsAuthenticated();
 
   const [summaryMetrics, setSummaryMetrics] = useState<SummaryMetric[]>([
@@ -257,7 +262,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
-    // Theme mode context and toggle logic
+  // Theme mode context and toggle logic
   const colorMode = useContext(ColorModeContext);
   const theme = useTheme();
 
@@ -286,7 +291,14 @@ const App: React.FC = () => {
     };
   }, []);
 
+  const { isAdmin } = useAuth();
+
   const runOptimizer = async () => {
+    if (mode === "apply" && !isAdmin) {
+      alert("You do not have sufficient permissions to use Apply mode.");
+      return;
+    }
+  // Continue with the function if the user has sufficient permissions
     setIsOptimizerRunning(true);
     setLogs([]);
     fetchLogStream();
@@ -360,7 +372,7 @@ const App: React.FC = () => {
       if (trendData && Array.isArray(trendData)) {
         setTrendData(trendData);
       } else {
-      setTrendData([]);
+        setTrendData([]);
       }
     } catch (error) {
       console.error('Error fetching trend data:', error);
@@ -460,24 +472,24 @@ const App: React.FC = () => {
   }
   return (
     <Box
-    sx={{
-      position: 'relative',
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      // backgroundImage: theme.palette.mode === 'light' 
-      // ? 'url(https://www.transparenttextures.com/patterns/axiom-pattern.png)' 
-      // : 'url(https://www.transparenttextures.com/patterns/pinstripe-dark.png)', 
-      backgroundImage: theme.palette.mode === 'light' 
-      ? "url('axiom-pattern.png')"
-      : "url('pinstripe-dark.png')", 
-      backgroundRepeat: 'repeat',
-      // zIndex: 1, // Ensures that the background is behind everything
-    }}
-  >
-      <Header  />  {/* Full-width header at the top */}
+      sx={{
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        // backgroundImage: theme.palette.mode === 'light' 
+        // ? 'url(https://www.transparenttextures.com/patterns/axiom-pattern.png)' 
+        // : 'url(https://www.transparenttextures.com/patterns/pinstripe-dark.png)', 
+        backgroundImage: theme.palette.mode === 'light'
+          ? "url('axiom-pattern.png')"
+          : "url('pinstripe-dark.png')",
+        backgroundRepeat: 'repeat',
+        // zIndex: 1, // Ensures that the background is behind everything
+      }}
+    >
+      <Header />  {/* Full-width header at the top */}
 
-      <Container 
+      <Container
         maxWidth="xl"
         sx={{
           display: 'flex',
@@ -493,19 +505,19 @@ const App: React.FC = () => {
           boxShadow: 'rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px',
           borderRadius: 2,
           zIndex: 2, // Higher than the background, lower than other overlays (if any)
-          backgroundColor: theme.palette.mode === 'light' 
-          ? 'rgba(255, 255, 255, 0.9)' 
-          : '#1A1A1A',
+          backgroundColor: theme.palette.mode === 'light'
+            ? 'rgba(255, 255, 255, 0.9)'
+            : '#1A1A1A',
           backdropFilter: 'blur(10px)',
 
-      }}>
+        }}>
         <TracingBeamContainer>
 
-        <Typography variant="h3" sx={{ mb: 4, textAlign: 'center' }}>
-        Azure Optimizer Tool
-        </Typography>
+          <Typography variant="h3" sx={{ mb: 4, textAlign: 'center' }}>
+            Azure Optimizer Tool
+          </Typography>
           <Typography variant="h5" sx={{ mb: 4, textAlign: 'center' }}>
-          <Highlight>Optimize</Highlight>your<Highlight>Azure Infrastructure costs</Highlight>
+            <Highlight>Optimize</Highlight>your<Highlight>Azure Infrastructure costs</Highlight>
           </Typography>
 
           {/* New Policy Editor Component */}
@@ -515,125 +527,125 @@ const App: React.FC = () => {
             </Grid>
           </Grid> */}
 
-        {/* <LLMInteraction /> */}
+          {/* <LLMInteraction /> */}
 
-        <Grid container spacing={2} rowSpacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
-          <Grid item xs={12} md={12}>
-            <LLMInteraction_FinopsHubs />
-          </Grid>
-          {/* <Grid item xs={12}>
+          <Grid container spacing={2} rowSpacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
+            <Grid item xs={12} md={12}>
+              <LLMInteraction_FinopsHubs />
+            </Grid>
+            {/* <Grid item xs={12}>
               <PolicyEditor policies={policies} setPolicies={setPolicies} isLoading={isLoading} />
             </Grid> */}
-        </Grid>
-        <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
-          <Grid item>
-            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-              <InputLabel>Subscription</InputLabel>
-              <Select value={selectedSubscription} onChange={handleSubscriptionChange} label="Subscription">
-                <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
-                {summaryMetrics.map((metric, index) => (
-                  <MenuItem key={index} value={metric.SubscriptionId}>
-                    {metric.SubscriptionId}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
           </Grid>
-          <Grid item>
-            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-              <InputLabel>Mode</InputLabel>
-              <Select value={mode} onChange={(e) => setMode(e.target.value as string)} label="Mode">
-                <MenuItem value="dry-run">Dry Run</MenuItem>
-                <MenuItem value="apply">Apply</MenuItem>
-              </Select>
-            </FormControl>
+          <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
+            <Grid item>
+              <FormControl variant="outlined" sx={{ minWidth: 120 }}>
+                <InputLabel>Subscription</InputLabel>
+                <Select value={selectedSubscription} onChange={handleSubscriptionChange} label="Subscription">
+                  <MenuItem value="All Subscriptions">All Subscriptions</MenuItem>
+                  {summaryMetrics.map((metric, index) => (
+                    <MenuItem key={index} value={metric.SubscriptionId}>
+                      {metric.SubscriptionId}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item>
+              <FormControl variant="outlined" sx={{ minWidth: 120 }}>
+                <InputLabel>Mode</InputLabel>
+                <Select value={mode} onChange={(e) => setMode(e.target.value as string)} label="Mode">
+                  <MenuItem value="dry-run">Dry Run</MenuItem>
+                  <MenuItem value="apply">Apply</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item>
+              <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
+                Run Optimizer
+              </Button>
+              {isOptimizerRunning && <CircularProgress size={24} sx={{ ml: 1 }} />}
+            </Grid>
+            <Grid item>
+              <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>
+                Stop Optimizer
+              </Button>
+            </Grid>
           </Grid>
-          <Grid item>
-            <Button variant="contained" color="primary" onClick={runOptimizer} disabled={isOptimizerRunning}>
-              Run Optimizer
-            </Button>
-            {isOptimizerRunning && <CircularProgress size={24} sx={{ ml: 1 }} />}
+
+          {errorMessage && (
+            <Box mt={4}>
+              <Typography variant="h6" color="error">
+                {errorMessage}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Policies */}
+          <Grid container spacing={2} rowSpacing={2} >
+            <Grid item xs={12} md={6}>
+              <Typography variant="h5" mb={2}>Policies</Typography>
+              <PolicyTable policies={policies} handleToggle={handleTogglePolicy} />
+            </Grid>
+            <Grid item xl={4} marginLeft={8}>
+              <PolicyPieChart impactedResources={impactedResources} />
+            </Grid>
+
+            {/* Summary Metrics Row */}
+
+            <Typography ml={2} variant="h5">Summary Metrics</Typography>
+            <Grid container xs={12} mb={2} spacing={2} rowSpacing={2} sx={{
+              marginBottom: 2,
+              display: 'flex'
+            }}>
+              {filteredSummaryMetrics.map((metric, index) => (
+                <Grid item key={index} alignContent={'flex-start'}>
+                  <SummaryMetricsCard metric={metric} />
+                </Grid>
+              ))}
+            </Grid>
+            {/* Render Cost Trend Chart */}
+            <Grid item xl={12} md={6} padding={2}>
+              <Typography variant="h5" mb={2}>Cost Trend</Typography>
+              <CostTrendChart trendData={trendData} selectedSubscription={selectedSubscription} />
+            </Grid>
+            {/* Render Impacted Resources */}
+
+            <Grid item xs={4} md={6}>
+              <Typography variant="h5" mb={2}>Impacted Resources</Typography>
+              <ImpactedResourcesTable impactedResources={impactedResources} selectedSubscription={selectedSubscription} />
+            </Grid>
+            {/* Render Execution Table showing status of action */}
+            <Grid item xs={4} md={6}>
+              <Typography variant="h5" mb={2}>Execution Data</Typography>
+              <ExecutionTable executionData={executionData} selectedSubscription={selectedSubscription} />
+            </Grid>
           </Grid>
-          <Grid item>
-            <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>
-              Stop Optimizer
-            </Button>
+
+          {/* Data Display Area for Optimizer Logs */}
+          <Grid container spacing={2} sx={{
+            mt: 6,
+            display: 'flex',
+            mb: 4
+          }}>
+            <Grid item xs={12} md={12}>
+              <Typography variant="h5" mb={2}>Optimizer Logs</Typography>
+              <OptimizerLogs logs={logs} />
+            </Grid>
           </Grid>
-        </Grid>
-
-        {errorMessage && (
-          <Box mt={4}>
-            <Typography variant="h6" color="error">
-              {errorMessage}
-            </Typography>
-          </Box>
-        )}
-
-    {/* Policies */}
-      <Grid container spacing={2} rowSpacing={2} >
-        <Grid item xs={12} md={6}>
-          <Typography variant="h5" mb={2}>Policies</Typography>
-          <PolicyTable policies={policies} handleToggle={handleTogglePolicy} />
-        </Grid>
-        <Grid item xl={4} marginLeft={8}>
-          <PolicyPieChart impactedResources={impactedResources} />
-        </Grid>
-
-        {/* Summary Metrics Row */}
-
-        <Typography ml={2} variant="h5">Summary Metrics</Typography>
-        <Grid container xs={12} mb={2} spacing={2} rowSpacing={2} sx={{ 
-                marginBottom:2,
-                display: 'flex'
-              }}>
-                {filteredSummaryMetrics.map((metric, index) => (
-                  <Grid item key={index} alignContent={'flex-start'}>
-                    <SummaryMetricsCard metric={metric} />
-                  </Grid>
-                ))}
-              </Grid>
-{/* Render Cost Trend Chart */}
-        <Grid item xl={12} md={6} padding={2}>
-          <Typography variant="h5" mb={2}>Cost Trend</Typography>
-          <CostTrendChart trendData={trendData} selectedSubscription={selectedSubscription} />
-        </Grid>
-{/* Render Impacted Resources */}
-
-        <Grid item xs={4} md={6}>
-          <Typography variant="h5" mb={2}>Impacted Resources</Typography>
-          <ImpactedResourcesTable impactedResources={impactedResources} selectedSubscription={selectedSubscription} />
-        </Grid>
-{/* Render Execution Table showing status of action */}
-        <Grid item xs={4} md={6}>
-          <Typography variant="h5" mb={2}>Execution Data</Typography>
-          <ExecutionTable executionData={executionData} selectedSubscription={selectedSubscription} />
-        </Grid>
-      </Grid>
-
-      {/* Data Display Area for Optimizer Logs */}
-      <Grid container spacing={2} sx={{ 
-                mt: 6,
-                display: 'flex',
-                mb: 4
-              }}>
-        <Grid item xs={12} md={12}>
-          <Typography variant="h5" mb={2}>Optimizer Logs</Typography>
-          <OptimizerLogs logs={logs} />
-        </Grid>
-      </Grid>
-      </TracingBeamContainer>
-    </Container>
-    <TypewriterEffectSmooth
-            words={[
-              { text: "Brought" },
-              { text: "to" },
-              { text: "you" },
-              { text: "by" },
-              { text: "Jamel Achahbar" },
-            ]}
-            variant="h6"
-            speed={100}
-          />
+        </TracingBeamContainer>
+      </Container>
+      <TypewriterEffectSmooth
+        words={[
+          { text: "Brought" },
+          { text: "to" },
+          { text: "you" },
+          { text: "by" },
+          { text: "Jamel Achahbar" },
+        ]}
+        variant="h6"
+        speed={100}
+      />
     </Box>
 
   );
@@ -641,6 +653,7 @@ const App: React.FC = () => {
 
 export default function ToggleColorModeApp() {
   const [mode, setMode] = useState<'light' | 'dark'>('light');
+  const isDarkMode = mode === 'dark';
 
   const colorMode = useMemo(
     () => ({
@@ -707,7 +720,7 @@ export default function ToggleColorModeApp() {
                 },
               },
             },
-          
+
           },
           MuiTableCell: {
             styleOverrides: {

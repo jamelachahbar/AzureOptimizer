@@ -2,10 +2,11 @@ import { Configuration, LogLevel } from "@azure/msal-browser";
 
 export const msalConfig: Configuration = {
     auth: {
-        clientId: "271b4213-bf9a-4eea-a3c9-c0fcfb453ddd", // Replace with your Azure AD client ID
-        authority: "https://login.microsoftonline.com/f705bf6c-fb69-450d-8604-da3aa8c09eb9", // Replace with your Azure AD tenant ID
+        clientId: "32cd1b4b-9eaa-44b7-9403-3736fdc0ecac", // Replace with your Azure AD client ID
+        authority: "https://login.microsoftonline.com/dc06fa00-1806-48fc-864d-c47c49f0138c", // Replace with your Azure AD tenant ID
         redirectUri: "http://localhost:3000", // Replace with your redirect URI
         postLogoutRedirectUri: '/'
+
     },
     cache: {
         cacheLocation: "sessionStorage",
@@ -39,5 +40,6 @@ export const msalConfig: Configuration = {
 };
 
 export const loginRequest = {
-    scopes: ["User.Read"], // Define the necessary scopes for your app
+    scopes: ["openid", "profile", "api://32cd1b4b-9eaa-44b7-9403-3736fdc0ecac/.default","api://32cd1b4b-9eaa-44b7-9403-3736fdc0ecac/Admin"],
+
 };

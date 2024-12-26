@@ -1,35 +1,69 @@
-import { AuthenticationResult, EventType, PublicClientApplication } from "@azure/msal-browser";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { AuthenticationResult, EventType, PublicClientApplication, AccountInfo } from "@azure/msal-browser";
 import { msalConfig } from "../authConfig";
-import { ReactNode } from "react";
 import { MsalProvider } from "@azure/msal-react";
 
-interface AuthProviderProps {
-    children: ReactNode;
+interface AuthContextProps {
+  isAdmin: boolean;
+  roles: string[];
+  account: AccountInfo | null;
 }
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-    const msalInstance = new PublicClientApplication(msalConfig);
+const AuthContext = createContext<AuthContextProps>({
+  isAdmin: false,
+  roles: [],
+  account: null,
+});
 
-    if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
-        msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
+const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [roles, setRoles] = useState<string[]>([]);
+  const [account, setAccount] = useState<AccountInfo | null>(null);
+  const msalInstance = new PublicClientApplication(msalConfig);
+
+  useEffect(() => {
+    // Set the active account if it exists
+    const activeAccount = msalInstance.getActiveAccount();
+    if (activeAccount) {
+      setAccount(activeAccount);
+      parseRolesFromToken(activeAccount.idTokenClaims);
     }
 
-    // Listen for sign-in event and set active account
-    msalInstance.addEventCallback((event) => {
-        if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
-            const authenticationResult = event.payload as AuthenticationResult;
-            const account = authenticationResult.account;
-            msalInstance.setActiveAccount(account);
-        }
+    // Listen for login success events
+    const callbackId = msalInstance.addEventCallback((event) => {
+      if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
+        const authResult = event.payload as AuthenticationResult;
+        const loggedInAccount = authResult.account;
+        msalInstance.setActiveAccount(loggedInAccount);
+        setAccount(loggedInAccount);
+
+        parseRolesFromToken(authResult.idTokenClaims);
+      }
     });
 
-    return (
-        <MsalProvider instance={msalInstance}>
-            {children}
-        </MsalProvider>
-    );
+    return () => {
+      if (callbackId) msalInstance.removeEventCallback(callbackId);
+    };
+  }, [msalInstance]);
+
+  // Helper function to parse roles from the ID token
+  const parseRolesFromToken = (idTokenClaims: any) => {
+    if (idTokenClaims) {
+      const userRoles = idTokenClaims.roles || [];
+      setRoles(userRoles);
+    } else {
+      setRoles([]);
+    }
+  };
+
+  const isAdmin = roles.includes('Admin');
+
+  return (
+    <AuthContext.Provider value={{ isAdmin, roles, account }}>
+      <MsalProvider instance={msalInstance}>{children}</MsalProvider>
+    </AuthContext.Provider>
+  );
 };
 
-export function useAuthProvider() {
-    return { AuthProvider };
-}
+export const useAuth = () => useContext(AuthContext);
+
+export default AuthProvider;
