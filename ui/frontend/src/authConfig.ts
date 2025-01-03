@@ -9,8 +9,8 @@ export const msalConfig: Configuration = {
 
     },
     cache: {
-        cacheLocation: "sessionStorage",
-        storeAuthStateInCookie: false,
+        cacheLocation: "localStorage",
+        storeAuthStateInCookie: true,
     },
     system: {
         loggerOptions: {
@@ -40,6 +40,6 @@ export const msalConfig: Configuration = {
 };
 
 export const loginRequest = {
-    scopes: ["openid", "profile", "api://32cd1b4b-9eaa-44b7-9403-3736fdc0ecac/.default","api://32cd1b4b-9eaa-44b7-9403-3736fdc0ecac/Admin"],
+    scopes: ["User.Read","openid", "profile", "api://32cd1b4b-9eaa-44b7-9403-3736fdc0ecac/.default","api://32cd1b4b-9eaa-44b7-9403-3736fdc0ecac/Admin","api://32cd1b4b-9eaa-44b7-9403-3736fdc0ecac/User"],
 
 };

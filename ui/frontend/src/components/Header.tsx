@@ -58,7 +58,7 @@ const Header: React.FC = () => {
               <IconButton onClick={colorMode.toggleColorMode} color="primary">
                 {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
               </IconButton>
-              <LogoutButton />
+              {/* <LogoutButton /> */}
               {/* <Button variant="contained" color="primary" href="/">
                 Log In - WIP
               </Button>  */}

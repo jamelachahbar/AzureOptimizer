@@ -17,13 +17,13 @@ interface PolicyCardProps {
 
 const PolicyCard: React.FC<PolicyCardProps> = ({ policy, onToggle }) => {
   return (
-    <Card sx={{ margin: 2, justifyContent:'flex-start' ,maxWidth: 400, maxHeight: 250,boxShadow: 3, textWrap:'pretty', flexWrap:'wrap', '&:hover': { boxShadow: 6 } }}>
+    <Card sx={{ margin: 2, justifyContent:'flex-start' ,maxWidth: 400, maxHeight: 280,boxShadow: 3, textWrap:'pretty', flexWrap:'wrap', '&:hover': { boxShadow: 6 } }}>
       <CardContent >
-        <Typography variant="h5">{policy.name}</Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="h6">{policy.name}</Typography>
+        <Typography variant="h6" color="text.secondary">
           {policy.description}
         </Typography>
-        <Switch
+        <Switch           
           checked={policy.enabled}
           onChange={() => onToggle(policy.name)}
           color="primary"

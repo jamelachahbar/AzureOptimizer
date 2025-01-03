@@ -1,10 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import {
-  AuthenticationResult,
-  EventType,
-  PublicClientApplication,
-  AccountInfo,
-} from "@azure/msal-browser";
+import { AuthenticationResult, EventType, PublicClientApplication, AccountInfo } from "@azure/msal-browser";
 import { msalConfig } from "../authConfig";
 import { MsalProvider } from "@azure/msal-react";
 
@@ -14,11 +9,11 @@ interface AuthContextProps {
   account: AccountInfo | null;
 }
 
-interface CustomIdTokenClaims {
+interface CustomIdTokenClaims extends AccountInfo {
   roles?: string[];
 }
 
-// Move msalInstance outside of the component to ensure it's stable across renders
+// Move msalInstance outside of the component to avoid recreating it on each render
 const msalInstance = new PublicClientApplication(msalConfig);
 
 const AuthContext = createContext<AuthContextProps>({
@@ -27,58 +22,46 @@ const AuthContext = createContext<AuthContextProps>({
   account: null,
 });
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [roles, setRoles] = useState<string[]>([]);
   const [account, setAccount] = useState<AccountInfo | null>(null);
 
-  // Helper function to parse roles from ID token
-  const parseRolesFromToken = (idTokenClaims: CustomIdTokenClaims | undefined) => {
-    if (idTokenClaims?.roles) {
-      setRoles(idTokenClaims.roles);
-    } else {
-      console.warn("No roles found in token claims.");
-      setRoles([]);
-    }
-  };
-  
-
   useEffect(() => {
-    // Check the active account on initialization
+    // Set the active account if it exists
     const activeAccount = msalInstance.getActiveAccount();
-    if (activeAccount?.idTokenClaims) {
-      console.log("Active Account Claims:", activeAccount.idTokenClaims); // Debugging
-      parseRolesFromToken(activeAccount.idTokenClaims as CustomIdTokenClaims);
-      setAccount(activeAccount);
+    if (activeAccount && activeAccount.idTokenClaims) {
+      parseRolesFromToken(activeAccount.idTokenClaims as unknown as CustomIdTokenClaims);
     }
 
     // Listen for login success events
     const callbackId = msalInstance.addEventCallback((event) => {
-      if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
+      if (event?.eventType === EventType.LOGIN_SUCCESS && event?.payload) {
         const authResult = event.payload as AuthenticationResult;
         const loggedInAccount = authResult.account;
-
         msalInstance.setActiveAccount(loggedInAccount);
         setAccount(loggedInAccount);
 
-        console.log("ID Token Claims After Login:", authResult.idTokenClaims); // Debugging
-        parseRolesFromToken(authResult.idTokenClaims as CustomIdTokenClaims);
+        if (authResult.idTokenClaims) {
+          parseRolesFromToken(authResult.idTokenClaims as CustomIdTokenClaims);
+        }
       }
     });
 
-    // Cleanup event callback on unmount
     return () => {
       if (callbackId) msalInstance.removeEventCallback(callbackId);
     };
-  }, []);
+  }, []); // No need to include msalInstance in dependencies, as it is now constant
 
-  // Check if the user has the "Admin" role
+  // Helper function to parse roles from the ID token
+  const parseRolesFromToken = (idTokenClaims: CustomIdTokenClaims | null | undefined) => {
+    if (idTokenClaims?.roles) {
+      setRoles(idTokenClaims.roles);
+    } else {
+      setRoles([]);
+    }
+  };
+
   const isAdmin = roles.includes("Admin");
-
-  useEffect(() => {
-    console.log("isAdmin:", isAdmin, "Roles:", roles); // Debugging
-  }, [roles]);
 
   return (
     <AuthContext.Provider value={{ isAdmin, roles, account }}>
@@ -87,5 +70,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-// Custom hook to consume the AuthContext
 export const useAuth = () => useContext(AuthContext);

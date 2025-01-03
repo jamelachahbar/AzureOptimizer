@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from prettytable import PrettyTable
 from termcolor import colored
-from sklearn.ensemble import IsolationForest
+from sklearn.ensemble import IsolationForest # type: ignore
 import textwrap
 from collections import defaultdict
 import pytz
@@ -755,6 +755,7 @@ def delete_resource_group(resource_group):
         delete_operation = resource_client.resource_groups.begin_delete(resource_group.name)
         while not delete_operation.done():
             print("Deleting resource group, please wait...")
+            logger.info("Deleting resource group, please wait...")
             time.sleep(10)
         operation_status = delete_operation.status()
         if operation_status == "Succeeded":

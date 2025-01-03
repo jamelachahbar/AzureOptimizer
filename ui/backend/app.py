@@ -12,7 +12,7 @@ import openai
 from azure.mgmt.advisor import AdvisorManagementClient
 from azure.identity import DefaultAzureCredential
 from storage_utils import ensure_container_and_files_exist  # Import the storage utility module
-import pyodbc # Import the pyodbc module for SQL Server connectivity
+# import pyodbc # Import the pyodbc module for SQL Server connectivity
 
 # from agents.azure_tools import get_cost_data, get_cost_recommendations, llm_generate_advice
 # Ensure the container and files exist at startup
