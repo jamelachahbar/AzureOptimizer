@@ -12,6 +12,17 @@ import openai
 from azure.mgmt.advisor import AdvisorManagementClient
 from azure.identity import DefaultAzureCredential
 from storage_utils import ensure_container_and_files_exist  # Import the storage utility module
+from azure.identity import DefaultAzureCredential
+from azure.mgmt.advisor import AdvisorManagementClient
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # Load .env file
+subscription_ids = os.getenv('AZURE_SUBSCRIPTION_ID').split(',')  # This will allow for multiple IDs
+
+# Set up the credentials
+credential = DefaultAzureCredential()
+
 # import pyodbc # Import the pyodbc module for SQL Server connectivity
 
 # from agents.azure_tools import get_cost_data, get_cost_recommendations, llm_generate_advice
@@ -44,25 +55,35 @@ log_messages = []
 stop_event = threading.Event()
 
 POLICIES_FILE = os.path.join('policies', 'policies.yaml')
-
+def validate_policy(policy):
+    required_keys = ['name', 'description', 'resource', 'actions']
+    missing_keys = [key for key in required_keys if key not in policy]
+    if missing_keys:
+        logger.warning(f"Policy {policy.get('name', 'Unnamed')} is missing keys: {missing_keys}")
+        return False
+    return True
 def load_policies():
-    """Load policies from the YAML file."""
-    if os.path.exists(POLICIES_FILE):
-        with open(POLICIES_FILE, 'r') as file:
-            policies = yaml.safe_load(file) or {'policies': []}
-            # Ensure all policies have an 'enabled' key
-            for policy in policies['policies']:
-                if 'enabled' not in policy:
-                    policy['enabled'] = True  # Default to enabled
-            return policies
-    else:
-        logger.error(f"Policies file not found at {POLICIES_FILE}")
+    """Load and validate policies from the YAML file."""
+    try:
+        if os.path.exists(POLICIES_FILE):
+            with open(POLICIES_FILE, 'r') as file:
+                policies = yaml.safe_load(file) or {'policies': []}
+                for policy in policies.get('policies', []):
+                    if 'enabled' not in policy:
+                        policy['enabled'] = True
+                    if not validate_policy(policy):
+                        logger.warning(f"Invalid policy found: {policy}")
+                return policies
+        else:
+            logger.error(f"Policies file not found at {POLICIES_FILE}")
+            return {'policies': []}
+    except Exception as e:
+        logger.exception(f"Failed to load policies: {e}")
         return {'policies': []}
-
 def save_policies(policies):
     """Save policies to the YAML file."""
     with open(POLICIES_FILE, 'w') as file:
-        yaml.safe_dump(policies, file)
+        yaml.safe_dump(policies, file, sort_keys=False)
     logger.info(f"Policies saved to {POLICIES_FILE}")
 
 def stream_logs():
@@ -86,16 +107,6 @@ logger.addHandler(sse_handler)
 def log_stream():
     return Response(stream_logs(), content_type='text/event-stream')
 
-from azure.identity import DefaultAzureCredential
-from azure.mgmt.advisor import AdvisorManagementClient
-from dotenv import load_dotenv
-import os
-
-load_dotenv()  # Load .env file
-subscription_ids = os.getenv('AZURE_SUBSCRIPTION_ID').split(',')  # This will allow for multiple IDs
-
-# Set up the credentials
-credential = DefaultAzureCredential()
 
 @app.route('/api/run', methods=['POST'])
 def run_optimizer():
@@ -188,7 +199,15 @@ def get_policies():
         logger.error(f"Error fetching policies: {e}")
         return jsonify({'error': 'Error fetching policies'}), 500
 
-
+@app.route('/api/policies/<string:policy_name>', methods=['PATCH'])
+def update_policy_status(policy_name):
+    policies = load_policies()
+    for policy in policies['policies']:
+        if policy['name'] == policy_name:
+            policy['enabled'] = request.json.get('enabled', policy['enabled'])
+            save_policies(policies)
+            return jsonify({"message": "Policy updated", "policy": policy})
+    return jsonify({"error": "Policy not found"}), 404
 
 @app.route('/api/policies/policyeditor/<policy_name>', methods=['POST'])
 def add_policy(policy_name):
