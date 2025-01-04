@@ -13,7 +13,7 @@ policies:
 - name: delete-unused-disks
   description: Delete disks that are not attached to any VMs
   resource: azure.disk
-  enabled: true
+  enabled: false
   filters:
   - type: unattached
   actions:

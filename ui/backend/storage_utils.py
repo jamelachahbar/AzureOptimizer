@@ -34,21 +34,42 @@ def ensure_container_and_files_exist():
                 logger.error(f"Error creating container: {e}")
                 raise
 
+        # Define file mappings (local path -> blob name)
+        files_to_upload = {
+            LOCAL_POLICIES_PATH: os.path.basename(POLICIES_FILE),  # Use only file name as blob name
+            LOCAL_SCHEMA_PATH: os.path.basename(SCHEMA_FILE),     # Use only file name as blob name
+        }
+
         # Upload blobs
-        for file_name, local_path in [(POLICIES_FILE, LOCAL_POLICIES_PATH), (SCHEMA_FILE, LOCAL_SCHEMA_PATH)]:
+        for local_path, blob_name in files_to_upload.items():
             try:
                 if not os.path.exists(local_path):
                     logger.error(f"Local file {local_path} does not exist. Skipping upload.")
                     continue
 
-                blob_client = container_client.get_blob_client(file_name)
+                blob_client = container_client.get_blob_client(blob_name)
                 with open(local_path, 'rb') as data:
                     blob_client.upload_blob(data, overwrite=True)
-                logger.info(f"Uploaded {file_name} successfully.")
+                logger.info(f"Uploaded {blob_name} successfully.")
             except Exception as e:
-                logger.error(f"Error uploading blob {file_name}: {e}")
+                logger.error(f"Error uploading blob {blob_name}: {e}")
                 raise
 
     except Exception as e:
         logger.error(f"Overall error in ensure_container_and_files_exist: {e}")
+        raise
+
+def update_policies_file():
+    """Update the policies.yaml file in Blob Storage when modified locally."""
+    try:
+        if not os.path.exists(LOCAL_POLICIES_PATH):
+            logger.error(f"Local file {LOCAL_POLICIES_PATH} does not exist.")
+            return
+
+        blob_client = container_client.get_blob_client(POLICIES_FILE)
+        with open(LOCAL_POLICIES_PATH, 'rb') as data:
+            blob_client.upload_blob(data, overwrite=True)
+        logger.info(f"Policies file {POLICIES_FILE} updated successfully in Blob Storage.")
+    except Exception as e:
+        logger.error(f"Error updating policies file: {e}")
         raise

@@ -11,7 +11,7 @@ import matplotlib
 import openai
 from azure.mgmt.advisor import AdvisorManagementClient
 from azure.identity import DefaultAzureCredential
-from storage_utils import ensure_container_and_files_exist  # Import the storage utility module
+from storage_utils import ensure_container_and_files_exist, container_client
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.advisor import AdvisorManagementClient
 from dotenv import load_dotenv
@@ -81,10 +81,24 @@ def load_policies():
         logger.exception(f"Failed to load policies: {e}")
         return {'policies': []}
 def save_policies(policies):
-    """Save policies to the YAML file."""
-    with open(POLICIES_FILE, 'w') as file:
-        yaml.safe_dump(policies, file, sort_keys=False)
-    logger.info(f"Policies saved to {POLICIES_FILE}")
+    """Save policies to the YAML file and upload to Azure Blob Storage."""
+    try:
+        # Save to local file
+        with open(POLICIES_FILE, 'w') as file:
+            yaml.safe_dump(policies, file, sort_keys=False)
+        logger.info(f"Policies saved locally to {POLICIES_FILE}")
+
+        # Upload the file to Azure Blob Storage
+        blob_name = os.path.basename(POLICIES_FILE)  # Use only the file name, not the full path
+        blob_client = container_client.get_blob_client(blob_name)
+        with open(POLICIES_FILE, 'rb') as data:
+            blob_client.upload_blob(data, overwrite=True)
+        logger.info(f"Policies uploaded to Azure Blob Storage: {blob_name}")
+    except Exception as e:
+        logger.error(f"Error saving or uploading policies: {e}")
+        raise
+
+
 
 def stream_logs():
     global log_messages
@@ -201,35 +215,26 @@ def get_policies():
 
 @app.route('/api/policies/<string:policy_name>', methods=['PATCH'])
 def update_policy_status(policy_name):
-    policies = load_policies()
-    for policy in policies['policies']:
-        if policy['name'] == policy_name:
-            policy['enabled'] = request.json.get('enabled', policy['enabled'])
-            save_policies(policies)
-            return jsonify({"message": "Policy updated", "policy": policy})
-    return jsonify({"error": "Policy not found"}), 404
-
-@app.route('/api/policies/policyeditor/<policy_name>', methods=['POST'])
-def add_policy(policy_name):
     try:
-        new_policy = request.json  # Expect the full policy structure from the frontend
+        # Load existing policies
         policies = load_policies()
 
-        # Ensure the policy name in the URL matches the name in the policy data
-        if policy_name != new_policy.get('name'):
-            return jsonify({'error': 'Policy name in URL does not match policy data.'}), 400
+        # Find and update the specified policy
+        for policy in policies['policies']:
+            if policy['name'] == policy_name:
+                policy['enabled'] = request.json.get('enabled', policy['enabled'])
+                break
+        else:
+            return jsonify({"error": "Policy not found"}), 404
 
-        # Check for existing policy with the same name
-        if any(policy['name'] == policy_name for policy in policies['policies']):
-            return jsonify({'error': 'Policy with this name already exists.'}), 400
-
-        policies['policies'].append(new_policy)
+        # Save updated policies locally and upload to Azure Storage
         save_policies(policies)
 
-        return jsonify({"message": "Policy added successfully"}), 200
+        return jsonify({"message": "Policy updated successfully", "policy": policy}), 200
     except Exception as e:
-        logger.error(f"Error adding policy: {e}")
-        return jsonify({'error': 'Error adding policy'}), 500
+        logger.error(f"Error updating policy: {e}")
+        return jsonify({'error': 'Error updating policy'}), 500
+
 
 @app.route('/api/toggle-policy', methods=['POST'])
 def toggle_policy():
@@ -265,6 +270,28 @@ def initialize_storage():
         return jsonify({"error": "Failed to initialize storage"}), 500
 
 credential = DefaultAzureCredential()
+
+@app.route('/api/policies/policyeditor/<policy_name>', methods=['POST'])
+def add_policy(policy_name):
+    try:
+        new_policy = request.json  # Expect the full policy structure from the frontend
+        policies = load_policies()
+
+        # Ensure the policy name in the URL matches the name in the policy data
+        if policy_name != new_policy.get('name'):
+            return jsonify({'error': 'Policy name in URL does not match policy data.'}), 400
+
+        # Check for existing policy with the same name
+        if any(policy['name'] == policy_name for policy in policies['policies']):
+            return jsonify({'error': 'Policy with this name already exists.'}), 400
+
+        policies['policies'].append(new_policy)
+        save_policies(policies)  # Save locally and upload to Azure Storage
+
+        return jsonify({"message": "Policy added successfully"}), 200
+    except Exception as e:
+        logger.error(f"Error adding policy: {e}")
+        return jsonify({'error': 'Error adding policy'}), 500
 
 @app.route('/api/policies/policyeditor/<policy_name>', methods=['PUT'])
 def update_policy(policy_name):
