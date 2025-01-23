@@ -32,7 +32,10 @@ type RecommendationItemProps = {
     annualSavingsAmount?: string; // Added for Log Analytics
     problem?: string;
     resource_id?: string;
+
   };
+  isExpanded?: boolean;
+  onToggle: () => void;
 };
 
 const RecommendationItem: React.FC<RecommendationItemProps> = ({ rec }) => {

@@ -1,0 +1,27 @@
+connect-MgGraph -Scopes "Application.ReadWrite.All"
+32cd1b4b-9eaa-44b7-9403-3736fdc0ecac
+New-MgServicePrincipal -AppId 32cd1b4b-9eaa-44b7-9403-3736fdc0ecac
+
+
+DisplayName           Id                                   AppId                                SignInAudience      ServicePrincipalType
+-----------           --                                   -----                                --------------      --------------------
+sp-azurecostoptimizer be6014ec-07c6-4f52-a0fc-f9e3b3d6f541 32cd1b4b-9eaa-44b7-9403-3736fdc0ecac AzureADMultipleOrgs Application
+
+
+objectid: 
+
+az role assignment create \
+    --role "Cost Management Reader" \
+    --assignee-object-id 1c16b7d5-2cba-4868-aabb-f0d52acdc4d5 \
+    --assignee-principal-type ServicePrincipal \
+    --scope /subscriptions/0074c563-68d6-496c-9c3e-edb088794ae8
+
+    
+    
+38c26c07-ccce-4839-b504-cddac8e5b09d
+0074c563-68d6-496c-9c3e-edb088794ae8
+
+
+Virtual Machine Contributor
+Reader
+Cost Management Reader

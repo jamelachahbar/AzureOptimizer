@@ -1,6 +1,20 @@
 [
     {
         "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+        "Resource": "myVM0",
+        "Action": "stop",
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: myVM0 in Subscription: e9b4640d-1f1f-45fe-a543-c0ea45ac34c1"
+    },
+    {
+        "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+        "Resource": "myVM1",
+        "Action": "stop",
+        "Status": "Dry Run",
+        "Message": "[Dry Run] Action: stop on Resource: myVM1 in Subscription: e9b4640d-1f1f-45fe-a543-c0ea45ac34c1"
+    },
+    {
+        "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
         "Resource": "ssawafjml001",
         "Action": "update_sku",
         "Status": "Dry Run",

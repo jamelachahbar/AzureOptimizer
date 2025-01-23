@@ -1,0 +1,20 @@
+[
+    {
+        "SubscriptionId": "b26069e9-79e1-49d1-a47c-877dfdc1fb20",
+        "Date": "2025-01-01",
+        "Cost": 106.54,
+        "Algorithm": "Isolation Forest"
+    },
+    {
+        "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+        "Date": "2024-12-26",
+        "Cost": 52.05,
+        "Algorithm": "Isolation Forest"
+    },
+    {
+        "SubscriptionId": "6d03d786-1501-4575-8d34-643ceca8af07",
+        "Date": "2025-01-15",
+        "Cost": 0.03,
+        "Algorithm": "Isolation Forest"
+    }
+]

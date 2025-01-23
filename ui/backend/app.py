@@ -126,14 +126,20 @@ def log_stream():
 def run_optimizer():
     global optimizer_status
     mode = request.json.get('mode')
+    tenant_id = request.json.get('tenantId')
     all_subscriptions = request.json.get('all_subscriptions', False)
+
+    if not tenant_id:
+        return jsonify({'error': 'Tenant ID is required'}), 400
+
     stop_event.clear()  # Reset the stop event
 
     def run_optimizer_in_thread():
         global summary_metrics_data, execution_data_data, impacted_resources_data, anomalies_data, trend_data, optimizer_status
         optimizer_status = "Running"
         try:
-            result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions, stop_event=stop_event)
+            # Pass the tenantId to optimizer_main
+            result = optimizer_main(mode=mode, all_subscriptions=all_subscriptions, tenant_id=tenant_id, stop_event=stop_event)
             if result is None:
                 raise ValueError("optimizer_main returned None")
             summary_metrics_data = result['summary_reports']
@@ -271,6 +277,9 @@ def initialize_storage():
 
 credential = DefaultAzureCredential()
 
+
+
+### API Endpoints for Policy Editor ###
 @app.route('/api/policies/policyeditor/<policy_name>', methods=['POST'])
 def add_policy(policy_name):
     try:
@@ -333,12 +342,63 @@ def delete_policy(policy_name):
 
 
 
+### API Endpoint to fetch Subscription IDs from Azure ###
+from azure.mgmt.resource import SubscriptionClient
+
+@app.route('/api/get-subscriptions', methods=['POST'])
+def get_user_subscriptions():
+    """Fetch subscriptions for the authenticated user's tenant."""
+    try:
+        data = request.get_json()
+        tenant_id = data.get('tenantId')
+
+        if not tenant_id:
+            return jsonify({'error': 'Tenant ID is required'}), 400
+
+        # Initialize SubscriptionClient with credentials scoped to the tenantId
+        credential = DefaultAzureCredential()
+        subscription_client = SubscriptionClient(credential)
+
+        # Fetch subscriptions for the tenant
+        subscriptions = subscription_client.subscriptions.list()
+
+        # Filter subscriptions tied to the tenantId
+        subscription_list = [
+            {"id": sub.subscription_id, "name": sub.display_name}
+            for sub in subscriptions
+        ]
+
+        return jsonify(subscription_list), 200
+    except Exception as e:
+        logger.error(f"Error fetching subscriptions: {e}")
+        return jsonify({'error': 'Failed to fetch subscriptions. Please check Azure credentials.'}), 500
+
+
+
 ### Work In Progress - Azure API and SQL DB Integration for Recommendations and Advice Generation ###
 
 ### Function to get recommendations from Azure API ###
 
-def get_cost_recommendations(subscription_ids):
+from azure.identity import ClientSecretCredential
+
+def get_credentials(tenant_id):
+    """Return credentials for the given tenant ID."""
+    client_id = os.getenv("AZURE_CLIENT_ID")
+    client_secret = os.getenv("AZURE_CLIENT_SECRET")
+    if not (client_id and client_secret):
+        raise ValueError("Azure credentials are not set.")
+    return ClientSecretCredential(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
+
+def get_cost_recommendations(tenant_id, subscription_ids):
+    """Fetch cost recommendations from Azure Advisor."""
     all_cost_recommendations = {}
+
+    # Create credentials for the specified tenant
+    try:
+        credential = get_credentials(tenant_id)
+    except Exception as e:
+        logger.error(f"Failed to get credentials for tenant {tenant_id}: {e}")
+        return {}
 
     for subscription_id in subscription_ids:
         try:
@@ -349,22 +409,23 @@ def get_cost_recommendations(subscription_ids):
             cost_recommendations = [
                 {
                     **rec.as_dict(),
-                    'uuid': str(uuid.uuid4()),  # Always generate a new UUID, independent of existing IDs
+                    'uuid': str(uuid.uuid4()),  # Always generate a new UUID
                     'RecommendationId': rec.id if rec.id else None,  # Keep original RecommendationId if present
                     'source': 'Azure API',
-                    'subscription_id': subscription_id,  # Use the subscription_id
+                    'subscription_id': subscription_id,  # Include the subscription_id
                     'impact': rec.impact if rec.impact else 'Unknown',  # Normalize impact
-                    'resource_id': 'N/A'  # Include this in the response, even if not provided by SQL
+                    'resource_id': rec.resource_metadata.resource_id if hasattr(rec, 'resource_metadata') and hasattr(rec.resource_metadata, 'resource_id') else 'N/A'
                 }
                 for rec in recommendations if rec.category == 'Cost'
             ]
-            
+
             all_cost_recommendations[subscription_id] = cost_recommendations
         except Exception as e:
-            logger.error(f"Error fetching cost recommendations for subscription {subscription_id}: {str(e)}")
+            logger.error(f"Error fetching cost recommendations for subscription {subscription_id}: {e}")
             all_cost_recommendations[subscription_id] = []
-    
+
     return all_cost_recommendations
+
 
 
 ### Function to get recommendations from SQL database ###
@@ -560,8 +621,9 @@ def generate_advice_with_llm(recommendations):
         
         # Handling Azure API Recommendations
         if rec.get('source') == 'Azure API':
-            problem = rec.get('short_description', {}).get('problem', 'No description available')
-            solution = rec.get('short_description', {}).get('solution', 'No solution available')
+            short_description = rec.get('short_description', {})
+            problem = short_description.get('problem') or rec.get('problem', 'No problem description available')
+            solution = short_description.get('solution') or rec.get('solution', 'No solution available')
             impact = rec.get('impact', 'Unknown')
             subscription_id = rec.get('extended_properties', {}).get('subId', rec.get('subscription_id', 'N/A'))
 
@@ -636,20 +698,38 @@ def generate_advice_with_llm(recommendations):
 
 
 
+
+# azure_subscription_ids = ['e9b4640d-1f1f-45fe-a543-c0ea45ac34c1','34f635ef-9210-4e8f-b9a9-8c3327604b23','b26069e9-79e1-49d1-a47c-877dfdc1fb20','b640da53-da83-438f-8c1d-dbc3de526d65','6d03d786-1501-4575-8d34-643ceca8af07']
+# sql_subscription_id = '9d923c47-1aa2-4fc9-856f-16ca53e97b76'
+
+
 ### API Endpoint to Fetch and Review Recommendations ###
-@app.route('/api/review-recommendations', methods=['GET'])
+@app.route('/api/review-recommendations', methods=['POST'])
 def review_recommendations_route():
     try:
-        azure_subscription_ids = ['e9b4640d-1f1f-45fe-a543-c0ea45ac34c1','34f635ef-9210-4e8f-b9a9-8c3327604b23','b26069e9-79e1-49d1-a47c-877dfdc1fb20','b640da53-da83-438f-8c1d-dbc3de526d65','6d03d786-1501-4575-8d34-643ceca8af07']
-        # sql_subscription_id = '9d923c47-1aa2-4fc9-856f-16ca53e97b76'
-        
+        # Extract tenantId and subscriptionIds from the request body
+        data = request.get_json()
+        tenant_id = data.get('tenantId')
+        subscription_ids = data.get('subscriptionIds', [])
+
+        # Log received tenantId for debugging
+        logger.info(f"Received tenantId: {tenant_id}")
+        # Validate tenantId and subscriptionIds
+        if not tenant_id:
+            return jsonify({'error': 'Tenant ID is required'}), 400
+        if not isinstance(subscription_ids, list):
+            return jsonify({'error': 'Subscription IDs must be a list'}), 400
+        if not subscription_ids:
+            return jsonify({'error': 'A list of Subscription IDs is required'}), 400  # Optional: Allow empty list if necessary
+
         all_recommendations = []
 
         # Fetch recommendations from Azure Advisor
         azure_recommendations = []
-        for subscription_id in azure_subscription_ids:
+        for subscription_id in subscription_ids:
             try:
-                advisor_recommendations = get_cost_recommendations([subscription_id])
+                # Pass tenantId to get_cost_recommendations
+                advisor_recommendations = get_cost_recommendations(tenant_id, [subscription_id])
                 if isinstance(advisor_recommendations, dict):
                     for recommendations in advisor_recommendations.values():
                         if recommendations:
@@ -658,85 +738,26 @@ def review_recommendations_route():
                                 if 'extended_properties' in rec and 'subid' in rec['extended_properties']:
                                     rec['subscription_id'] = rec['extended_properties']['subid']
                                 else:
-                                    rec['subscription_id'] = subscription_id  # Fallback to subscription_id if not found in extended properties
+                                    rec['subscription_id'] = subscription_id  # Fallback to subscription_id
                                 azure_recommendations.append(rec)
             except Exception as e:
-                logger.error(f"Error fetching Azure Advisor recommendations for subscription {subscription_id}: {e}")
-        
-        # Fetch recommendations from SQL database
-        # sql_recommendations = []
-        # try:
-        #     sql_recommendations = get_sql_recommendations()
-        #     if not sql_recommendations:
-        #         logger.warning(f"No recommendations found for SQL subscription: {sql_subscription_id}")
-        #     else:
-        #         # Ensure each SQL recommendation has the subscription_id set correctly
-        #         for rec in sql_recommendations:
-        #             if 'subscription_id' not in rec:
-        #                 rec['subscription_id'] = sql_subscription_id
-        # except Exception as e:
-        #     logger.error(f"Error fetching SQL recommendations: {e}")
-    
-        # Fetch recommendations from Log Analytics
-        log_analytics_recommendations = []
-        try:
-            # Example: Set a default client_id_key and timespan (30 days) for the Log Analytics query
-            client_id_key = 'OTHER'  # This can be dynamic or static based on your needs
-            timespan = timedelta(days=30)  # Fetch data for the last 30 days
+                logger.error(f"Error fetching recommendations for subscription {subscription_id}: {e}")
 
-            log_analytics_query = """
-            AzureOptimizationRecommendationsV1_CL
-            | where TimeGenerated >= ago(30d) and Category == "Cost"
-            | extend additionalInfo = parse_json(AdditionalInfo_s)
-            | project 
-                problem = RecommendationDescription_s,  // Keep original name for recommendation
-                impact = Impact_s , 
-                solution = RecommendationAction_s,  // Keep original name for solution
-                TimeGenerated,  // Keep original name for generated date
-                SubscriptionGuid_g,  // Keep original name for subscription ID
-                savingsAmount = additionalInfo.savingsAmount,  // Include savingsAmount as 
-                annualSavingsAmount = additionalInfo.annualSavingsAmount,  // Include annualSavingsAmount as well
-                InstanceName_g,  // Include instance name
-                FitScore_d,
-                resource_id = InstanceId_s
-            | order by TimeGenerated desc
-            """
-            # Now pass the correct arguments: query, client_id_key, and timespan
-            log_analytics_recommendations = get_log_analytics_data(query=log_analytics_query, client_id_key=client_id_key, timespan=timespan)
-            # Add UUID and source to each recommendation
-            for rec in log_analytics_recommendations:
-                rec['uuid'] = str(uuid4())
-                rec['source'] = 'Log Analytics'
-                rec['subscription_id'] = rec.get('SubscriptionGuid_g', 'N/A')
-                rec['impact'] = rec.get('impact', 'Unknown')
-                rec['resource_id'] = rec.get('resource_id', 'N/A')  # Ensure resource_id is included
-
-                # Normalize the structure to match other recommendations
-                rec['additional_info'] = rec.get('savingsAmount', 'N/A')
-                rec['Instance'] = rec.get('InstanceName_g', 'N/A')
-                rec['problem'] = rec.get('problem', 'No problem description available')
-                rec['solution'] = rec.get('solution', 'No solution description available')
-                rec['fit_score'] = rec.get('FitScore_d', 'N/A')
-                rec['annual_savings'] = rec.get('annualSavingsAmount', 'N/A')
-            if not log_analytics_recommendations:
-                logger.warning("No recommendations found from Log Analytics.")
-        except Exception as e:
-            logger.error(f"Error fetching Log Analytics recommendations: {e}")
-
-        # Combine recommendations from all sources
+        # Combine all recommendations
         all_recommendations.extend(azure_recommendations)
-        # all_recommendations.extend(sql_recommendations)
-        all_recommendations.extend(log_analytics_recommendations)
 
+        # If no recommendations are found, return a message
         if not all_recommendations:
-            logger.warning("No recommendations found from any source.")
+            logger.info(f"No recommendations found for tenant {tenant_id} and subscriptions {subscription_ids}")
             return jsonify({"message": "No recommendations available"}), 200
 
+        # Return the combined recommendations
         return jsonify(all_recommendations), 200
 
     except Exception as e:
         logger.error(f"Error fetching recommendations: {e}")
         return jsonify({'error': str(e)}), 500
+
 
 
 ### API Endpoint to Analyze Recommendations ###

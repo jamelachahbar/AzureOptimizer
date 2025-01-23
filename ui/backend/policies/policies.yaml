@@ -3,17 +3,17 @@ policies:
   description: Stop VMs that have not been used in the last x days and have an average
     CPU below the set threshold, and have a specific tag(optional)
   resource: azure.vm
-  enabled: false
+  enabled: true
   filters:
   - type: last_used
-    days: 30
-    threshold: 10
+    days: 7
+    threshold: 3
   actions:
   - type: stop
 - name: delete-unused-disks
   description: Delete disks that are not attached to any VMs
   resource: azure.disk
-  enabled: false
+  enabled: true
   filters:
   - type: unattached
   actions:
