@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Checkbox,
@@ -66,43 +66,56 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
   const [selectedRecommendations, setSelectedRecommendations] = useState<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [subscriptions, setSubscriptions] = useState<{ id: string; name: string }[]>([]);
-  const [subscriptionsLoading, setSubscriptionsLoading] = useState(false);
+  const [loadingSubscriptions, setLoadingSubscriptions] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
 
 
-  // Fetch Subscriptions
   useEffect(() => {
+    // Ensure the user is authenticated
+    if (!isAuthenticated) {
+      setError('User is not authenticated.');
+      return;
+    }
+
     const fetchSubscriptions = async () => {
+      // Ensure authentication details are present
       if (!tenantId || !token) {
-        console.error("Tenant ID or token is missing.");
-        setError("Tenant ID or token is missing.");
+        setError('Authentication details are missing. Please log in again.');
         return;
       }
-      setLoading(true);
+
       try {
+        setLoadingSubscriptions(true); // Set loading state
         const res = await axios.get(
-          "https://management.azure.com/subscriptions?api-version=2020-01-01",
-          { headers: { Authorization: `Bearer ${token}` } }
+          'https://management.azure.com/subscriptions?api-version=2020-01-01',
+          { headers: { Authorization: `Bearer ${token}` } } // Pass token in headers
         );
 
-        console.log("Subscriptions fetched:", res.data);
-        if (res.data && res.data.value) {
-          // Update state with fetched subscriptions
-          setSubscriptions(res.data.value.map((sub: any) => ({ id: sub.subscriptionId, displayName: sub.displayName })));
+        // Process subscription data
+        if (res.data?.value) {
+          setSubscriptions(
+            res.data.value.map((sub: any) => ({
+              id: sub.subscriptionId,
+              name: sub.displayName,
+            }))
+          );
+          setError(null); // Clear any previous errors
         } else {
-          setError("No subscriptions found.");
+          setError('No subscriptions found.');
         }
       } catch (error) {
-        console.error("Error fetching subscriptions:", error);
-        setError("Error fetching subscriptions. Please try again later.");
+        console.error('Error fetching subscriptions:', error);
+        setError('Failed to fetch subscriptions. Please try again later.');
       } finally {
-        setLoading(false);
+        setLoadingSubscriptions(false); // Reset loading state
       }
     };
 
+    // Trigger the fetch function
     fetchSubscriptions();
-  }, [tenantId, token]);
+  }, [isAuthenticated, tenantId, token]); // Run whenever `isAuthenticated`, `tenantId`, or `token` changes
 
+  // make sure you first check if customer is logged in, then don't check the token anymore
   const handleFetchRecommendations = async () => {
     if (!tenantId) {
       setError('Tenant ID is missing. Please log in again.');
@@ -324,13 +337,19 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
           onChange={handleSubscriptionSelection}
           renderValue={(selected) => selected.join(', ')}
         >
-          {!subscriptionsLoading && subscriptions.length > 0 && (
+          {!loadingSubscriptions && subscriptions.length > 0 && (
             subscriptions.map((sub) => (
               <MenuItem key={sub.id} value={sub.id}>
                 <Checkbox checked={subscriptionIds.includes(sub.id)} />
                 {sub.name} ({sub.id})
               </MenuItem>
             ))
+          )}
+          {loadingSubscriptions && (
+            <MenuItem disabled>
+              <CircularProgress size={24} />
+              Loading Subscriptions...
+            </MenuItem>
           )}
         </Select>
       </FormControl>
