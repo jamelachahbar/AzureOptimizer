@@ -7,7 +7,6 @@ import axios from 'axios';
 import { useTheme } from '@mui/material/styles';
 import { useIsAuthenticated } from '@azure/msal-react';
 import { AuthProvider, useAuth } from './providers/AuthProvider';
-import Header from './components/Header';
 import TracingBeamContainer from './components/TracingBeamContainer';
 import { Highlight } from './components/HeroHighlight';
 import TypewriterEffectSmooth from './components/TypewriterEffectSmooth';
@@ -167,6 +166,8 @@ const Optimizer: React.FC = () => {
     SubscriptionId: 'mock-subscription-2',
   },]);
   const [anomalyData, setAnomalyData] = useState<any[]>([]); // State for storing anomalies
+  const [loadingAnomalies, setLoadingAnomalies] = useState(false); // Loading state for anomalies
+  const [anomaliesError, setAnomaliesError] = useState<string | null>(null); // Error state for anomalies
   const [isOptimizerRunning, setIsOptimizerRunning] = useState(false);
   const [mode, setMode] = useState('dry-run');
   const [logs, setLogs] = useState<string[]>([]);
@@ -217,6 +218,9 @@ const Optimizer: React.FC = () => {
     setIsOptimizerRunning(true);
     setLogs([]);
     fetchLogStream();
+    setAnomalyData([]);
+    setAnomaliesError(null);
+    setLoadingAnomalies(true);
     try {
       const { data } = await axios.post('http://127.0.0.1:5000/api/run', {
         mode: mode,
@@ -269,31 +273,25 @@ const Optimizer: React.FC = () => {
     }
 
     try {
-      // Fetch anomaly data
-      // Fetch anomaly data when the component mounts
-      const fetchAnomalies = async () => {
-        setIsLoading(true);
-        try {
-          const response = await fetch("http://127.0.0.1:5000/api/anomalies");
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          setAnomalyData(data); // Set fetched data to state
-        } catch (error) {
-          console.error("Error fetching anomaly data:", error);
-          setError("Failed to fetch anomaly data.");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      fetchAnomalies();
+      const { data: anomalies } = await axios.get("http://127.0.0.1:5000/api/anomalies");
+      console.log("Raw Anomalies:", anomalies);
+  
+      // Map anomalies to match the expected structure
+      const mappedAnomalies = anomalies.map((anomaly: { Date: any; Cost: any; SubscriptionId: any }) => ({
+        date: anomaly.Date,
+        cost: anomaly.Cost,
+        SubscriptionId: anomaly.SubscriptionId
+      }));
+  
+      console.log("Mapped Anomalies:", mappedAnomalies);
+      setAnomalyData(mappedAnomalies);
     } catch (error) {
-      console.error('Error fetching anomaly data:', error);
+      console.error("Error fetching anomalies:", error);
+      setAnomaliesError("Failed to load anomalies.");
+    } finally {
+      setLoadingAnomalies(false);
+      setIsOptimizerRunning(false);
     }
-
-
     try {
       // Fetch trend data
       const { data: trendData } = await axios.get('http://127.0.0.1:5000/api/trend-data');
@@ -396,7 +394,7 @@ const Optimizer: React.FC = () => {
               ))}
             </Grid>
 
-            <Grid item xl={12} md={12}  xs={12} padding={2}>
+            <Grid item xl={12} md={12} xs={12} padding={2}>
               <Typography variant="h6" mb={2}>Cost Trend</Typography>
               <CostTrendChart trendData={trendData} selectedSubscription={selectedSubscription} />
             </Grid>
@@ -414,7 +412,11 @@ const Optimizer: React.FC = () => {
           {/* New Anomalies Section */}
           <Grid item xs={4} md={6}>
             <Typography variant="h6" mb={2}>Detected Anomalies</Typography>
-            <AnomaliesDisplay />
+            <AnomaliesDisplay
+              anomalies={anomalyData}
+              loading={loadingAnomalies}
+              error={anomaliesError}
+            />
           </Grid>
           <Grid container spacing={2} sx={{ mt: 6, display: 'flex', mb: 4 }}>
             <Grid item xs={12} md={12}>

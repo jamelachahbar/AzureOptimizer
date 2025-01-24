@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useRef } from "react";
 import {
   Table,
   TableContainer,
@@ -10,48 +10,24 @@ import {
   Typography,
   CircularProgress,
   Box,
-  Button
+  Button,
 } from "@mui/material";
 import RollingMessage from "./RollingMessage";
-import { exportToCsv } from "../utils/exportToCsv"; // Import the CSV export utility
+import { exportToCsv } from "../utils/exportToCsv";
 
-const AnomaliesDisplay: React.FC = () => {
-  const [anomalies, setAnomalies] = useState<any[]>([]); // Holds anomaly data
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState<string | null>(null); // Error state
-  const [showMessage, setShowMessage] = useState(true); // Controls RollingMessage visibility
+interface AnomaliesDisplayProps {
+  anomalies: any[]; // Pass anomaly data from parent
+  loading: boolean; // Parent controls the loading state
+  error: string | null; // Parent handles and passes error messages
+}
+
+const AnomaliesDisplay: React.FC<AnomaliesDisplayProps> = ({
+  anomalies = [],
+  loading,
+  error,
+}) => {
   const tableRef = useRef<HTMLDivElement>(null); // Reference to the table for smooth scrolling
-
-  // Fetch anomalies on component mount
-  useEffect(() => {
-    fetch("http://127.0.0.1:5000/api/anomalies")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Fetched anomalies:", data);
-        if (Array.isArray(data)) {
-          setAnomalies(
-            data.map((anomaly) => ({
-              date: anomaly.Date || anomaly.date,
-              cost: anomaly.Cost || anomaly.cost,
-              subscription_id: anomaly.SubscriptionId || "Unknown",
-            }))
-          );
-        } else {
-          setError("Unexpected data format.");
-        }
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching anomalies:", error);
-        setError("Failed to load anomalies data.");
-        setLoading(false);
-      });
-  }, []);
+  const [showMessage, setShowMessage] = React.useState(true); // Controls RollingMessage visibility
 
   // Dismiss RollingMessage
   const handleDismiss = () => setShowMessage(false);
@@ -59,13 +35,15 @@ const AnomaliesDisplay: React.FC = () => {
   // Scroll to table
   const handleNavigate = () => {
     if (tableRef.current) {
-      tableRef.current.scrollIntoView({ behavior: "auto" });
+      tableRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
+
   // Handle CSV export
   const handleDownload = () => {
     exportToCsv("anomalies_data.csv", anomalies);
   };
+
   if (loading) {
     return (
       <Box
@@ -101,16 +79,12 @@ const AnomaliesDisplay: React.FC = () => {
         />
       )}
 
-      {/* Page Content */}
-      <Box 
-      >
+      {/* Anomalies Table */}
+      <Box>
         {anomalies.length === 0 ? (
           <Typography>No anomalies detected.</Typography>
         ) : (
           <Box>
-            {/* <Typography variant="h6" sx={{ marginBottom: "16px" }}>
-              Detected Anomalies
-            </Typography> */}
             <Box
               sx={{
                 display: "flex",
@@ -140,9 +114,16 @@ const AnomaliesDisplay: React.FC = () => {
                   <TableBody>
                     {anomalies.map((anomaly, index) => (
                       <TableRow key={index}>
-                        <TableCell>{anomaly.date}</TableCell>
-                        <TableCell>${anomaly.cost.toFixed(2)}</TableCell>
-                        <TableCell>{anomaly.subscription_id}</TableCell>
+                        <TableCell>{anomaly?.date || "Unknown"}</TableCell>
+                        <TableCell>
+                          $
+                          {typeof anomaly?.cost === "number"
+                            ? anomaly.cost.toFixed(2)
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          {anomaly?.SubscriptionId || "Unknown"}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
