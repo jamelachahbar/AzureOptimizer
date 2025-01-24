@@ -248,69 +248,82 @@ const Optimizer: React.FC = () => {
     }
   };
 
-  const fetchData = useCallback(async () => {
-    try {
-      const { data: summaryData } = await axios.get('http://127.0.0.1:5000/api/summary-metrics');
-      setSummaryMetrics(summaryData);
-    } catch (error) {
-      console.error('Error fetching summary metrics:', error);
-      setErrorMessage('Error fetching data from server. Please make sure the server is running.');
-      setIsOptimizerRunning(false);
-    }
+const fetchData = useCallback(async () => {
+  try {
+    const { data: summaryData } = await axios.get('http://127.0.0.1:5000/api/summary-metrics');
+    setSummaryMetrics(summaryData);
+  } catch (error) {
+    console.error('Error fetching summary metrics:', error);
+    setErrorMessage('Error fetching data from server. Please make sure the server is running.');
+  }
 
-    try {
-      const { data: executionData } = await axios.get('http://127.0.0.1:5000/api/execution-data');
-      setExecutionData(executionData);
-    } catch (error) {
-      console.error('Error fetching execution data:', error);
-    }
+  try {
+    const { data: executionData } = await axios.get('http://127.0.0.1:5000/api/execution-data');
+    setExecutionData(executionData);
+  } catch (error) {
+    console.error('Error fetching execution data:', error);
+  }
 
-    try {
-      const { data: impactedResourcesData } = await axios.get('http://127.0.0.1:5000/api/impacted-resources');
-      setImpactedResources(impactedResourcesData);
-    } catch (error) {
-      console.error('Error fetching impacted resources:', error);
-    }
+  try {
+    const { data: impactedResourcesData } = await axios.get('http://127.0.0.1:5000/api/impacted-resources');
+    setImpactedResources(impactedResourcesData);
+  } catch (error) {
+    console.error('Error fetching impacted resources:', error);
+  }
 
-    try {
-      const { data: anomalies } = await axios.get("http://127.0.0.1:5000/api/anomalies");
-      console.log("Raw Anomalies:", anomalies);
-  
-      // Map anomalies to match the expected structure
-      const mappedAnomalies = anomalies.map((anomaly: { Date: any; Cost: any; SubscriptionId: any }) => ({
-        date: anomaly.Date,
-        cost: anomaly.Cost,
-        SubscriptionId: anomaly.SubscriptionId
-      }));
-  
-      console.log("Mapped Anomalies:", mappedAnomalies);
-      setAnomalyData(mappedAnomalies);
-    } catch (error) {
-      console.error("Error fetching anomalies:", error);
-      setAnomaliesError("Failed to load anomalies.");
-    } finally {
-      setLoadingAnomalies(false);
-      setIsOptimizerRunning(false);
-    }
-    try {
-      // Fetch trend data
-      const { data: trendData } = await axios.get('http://127.0.0.1:5000/api/trend-data');
-      if (Array.isArray(trendData)) {
-        setTrendData(trendData);
-      } else {
-        console.error('Unexpected trend data format:', trendData);
-        setTrendData([]); // Reset to an empty state
-      }
-    } catch (error) {
-      console.error('Error fetching trend data:', error);
+  try {
+    const { data: anomalies } = await axios.get("http://127.0.0.1:5000/api/anomalies");
+    console.log("Raw Anomalies:", anomalies);
+
+    // Map anomalies to match the expected structure
+    const mappedAnomalies = anomalies.map((anomaly: { Date: any; Cost: any; SubscriptionId: any }) => ({
+      date: anomaly.Date,
+      cost: anomaly.Cost,
+      SubscriptionId: anomaly.SubscriptionId
+    }));
+
+    console.log("Mapped Anomalies:", mappedAnomalies);
+    setAnomalyData(mappedAnomalies);
+  } catch (error) {
+    console.error("Error fetching anomalies:", error);
+    setAnomaliesError("Failed to load anomalies.");
+  } finally {
+    setLoadingAnomalies(false);
+  }
+  try {
+    const { data: trendData } = await axios.get('http://127.0.0.1:5000/api/trend-data');
+    if (Array.isArray(trendData)) {
+      setTrendData(trendData);
+    } else {
+      console.error('Unexpected trend data format:', trendData);
       setTrendData([]); // Reset to an empty state
     }
-  }, [selectedSubscription]);
+  } catch (error) {
+    console.error('Error fetching trend data:', error);
+    setTrendData([]); // Reset to an empty state
+  }
+
+
+}, [selectedSubscription]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
+    const checkCompletion = async () => {
+      try {
+        const { data } = await axios.get('http://127.0.0.1:5000/api/status');
+        if (data.status === 'Completed') {
+          setIsOptimizerRunning(false); // Stop polling
+          clearInterval(interval); // Clear the interval
+        }
+      } catch (error) {
+        console.error('Error checking optimizer status:', error);
+      }
+    };
     if (isOptimizerRunning) {
-      interval = setInterval(fetchData, 5000);
+      interval = setInterval(() => {
+        fetchData();
+        checkCompletion();
+      }, 5000);
     }
     return () => { if (interval) clearInterval(interval); };
   }, [isOptimizerRunning, fetchData]);
