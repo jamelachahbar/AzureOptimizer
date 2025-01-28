@@ -2,7 +2,7 @@ name: Azure Optimization Workflow Apply Mode
 
 on:
   workflow_run:
-    workflows: ["Azure Cost Optimization Workflow Dry Run"]  # Name of the first workflow
+    workflows: ["Azure Optimizer Workflow Dry Run"]  # Name of the first workflow
     types:
       - completed
 jobs:
