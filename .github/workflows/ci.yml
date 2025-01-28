@@ -80,7 +80,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          $branchName = "azurecostoptimizer/dry-run-$((Get-Date).ToString('yyyyMMddHHmmss'))"
+          $branchName = "azureoptimizer/dry-run-$((Get-Date).ToString('yyyyMMddHHmmss'))"
           git checkout -b $branchName
           if (git status --porcelain) {
             git add impacted_resources.txt
@@ -99,7 +99,7 @@ jobs:
           if (Test-Path -Path "./impacted_resources.txt") {
             $owner = (Get-Item -Path ./impacted_resources.txt).BaseName -replace 'impacted_resources_', ''
             Write-Output "Creating issue for owner: $owner"
-            $title = "Azure Cost Optimization Results for $owner -$((Get-Date).ToString('yyyyMMddHHmmss'))"
+            $title = "Azure Optimization Results for $owner -$((Get-Date).ToString('yyyyMMddHHmmss'))"
             $issue_url = gh issue create --title "$title" --body-file "./impacted_resources.txt" --label "notification"
             Write-Output "::set-output name=issue_url::$issue_url.url"
           } else {
