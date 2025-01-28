@@ -471,10 +471,15 @@ def unattached_filter(resource):
             )
             return False
         return not resource.virtual_machine
-
-    # Default case: check if the resource is managed by another resource
-    return resource.managed_by is None
-
+    # Check if the resource is a Disk
+    elif isinstance(resource, compute_client.disks.models.Disk):
+        if not resource.managed_by or resource.managed_by == "":
+            logger.info(f"Disk {resource.name} is unattached.")
+            return True
+        logger.info(f"Disk {resource.name} is attached.")
+        return False
+    # Default case: check if the resource is managed by another resource or is not empty
+    return resource.managed_by is None or resource.managed_by == ""
 
 def tag_filter(resource, key, value):
     """Check if a resource has a specific tag."""
@@ -1227,49 +1232,70 @@ def wrap_text(text, width=30):
     """Wrap text to a given width."""
     return "\n".join(textwrap.wrap(text, width))
 
-
 def review_application_gateways(policies, status_log, dry_run=True):
-    """Review application gateways."""
+    """Review application gateways based on policies."""
     impacted_resources = []
+
     for policy in policies:
         if policy["resource"] == "azure.applicationgateway":
-            logger.info(
-                "Reviewing application gateways for policy: {}".format(policy["name"])
-            )
-            gateways = network_client.application_gateways.list_all()
+            logger.info(f"🔍 Reviewing application gateways for policy: {policy['name']}")
+
+            try:
+                gateways = list(network_client.application_gateways.list_all())
+
+                if not gateways:
+                    logger.warning("❗ No Application Gateways found in this subscription.")
+                    continue  # Don't return early, move to the next policy
+
+            except Exception as e:
+                logger.error(f"❌ Failed to list Application Gateways: {e}")
+                continue  # Skip this policy and proceed with others
+
             for gateway in gateways:
-                if not gateway.backend_address_pools or any(
-                    not pool.backend_addresses for pool in gateway.backend_address_pools
-                ):
-                    if evaluate_filters(gateway, policy["filters"]):
+                backend_pools = gateway.backend_address_pools or []
+                
+                # Ensure backend_pools is a list and not None
+                if not isinstance(backend_pools, list):
+                    backend_pools = []
+
+                # Extract empty pools properly
+                empty_pools = [
+                    pool for pool in backend_pools
+                    if hasattr(pool, "backend_addresses") and isinstance(pool.backend_addresses, list) and not pool.backend_addresses
+                ]
+
+                logger.info(f"🔍 Checking App Gateway: {gateway.name} (Total Pools: {len(backend_pools)})")
+
+                if not backend_pools:
+                    logger.info(f"⚠️ App Gateway {gateway.name} has no backend pools configured.")
+                elif empty_pools:
+                    logger.info(f"⚠️ App Gateway {gateway.name} has empty backend pools: {[pool.name for pool in empty_pools]}")
+
+                    if evaluate_filters(gateway, policy["filters"]) and not evaluate_exclusions(gateway, policy.get("exclusions", [])):
+                        logger.info(f"✅ Filters matched for App Gateway: {gateway.name}")
+
                         try:
                             status, message = apply_app_gateway_actions(
                                 network_client,
                                 gateway,
                                 policy["actions"],
                                 status_log,
-                                dry_run,
+                                dry_run
                             )
                             if status != "No Change":
                                 impacted_resources.append(
                                     {
                                         "Policy": policy["name"],
                                         "Resource": gateway.name,
-                                        "Actions": ", ".join(
-                                            [
-                                                action["type"]
-                                                for action in policy["actions"]
-                                            ]
-                                        ),
+                                        "Actions": ", ".join([action["type"] for action in policy["actions"]]),
                                         "Status": status,
                                         "Message": message,
-                                        "Cost": 0,
                                     }
                                 )
                         except Exception as e:
-                            logger.error(f"Failed to apply actions: {e}")
-    return impacted_resources
+                            logger.error(f"❌ Failed to apply actions to {gateway.name}: {e}")
 
+    return impacted_resources
 
 def apply_app_gateway_actions(
     network_client, gateway, actions, status_log, dry_run=True
@@ -1366,21 +1392,26 @@ def apply_policies(
             disks = compute_client.disks.list()
             for disk in disks:
                 logger.info(f"Evaluating disk {disk.name}")
-                if not evaluate_exclusions(disk, exclusions) and evaluate_filters(
-                    disk, filters
-                ):
-                    apply_actions(disk, actions, status_log, dry_run, subscription_id)
-                    impacted_resources.append(
-                        {
-                            "SubscriptionId": subscription_id,
-                            "Policy": policy["name"],
-                            "Resource": disk.name,
-                            "Actions": ", ".join(
-                                [action["type"] for action in actions]
-                            ),
-                        }
-                    )
-                    resources_impacted = True
+                if evaluate_exclusions(disk, exclusions):
+                    logger.info(f"Disk {disk.name} is excluded due to an exclusion rule.")
+                    continue  # Skip this disk if it's excluded
+
+                filter_result = evaluate_filters(disk, filters)
+                if not filter_result:
+                    logger.info(f"Disk {disk.name} did not meet filter criteria.")
+                    continue
+
+                apply_actions(disk, actions, status_log, dry_run, subscription_id)
+                impacted_resources.append(
+                    {
+                        "SubscriptionId": subscription_id,
+                        "Policy": policy["name"],
+                        "Resource": disk.name,
+                        "Actions": ", ".join([action["type"] for action in actions]),
+                    }
+                )
+                resources_impacted = True
+
             if not resources_impacted:
                 non_impacted_resources.append(
                     {

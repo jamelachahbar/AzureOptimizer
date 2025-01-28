@@ -166,6 +166,8 @@ def stop_optimizer():
 
 @app.route('/api/status', methods=['GET'])
 def get_status():
+    global optimizer_status
+    logger.info(f"Current optimizer status: {optimizer_status}")
     return jsonify({'status': optimizer_status}), 200
 
 @app.route('/api/summary-metrics', methods=['GET'])
@@ -555,6 +557,8 @@ def generate_advice_with_llm(recommendations):
     3. **Monitor Performance**: After downsizing, continuously monitor the performance of the SQL databases to ensure the new instance size meets workload demands.
     
     **Conclusion**: By rightsizing SQL Database instances and aligning them with actual usage, you can achieve significant cost savings while maintaining performance. 
+    **Link**: [Azure SQL Database Pricing](https://azure.microsoft.com/en-us/pricing/details/sql-database/)
+    **Link**: [Azure SQL Database Sizing and Performance Guidelines](https://docs.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale)
     
     Example 3:
     **Recommendation: Optimizing Costs with Reserved Instances**
@@ -569,6 +573,10 @@ def generate_advice_with_llm(recommendations):
     3. **Monitor and Adjust**: Regularly monitor your usage and adjust Reserved Instances as needed to align with changing workload requirements. Optimize your reservations to avoid underutilization.
 
     **Conclusion**: By strategically leveraging Reserved Instances based on usage patterns and monitoring your reservations, you can achieve significant cost savings in Azure.
+    **Link**: [Azure Reserved VM Instances](https://azure.microsoft.com/en-us/pricing/reserved-vm-instances/)
+    **Link**: [Azure Reserved Instances Documentation](https://docs.microsoft.com/en-us/azure/cost-management-billing/reserved-vm-instances)
+    
+    Example 4:
 
     **Recommendation: Optimizing Costs for Orphaned Public IP:**
 
@@ -580,7 +588,7 @@ def generate_advice_with_llm(recommendations):
 
     **Conclusion**: Deleting the orphaned public IP (appgw-pip) will result in immediate cost savings since it currently incurs no costs but is a potential liability for future charges if left unutilized. If there's potential to need it in the future, consider using dynamic allocation to minimize expenses.    
    
-    Example 4:
+    Example 5:
 
     To effectively address the recommendation regarding **unattached disks** and optimize costs, consider implementing the following actionable steps:
 
@@ -591,6 +599,24 @@ def generate_advice_with_llm(recommendations):
     3. **Evaluate Downgrade Options**: For disks that may be needed for future use but are currently unattached, assess the feasibility of downgrading these disks to a Standard SKU. This will reduce ongoing costs while still keeping the disks available for potential future use.
 
     **Conclusion**: Given the medium impact of this recommendation and the modest savings of approximately $0.04 per hour, it is advisable to take action to optimize costs by auditing, deleting unnecessary disks, and considering downgrades where appropriate. While the immediate savings might be low, it supports overall cost management principles and reduces clutter in your Azure environment.
+    
+    Example 6:
+    **Recommendation: Optimize Costs with a Compute Savings Plan**
+    To address the recommendation regarding purchasing a savings plan for compute, consider the following actionable steps:
+
+    1. **Evaluate Current Compute Usage**: Analyze your current and forecasted compute resource usage to determine the consistency of your workloads. Ensure that the volumes of compute resources used align with the planned commitment over the savings plan's duration of 3 years for significant cost reductions.
+
+    2.   **Purchase Compute Savings Plan**: Acquire a Compute Savings Plan based on your analysis. With an expected annual savings amount of $96 and a monthly commitment of only $8, this plan can substantially lower your costs while allowing the flexibility to utilize compute resources across different services within the specified subscription.
+
+    3.  **Monitor and Adjust Resource Allocation**: After purchasing the savings plan, continuously monitor your compute usage to ensure you're maximizing savings. Assess how the savings plan can align with any shifted workloads and adjust as necessary to optimize usage.
+
+    **Conclusion**: Given the high impact of this recommendation, alongside the considerable savings potential, it is advisable to take action by purchasing a Compute Savings Plan. This decision aligns well with your cost optimization goals in Azure, ensuring efficient utilization of resources while reducing costs.
+    
+    **Link**: [Buy an Azure savings plan](https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/buy-savings-plan)
+
+
+    
+    
     """
 
     for rec in recommendations:
@@ -629,7 +655,7 @@ def generate_advice_with_llm(recommendations):
 
             # Create prompt for Azure API recommendations
             prompt = f"""
-            As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
+            As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision and provide a link to the microsoft learn docs so the user can take immediate action. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
             {few_shot_examples}
             Now, here is the recommendation:
 
@@ -639,7 +665,8 @@ def generate_advice_with_llm(recommendations):
             - Subscription ID: {subscription_id}
             - Extended Properties: {rec.get('extended_properties', 'N/A')}
 
-            Provide a maximum of 3 bullet points for actions to optimize costs and conclude with a decision based on the information provided with the extended properties.
+            Provide a maximum of 3 bullet points for actions to optimize costs and conclude with a decision based on the information provided. Also provide a wworking link to the documentation to learn more about the recommendation and how to take action.
+            Ensure the link works and is relevant  to the recommendation and provides actionable steps for the user to follow.
             """
         
         # Handling Log Analytics Recommendations
@@ -656,7 +683,7 @@ def generate_advice_with_llm(recommendations):
             # Create prompt for Log Analytics recommendations
             prompt = f"""
             {few_shot_examples}
-            As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
+            As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision and provide a link to the microsoft learn docs so the user can take immediate action. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
             Now, here is the recommendation:
             - Instance: {instance_name}
             - Problem: {problem}
@@ -667,8 +694,8 @@ def generate_advice_with_llm(recommendations):
             - Annual Savings: {annual_savings}
             - Resource ID: {resource_id}
 
-            Provide a maximum of 3 bullet points for actions to optimize costs and conclude with a decision based on the information provided.
-            """
+            Provide a maximum of 3 bullet points for actions to optimize costs and conclude with a decision based on the information provided. Also provide a wworking link to the documentation to learn more about the recommendation and how to take action.
+            Ensure the link works and is relevant  to the recommendation and provides actionable steps for the user to follow.            """
 
         # Fallback for any other unknown sources (if any are added later)
         else:
