@@ -1,140 +1,140 @@
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "stop-unused-vms",
-  "Resource": "VM-LINUX-01",
+  "Resource": "Hs11-branch1Dns",
   "Actions": "stop",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "stop-unused-vms",
-  "Resource": "vmtest",
+  "Resource": "Hs11-branch1Nva",
   "Actions": "stop",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "stop-unused-vms",
-  "Resource": "vmencrypted1",
+  "Resource": "Hs11-branch1Vm",
   "Actions": "stop",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "stop-unused-vms",
-  "Resource": "vmwithhibernationmode",
+  "Resource": "Hs11-spoke1Vm",
   "Actions": "stop",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "stop-unused-vms",
-  "Resource": "vm-forcedetachdemo1-1",
+  "Resource": "Hs11-spoke2Vm",
   "Actions": "stop",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "stop-unused-vms",
-  "Resource": "vm-forcedetachdemo1-2",
+  "Resource": "Hs11-spoke3Vm",
   "Actions": "stop",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "stop-unused-vms",
-  "Resource": "vm-forcedetachdemo1-3",
+  "Resource": "myVM0",
   "Actions": "stop",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "stop-unused-vms",
-  "Resource": "vmacoademospot",
+  "Resource": "myVM1",
   "Actions": "stop",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+  "Policy": "stop-unused-vms",
+  "Resource": "vmserver",
+  "Actions": "stop",
+  "Owner": null
+}
+{
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+  "Policy": "stop-unused-vms",
+  "Resource": "vm-onprem",
+  "Actions": "stop",
+  "Owner": null
+}
+{
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+  "Policy": "delete-unattached-public-ips",
+  "Resource": "Hs11-hub1-vm-main-nic-pip6",
+  "Actions": "delete",
+  "Owner": null
+}
+{
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+  "Policy": "delete-unattached-public-ips",
+  "Resource": "Hs11-spoke3-vm-main-nic-pip6",
+  "Actions": "delete",
+  "Owner": null
+}
+{
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+  "Policy": "delete-unattached-public-ips",
+  "Resource": "testpip",
+  "Actions": "delete",
+  "Owner": null
+}
+{
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+  "Policy": "delete-resources-in-group",
+  "Resource": "hackathon75",
+  "Actions": "delete",
+  "Owner": null
+}
+{
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "update-storage-account-sku",
-  "Resource": "dbstorage6xgnebmgwml4c",
+  "Resource": "ssawafjml001",
   "Actions": "update_sku",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "VM-LINUX-01",
-  "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+  "Policy": "update-storage-account-sku",
+  "Resource": "stolzjtstuks001cmaa",
+  "Actions": "update_sku",
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "Sample-VM",
-  "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+  "Policy": "update-storage-account-sku",
+  "Resource": "stgarchivecostdata",
+  "Actions": "update_sku",
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "azdownvm_885b10b2",
-  "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
+  "Policy": "Unattached Network Interface Cards",
+  "Resource": "Hs11-spoke3-pls.nic.3d4102ec-4924-42bc-b8e1-4ce3f11e08cd",
+  "Actions": "delete",
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "azdownvm_af5a1d4a",
+  "Resource": "myVM0",
   "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
 {
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
+  "SubscriptionId": "e9b4640d-1f1f-45fe-a543-c0ea45ac34c1",
   "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "vmtest",
+  "Resource": "myVM1",
   "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
-}
-{
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "vmencrypted1",
-  "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
-}
-{
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "vmwithhibernationmode",
-  "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
-}
-{
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "vm-forcedetachdemo1-1",
-  "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
-}
-{
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "vm-forcedetachdemo1-2",
-  "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
-}
-{
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "vm-forcedetachdemo1-3",
-  "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
-}
-{
-  "SubscriptionId": "38c26c07-ccce-4839-b504-cddac8e5b09d",
-  "Policy": "DowngradeDisksOfStoppedVMs",
-  "Resource": "vmacoademospot",
-  "Actions": "downgrade_disks",
-  "Owner": "jachahbar@microsoft.com"
+  "Owner": null
 }
