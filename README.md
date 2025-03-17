@@ -23,7 +23,7 @@ Azure Optimizer is a Python-based tool used to optimize Azure resource costs by 
 - **Multi-Subscription Support**: Process multiple subscriptions within a tenant.
 - **Application Insights Integration**: Track events and metrics in Azure Application Insights. (Work in progress)
 
-## Policies
+## Policies:
 
 ### Example Policies
 
