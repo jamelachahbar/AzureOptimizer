@@ -10,7 +10,7 @@ Azure Optimizer is a Python-based tool used to optimize Azure resource costs by 
 ## Features
 - **Apply Policies**: Apply predefined policies to resources, such as stopping unused VMs, deleting unattached disks, scaling SQL databases, etc.
     - **Stop unused virtual machines** based on tags and usage.
-    - **Delete unattached disks** based on tags.
+    - **Delete unattached disks** based on tags. 1
     - **Delete all resources** in a resource group based on tags.
     - **Delete idle Application Gateway**.
     - **Delete unattached Public IP Addresses**.
