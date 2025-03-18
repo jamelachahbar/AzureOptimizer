@@ -25,7 +25,7 @@ Azure Optimizer is a Python-based tool used to optimize Azure resource costs by 
 
 ## Policies:
 
-### Example Policies
+### Example Policies:
 
 1. **Stop Unused VMs**
    ```yaml
