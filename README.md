@@ -3,8 +3,6 @@
 [![Azure Cost Optimization Workflow](https://github.com/jamelachahbar/CostOptTool/actions/workflows/ci.yml/badge.svg)](https://github.com/jamelachahbar/CostOptTool/actions/workflows/ci.yml)
 [![Azure Cost Optimization Workflow Apply Mode](https://github.com/jamelachahbar/CostOptTool/actions/workflows/cd.yml/badge.svg)](https://github.com/jamelachahbar/CostOptTool/actions/workflows/cd.yml)
 
-<img src="" alt="Description" width="300"/>
-
 Azure Optimizer is a Python-based tool used to optimize Azure resource costs by applying various policies to resources across multiple subscriptions. It identifies resources that meet specific criteria and applies actions such as scaling, stopping, or deleting them to reduce costs. The tool also provides detailed reports and logs the financial impact of the applied policies.
 
 ## Features
