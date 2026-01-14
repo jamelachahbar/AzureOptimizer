@@ -123,8 +123,13 @@ const PolicyPieChart: React.FC<PolicyPieChartProps> = ({ impactedResources }) =>
 
   const data = getImpactedResourcesByPolicy();
 
+  // Don't render if no data
+  if (data.length === 0) {
+    return null;
+  }
+
   return (
-    <ResponsiveContainer>
+    <ResponsiveContainer width="100%" height="100%">
       <PieChart>
         <Pie
           activeIndex={activeIndex}

@@ -5,9 +5,9 @@ policies:
   resource: azure.vm
   enabled: true
   filters:
-  - type: last_used
-    days: 7
-    threshold: 3
+  - days: 7
+    threshold: 5
+    type: last_used
   actions:
   - type: stop
 - name: delete-unused-disks

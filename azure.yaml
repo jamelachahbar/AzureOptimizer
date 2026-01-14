@@ -1,0 +1,91 @@
+# Azure Developer CLI (azd) configuration
+# Run 'azd up' to deploy the entire application stack
+
+name: azure-cost-optimizer
+metadata:
+  template: azure-cost-optimizer@1.0.0
+
+# Infrastructure configuration
+infra:
+  provider: bicep
+  path: infra-azd
+  module: main
+  outputs:
+    containerRegistryLoginServer: containerRegistryLoginServer
+    containerRegistryName: containerRegistryName
+    containerAppFQDN: containerAppFQDN
+    AZURE_CONTAINER_REGISTRY_ENDPOINT: containerRegistryLoginServer
+    AZURE_APPLICATION_INSIGHTS_CONNECTION_STRING: applicationInsightsConnectionString
+    AZURE_CLIENT_ID: userManagedIdentityClientId
+    AZURE_RESOURCE_GROUP_NAME: resourceGroupName
+    AZURE_SUBSCRIPTION_ID: AZURE_SUBSCRIPTION_ID
+    AZURE_AI_PROJECT_ENDPOINT: aiProjectEndpoint
+    AZURE_OPENAI_ENDPOINT: openAiEndpoint
+    AZURE_APP_CLIENT_ID: AZURE_APP_CLIENT_ID
+    AZURE_AI_SERVICES_NAME: AZURE_AI_SERVICES_NAME
+
+# Services configuration
+services:
+  # Flask Backend API
+  backend:
+    project: ui/backend
+    language: py
+    host: containerapp
+    docker:
+      path: Dockerfile
+      remoteBuild: true
+      context: .
+      registry: ${AZURE_CONTAINER_REGISTRY_ENDPOINT}
+
+  # React Frontend
+  frontend:
+    project: ui/frontend
+    language: js
+    host: containerapp
+    docker:
+      path: Dockerfile
+      remoteBuild: true
+      context: .
+      registry: ${AZURE_CONTAINER_REGISTRY_ENDPOINT}
+
+# Hooks for deployment lifecycle
+hooks:
+  # Run before infrastructure provisioning
+  preprovision:
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "Preparing for provisioning..."
+        Write-Host "Environment: $env:AZURE_ENV_NAME"
+
+  # Run after infrastructure provisioning
+  postprovision:
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "Infrastructure provisioned successfully!"
+        Write-Host "Setting up role assignments..."
+
+  # Run before deployment
+  predeploy:
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "Starting pre-deployment setup..."
+        # Validate pyproject.toml exists
+        if (Test-Path "ui/backend/pyproject.toml") {
+          Write-Host "pyproject.toml found - using UV for package installation"
+        }
+
+  # Run after deployment
+  postdeploy:
+    windows:
+      shell: pwsh
+      run: |
+        Write-Host "Deployment completed!"
+        Write-Host "Frontend URL: $env:SERVICE_FRONTEND_URI"
+        Write-Host "Backend URL: $env:SERVICE_BACKEND_URI"
+
+# Pipeline configuration for CI/CD
+pipeline:
+  provider: github

@@ -7,3 +7,8 @@ app_insights:
 policies:
   policy_file: "policies/policies.yaml"
   schema_file: "src/schema.json"
+
+# Cost Management settings
+cost_management:
+  # Number of days to look back for cost data (default: 30)
+  lookback_days: 60

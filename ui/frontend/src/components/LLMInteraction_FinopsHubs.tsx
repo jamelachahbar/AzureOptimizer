@@ -296,10 +296,11 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
       rec.resource_id?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  // Show loading state briefly to allow authentication to initialize
   if (!isAuthenticated) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <LoginButton />
+        {!tenantId ? <LoginButton /> : <CircularProgress />}
       </Box>
     );
   }

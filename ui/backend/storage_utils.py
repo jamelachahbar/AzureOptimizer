@@ -17,11 +17,22 @@ LOCAL_SCHEMA_PATH = os.path.join('src', SCHEMA_FILE)
 
 # Use DefaultAzureCredential for authentication
 credential = DefaultAzureCredential()
-blob_service_client = BlobServiceClient(account_url=STORAGE_ACCOUNT_URL, credential=credential)
-container_client = blob_service_client.get_container_client(CONTAINER_NAME)
+
+# Initialize blob storage clients only if storage account URL is configured
+if STORAGE_ACCOUNT_URL and STORAGE_ACCOUNT_URL != "https://azureoptimizer726653.blob.core.windows.net/":
+    blob_service_client = BlobServiceClient(account_url=STORAGE_ACCOUNT_URL, credential=credential)
+    container_client = blob_service_client.get_container_client(CONTAINER_NAME)
+else:
+    blob_service_client = None
+    container_client = None
+    logger.warning("Azure Storage Account not configured. Storage features will be disabled.")
 
 def ensure_container_and_files_exist():
     """Ensure the container and required files exist in Azure Blob Storage."""
+    if not container_client:
+        logger.info("Storage account not configured. Skipping container setup.")
+        return
+    
     try:
         # Check or create container
         try:
@@ -61,6 +72,10 @@ def ensure_container_and_files_exist():
 
 def update_policies_file():
     """Update the policies.yaml file in Blob Storage when modified locally."""
+    if not container_client:
+        logger.info("Storage account not configured. Skipping policies file update.")
+        return
+    
     try:
         if not os.path.exists(LOCAL_POLICIES_PATH):
             logger.error(f"Local file {LOCAL_POLICIES_PATH} does not exist.")

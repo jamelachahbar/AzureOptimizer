@@ -8,8 +8,17 @@ const LoginButton: React.FC = () => {
   const { instance } = useMsal();
 
   const handleLogin = () => {
-    instance.loginPopup().catch((error) => {
-      console.error(error);
+    console.log("=== Login Button Clicked ===");
+    console.log("MSAL Instance available:", !!instance);
+    
+    // Use loginRedirect instead of loginPopup to avoid CORS issues
+    instance.loginRedirect({
+      scopes: ["User.Read", "openid", "profile"],
+    }).catch((error) => {
+      console.error("=== Login Error ===");
+      console.error("Error Code:", error.errorCode);
+      console.error("Error Message:", error.errorMessage);
+      console.error("Full Error:", error);
     });
   };
 

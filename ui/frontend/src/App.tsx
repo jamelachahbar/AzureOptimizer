@@ -7,6 +7,7 @@ import LLMInteraction_FinopsHubs from './components/LLMInteraction_FinopsHubs';
 import { useIsAuthenticated } from "@azure/msal-react";
 import { AuthProvider } from './providers/AuthProvider';
 import LoginButton from './components/LoginButton';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import {
   Grid,
@@ -189,44 +190,46 @@ export default function ToggleColorModeApp() {
   };
 
   return (
-    <AuthProvider>
-      <ColorModeContext.Provider value={colorMode}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Box
-            sx={{
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '100dvh',
-              // backgroundImage: theme.palette.mode === 'light' 
-              // ? 'url(https://www.transparenttextures.com/patterns/axiom-pattern.png)' 
-              // : 'url(https://www.transparenttextures.com/patterns/pinstripe-dark.png)', 
-              backgroundImage: theme.palette.mode === 'light'
-                ? "url('axiom-pattern.png')"
-                : "url('pinstripe-dark.png')",
-              backgroundRepeat: 'repeat',
-              // zIndex: 1, // Ensures that the background is behind everything
-            }}
-          >
-            <Header />
-            <Tabs
-              value={tabIndex}
-              onChange={handleTabChange}
-              centered
-              sx={{ backgroundColor: theme.palette.background.paper }}
+    <ErrorBoundary>
+      <AuthProvider>
+        <ColorModeContext.Provider value={colorMode}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Box
+              sx={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '100dvh',
+                // backgroundImage: theme.palette.mode === 'light' 
+                // ? 'url(https://www.transparenttextures.com/patterns/axiom-pattern.png)' 
+                // : 'url(https://www.transparenttextures.com/patterns/pinstripe-dark.png)', 
+                backgroundImage: theme.palette.mode === 'light'
+                  ? "url('axiom-pattern.png')"
+                  : "url('pinstripe-dark.png')",
+                backgroundRepeat: 'repeat',
+                // zIndex: 1, // Ensures that the background is behind everything
+              }}
             >
-              <Tab label="Optimizer Dashboard" />
-              <Tab label="Assessment" />
-            </Tabs>
-            <Container>
+              <Header />
+              <Tabs
+                value={tabIndex}
+                onChange={handleTabChange}
+                centered
+                sx={{ backgroundColor: theme.palette.background.paper }}
+              >
+                <Tab label="Optimizer Dashboard" />
+                <Tab label="Assessment" />
+              </Tabs>
+              <Container>
 
-              {tabIndex === 0 && <Optimizer />}
-              {tabIndex === 1 && <LLMInteraction_FinopsHubs />}
-            </Container>
-          </Box>
-        </ThemeProvider>
-      </ColorModeContext.Provider>
-    </AuthProvider>
+                {tabIndex === 0 && <Optimizer />}
+                {tabIndex === 1 && <LLMInteraction_FinopsHubs />}
+              </Container>
+            </Box>
+          </ThemeProvider>
+        </ColorModeContext.Provider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

@@ -1,0 +1,13 @@
+# This file is kept for backward compatibility
+# The primary dependency management is now handled by pyproject.toml with UV
+# 
+# To install dependencies locally with UV:
+#   uv pip install -e .
+#
+# To install with pip (legacy):
+#   pip install -e .
+#
+# For production, the Dockerfile uses UV for fast installs from pyproject.toml
+
+# Re-export from pyproject.toml for compatibility
+-e .

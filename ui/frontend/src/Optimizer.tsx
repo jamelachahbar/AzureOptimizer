@@ -23,6 +23,8 @@ import { LandingScreen } from './components/LandingScreen';
 import LoginButton from './components/LoginButton';
 import LogoutButton from './components/LogoutButton';
 import AnomaliesDisplay from "./components/AnomaliesDisplay";
+import SavingsEstimateCard from './components/SavingsEstimateCard';
+import { useKeyboardShortcuts, KeyboardShortcut } from './utils/useKeyboardShortcuts';
 
 export const ColorModeContext = createContext({ toggleColorMode: () => { } });
 
@@ -178,7 +180,8 @@ const Optimizer: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const colorMode = useContext(ColorModeContext);
   const theme = useTheme();
-  const { isAdmin } = useAuth();
+  const { isAdmin, tenantId } = useAuth();
+  const [subscriptions, setSubscriptions] = useState<Array<{id: string, name: string}>>([]);
 
   useEffect(() => {
     const fetchPolicies = async () => {
@@ -194,6 +197,22 @@ const Optimizer: React.FC = () => {
     fetchPolicies();
   }, []);
 
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      if (!tenantId) return;
+      
+      try {
+        const { data } = await axios.post('http://localhost:5000/api/get-subscriptions', {
+          tenantId: tenantId
+        });
+        setSubscriptions(data);
+      } catch (error) {
+        console.error('Error fetching subscriptions:', error);
+      }
+    };
+    fetchSubscriptions();
+  }, [tenantId]);
+
   const fetchLogStream = useCallback(() => {
     const eventSource = new EventSource('http://127.0.0.1:5000/api/log-stream');
     eventSource.onmessage = (event) => {
@@ -203,7 +222,6 @@ const Optimizer: React.FC = () => {
       eventSource.close();
     };
   }, []);
-  const { tenantId } = useAuth();
 
   const runOptimizer = async () => {
     if (!tenantId) {
@@ -247,6 +265,65 @@ const Optimizer: React.FC = () => {
       setLogs((prevLogs) => [...prevLogs, 'Error stopping optimizer.']);
     }
   };
+
+  // State for policies panel visibility (for keyboard shortcut)
+  const [showPoliciesPanel, setShowPoliciesPanel] = useState(true);
+  const [showPolicyEditor, setShowPolicyEditor] = useState(false);
+  const [isPoliciesLoading, setIsPoliciesLoading] = useState(false);
+
+  // Keyboard shortcuts for power users
+  const keyboardShortcuts: KeyboardShortcut[] = [
+    {
+      key: 'ctrl+r',
+      handler: () => {
+        if (!isOptimizerRunning) {
+          runOptimizer();
+        }
+      },
+      description: 'Run optimizer',
+      enabled: !isOptimizerRunning,
+    },
+    {
+      key: 'ctrl+s',
+      handler: () => {
+        if (isOptimizerRunning) {
+          stopOptimizer();
+        }
+      },
+      description: 'Stop optimizer',
+      enabled: isOptimizerRunning,
+      preventDefault: true, // Prevent browser save dialog
+    },
+    {
+      key: 'ctrl+p',
+      handler: () => setShowPoliciesPanel(prev => !prev),
+      description: 'Toggle policies panel',
+      preventDefault: true, // Prevent browser print dialog
+    },
+    {
+      key: 'ctrl+l',
+      handler: () => setLogs([]), // Clear logs
+      description: 'Clear logs',
+    },
+    {
+      key: 'ctrl+d',
+      handler: () => fetchData(), // Refresh data
+      description: 'Refresh dashboard data',
+    },
+    {
+      key: 'ctrl+e',
+      handler: () => setShowPolicyEditor(prev => !prev),
+      description: 'Toggle policy editor',
+    },
+    {
+      key: 'escape',
+      handler: () => setShowPolicyEditor(false),
+      description: 'Close policy editor',
+      enabled: showPolicyEditor,
+    },
+  ];
+
+  useKeyboardShortcuts(keyboardShortcuts);
 
 const fetchData = useCallback(async () => {
   try {
@@ -358,11 +435,11 @@ const fetchData = useCallback(async () => {
 
           <Grid container spacing={2} display="flex" alignContent="center" alignItems="center" justifyContent="center" marginBottom={2}>
             <Grid item>
-              <FormControl variant="outlined" sx={{ minWidth: 120, fontSize: '0.8rem' }}>
+              <FormControl variant="outlined" sx={{ minWidth: 200, fontSize: '0.8rem' }}>
                 <InputLabel sx={{ fontSize: '0.8rem' }}>Subscription</InputLabel>
                 <Select value={selectedSubscription} onChange={handleSubscriptionChange} label="Subscription" sx={{ fontSize: '0.8rem' }}>
                   <MenuItem value="All Subscriptions" sx={{ fontSize: '0.8rem' }}>All Subscriptions</MenuItem>
-                  {summaryMetrics.map((metric, index) => <MenuItem key={index} value={metric.SubscriptionId}>{metric.SubscriptionId}</MenuItem>)}
+                  {subscriptions.map((sub) => <MenuItem key={sub.id} value={sub.id} sx={{ fontSize: '0.8rem' }}>{sub.name}</MenuItem>)}
                 </Select>
               </FormControl>
             </Grid>
@@ -389,15 +466,60 @@ const fetchData = useCallback(async () => {
 
           {errorMessage && <Box mt={4}><Typography variant="h6" color="error">{errorMessage}</Typography></Box>}
 
-          <Grid container spacing={2} rowSpacing={2}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" mb={2}>Policies</Typography>
-              <PolicyTable policies={policies} handleToggle={handleTogglePolicy} />
+          {/* Policies and Pie Chart Row */}
+          <Grid container spacing={2} rowSpacing={2} alignItems="flex-start">
+            {/* Policies Section */}
+            <Grid item xs={12} md={showPolicyEditor ? 12 : 6} lg={showPolicyEditor ? 8 : 6}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6">Policies</Typography>
+                <Button 
+                  variant="outlined" 
+                  size="small" 
+                  onClick={() => setShowPolicyEditor(prev => !prev)}
+                  sx={{ ml: 2 }}
+                >
+                  {showPolicyEditor ? 'Hide Editor' : 'Edit Policies (Ctrl+E)'}
+                </Button>
+              </Box>
+              <Box sx={{ 
+                minHeight: showPolicyEditor ? 'auto' : 300,
+                maxHeight: showPolicyEditor ? 600 : 400,
+                overflowY: 'auto'
+              }}>
+                {showPolicyEditor ? (
+                  <PolicyEditor 
+                    policies={policies} 
+                    setPolicies={setPolicies} 
+                    isLoading={isPoliciesLoading} 
+                  />
+                ) : (
+                  <PolicyTable policies={policies} handleToggle={handleTogglePolicy} />
+                )}
+              </Box>
             </Grid>
-            <Grid item xl={4} marginLeft={8}>
-              <PolicyPieChart impactedResources={impactedResources} />
+            {/* Pie Chart - always visible, adjusts width based on PolicyEditor state */}
+            <Grid item xs={12} md={showPolicyEditor ? 12 : 6} lg={4}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+                minHeight: 300,
+                width: '100%',
+                height: 300
+              }}>
+                {impactedResources.length > 0 ? (
+                  <PolicyPieChart impactedResources={impactedResources} />
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'text.secondary' }}>
+                    <Typography variant="body2">Run optimizer to see policy distribution</Typography>
+                  </Box>
+                )}
+              </Box>
             </Grid>
+          </Grid>
 
+          {/* Summary Metrics Section */}
+          <Box sx={{ mt: 3 }}>
             <Typography ml={2} variant="h6">Summary Metrics</Typography>
             <Grid container spacing={1} margin={1} justifyContent="flex-start" alignItems="flex-start" wrap="wrap">
               {filteredSummaryMetrics.map((metric, index) => (
@@ -406,33 +528,43 @@ const fetchData = useCallback(async () => {
                 </Grid>
               ))}
             </Grid>
+          </Box>
 
-            <Grid item xl={12} md={12} xs={12} padding={2}>
+          {/* Savings Estimate Section */}
+          <Box sx={{ mt: 3, px: 2 }}>
+            <Typography variant="h6" mb={2}>Potential Savings from Waste Resources</Typography>
+            <SavingsEstimateCard 
+              subscriptionId={selectedSubscription === 'All Subscriptions' ? undefined : selectedSubscription} 
+            />
+          </Box>
+
+          <Grid container spacing={2} sx={{ mt: 3 }}>
+            <Grid item xs={12} padding={2}>
               <Typography variant="h6" mb={2}>Cost Trend</Typography>
               <CostTrendChart trendData={trendData} selectedSubscription={selectedSubscription} />
             </Grid>
 
-            <Grid item xl={12} md={12} xs={12}>
+            <Grid item xs={12}>
               <Typography variant="h6" mb={2}>Impacted Resources</Typography>
               <ImpactedResourcesTable impactedResources={impactedResources} selectedSubscription={selectedSubscription} />
             </Grid>
 
-            <Grid item xl={12} md={12} xs={12}>
+            <Grid item xs={12}>
               <Typography variant="h6" mb={2}>Execution Data</Typography>
               <ExecutionTable executionData={executionData} selectedSubscription={selectedSubscription} />
             </Grid>
-          </Grid>
-          {/* New Anomalies Section */}
-          <Grid item xs={4} md={6}>
-            <Typography variant="h6" mb={2}>Detected Anomalies</Typography>
-            <AnomaliesDisplay
-              anomalies={anomalyData}
-              loading={loadingAnomalies}
-              error={anomaliesError}
-            />
-          </Grid>
-          <Grid container spacing={2} sx={{ mt: 6, display: 'flex', mb: 4 }}>
-            <Grid item xs={12} md={12}>
+
+            {/* Anomalies Section */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" mb={2}>Detected Anomalies</Typography>
+              <AnomaliesDisplay
+                anomalies={anomalyData}
+                loading={loadingAnomalies}
+                error={anomaliesError}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
               <Typography variant="h6" mb={2}>Optimizer Logs</Typography>
               <OptimizerLogs logs={logs} />
             </Grid>

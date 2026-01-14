@@ -6,15 +6,19 @@ import logging
 import time
 import yaml
 import os
+import json
 from azure_cost_optimizer.optimizer import main as optimizer_main
 import matplotlib
-import openai
+# Note: openai is now handled internally by foundry_agent.py
 from azure.mgmt.advisor import AdvisorManagementClient
 from azure.identity import DefaultAzureCredential
 from storage_utils import ensure_container_and_files_exist, container_client
-from azure.identity import DefaultAzureCredential
 from azure.mgmt.advisor import AdvisorManagementClient
 from dotenv import load_dotenv
+from cache_manager import cache_manager, CacheNamespaces, CacheTTL
+from pagination import paginate, PaginationParams
+from llm_tools import AVAILABLE_FUNCTIONS, execute_function, categorize_recommendation
+from foundry_agent import generate_advice_with_agent, is_agent_available
 import os
 
 load_dotenv()  # Load .env file
@@ -28,14 +32,15 @@ credential = DefaultAzureCredential()
 # from agents.azure_tools import get_cost_data, get_cost_recommendations, llm_generate_advice
 # Ensure the container and files exist at startup
 ensure_container_and_files_exist()
-# Configure OpenAI GPT-4 API (or Azure OpenAI) using your API keys and endpoint
-openai.api_key = os.getenv("OPENAI_API_KEY")
-# Configure OpenAI GPT-4 API (or Azure OpenAI) using your API keys and endpoint
+
+# Note: Azure OpenAI is now handled by foundry_agent.py using the new SDK
+# The old openai.api_type/api_key/api_base pattern is deprecated in openai>=1.0.0
+
 matplotlib.use('Agg')  # Use a non-interactive backend
 
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 logger = logging.getLogger(__name__)
@@ -44,6 +49,156 @@ handler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+
+
+# ===== REQUEST LOGGING MIDDLEWARE =====
+@app.before_request
+def before_request_logging():
+    """Log incoming request and attach timing/request ID."""
+    import uuid
+    request.start_time = time.time()
+    request.request_id = str(uuid.uuid4())[:8]  # Short request ID for tracing
+
+
+@app.after_request
+def after_request_logging(response):
+    """Log request completion with timing information."""
+    if hasattr(request, 'start_time'):
+        duration_ms = (time.time() - request.start_time) * 1000
+        request_id = getattr(request, 'request_id', 'unknown')
+        
+        # Only log API routes
+        if request.path.startswith('/api/'):
+            log_level = logging.INFO if response.status_code < 400 else logging.WARNING
+            logger.log(
+                log_level,
+                f"[{request_id}] {request.method} {request.path} - {response.status_code} ({duration_ms:.2f}ms)"
+            )
+        
+        # Add request ID to response headers for client-side tracing
+        response.headers['X-Request-ID'] = request_id
+    
+    return response
+
+
+# ================================================================================
+# OpenAPI / Swagger Documentation Endpoints
+# ================================================================================
+
+@app.route('/api/openapi.json')
+def openapi_spec():
+    """
+    Serve OpenAPI specification.
+    Returns the OpenAPI 3.0.3 specification for this API.
+    """
+    try:
+        spec_path = os.path.join(app.static_folder, 'openapi.json')
+        if os.path.exists(spec_path):
+            with open(spec_path, 'r') as f:
+                spec = json.load(f)
+            return jsonify(spec)
+        else:
+            return jsonify({
+                'error': 'OpenAPI specification not found',
+                'path': spec_path
+            }), 404
+    except Exception as e:
+        logger.error(f"Error serving OpenAPI spec: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/docs')
+def swagger_ui():
+    """
+    Serve Swagger UI for interactive API documentation.
+    Uses Swagger UI from CDN for minimal dependencies.
+    """
+    swagger_html = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Azure Cost Optimizer API - Documentation</title>
+        <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css">
+        <style>
+            body { margin: 0; padding: 0; }
+            .swagger-ui .topbar { display: none; }
+            .swagger-ui .info .title { color: #0078d4; }
+        </style>
+    </head>
+    <body>
+        <div id="swagger-ui"></div>
+        <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+        <script>
+            window.onload = function() {
+                SwaggerUIBundle({
+                    url: "/api/openapi.json",
+                    dom_id: '#swagger-ui',
+                    deepLinking: true,
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIBundle.SwaggerUIStandalonePreset
+                    ],
+                    layout: "BaseLayout"
+                });
+            };
+        </script>
+    </body>
+    </html>
+    """
+    return swagger_html, 200, {'Content-Type': 'text/html'}
+
+
+# ================================================================================
+# Cache Management Endpoints
+# ================================================================================
+
+@app.route('/api/cache/stats')
+def cache_stats():
+    """
+    Get cache statistics.
+    Returns hit/miss counts, hit rate, and current cache size.
+    """
+    return jsonify({
+        'status': 'success',
+        'cache': cache_manager.stats
+    })
+
+
+@app.route('/api/cache/clear', methods=['POST'])
+def clear_cache():
+    """
+    Clear the cache.
+    Optionally specify a namespace to clear only specific entries.
+    
+    Query params:
+        namespace: Optional namespace prefix to clear (e.g., 'policies', 'cost_data')
+    """
+    namespace = request.args.get('namespace')
+    count = cache_manager.clear(namespace)
+    
+    return jsonify({
+        'status': 'success',
+        'message': f'Cleared {count} cache entries' + (f' in namespace: {namespace}' if namespace else ''),
+        'cleared_count': count
+    })
+
+
+@app.route('/api/cache/cleanup', methods=['POST'])
+def cleanup_cache():
+    """
+    Remove expired entries from the cache.
+    This is useful for manual cleanup without clearing valid entries.
+    """
+    count = cache_manager.cleanup_expired()
+    
+    return jsonify({
+        'status': 'success',
+        'message': f'Removed {count} expired entries',
+        'removed_count': count
+    })
+
 
 summary_metrics_data = []
 execution_data_data = []
@@ -170,6 +325,103 @@ def get_status():
     logger.info(f"Current optimizer status: {optimizer_status}")
     return jsonify({'status': optimizer_status}), 200
 
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """
+    Health check endpoint to verify API and dependencies are operational.
+    Returns 200 if healthy, 503 if any dependency is unhealthy.
+    """
+    from datetime import datetime
+    
+    health_status = {
+        "status": "healthy",
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "checks": {}
+    }
+    
+    is_healthy = True
+    
+    # Check 1: Azure Credentials
+    try:
+        # Test credential by getting token
+        credential.get_token("https://management.azure.com/.default")
+        health_status["checks"]["azure_credentials"] = {
+            "status": "healthy",
+            "message": "Azure credentials valid"
+        }
+    except Exception as e:
+        is_healthy = False
+        health_status["checks"]["azure_credentials"] = {
+            "status": "unhealthy",
+            "message": f"Azure credential error: {str(e)}"
+        }
+    
+    # Check 2: Blob Storage
+    try:
+        # Test blob storage connectivity
+        if container_client:
+            container_client.get_container_properties()
+            health_status["checks"]["blob_storage"] = {
+                "status": "healthy",
+                "message": "Blob storage accessible"
+            }
+        else:
+            health_status["checks"]["blob_storage"] = {
+                "status": "unknown",
+                "message": "Blob storage client not initialized"
+            }
+    except Exception as e:
+        is_healthy = False
+        health_status["checks"]["blob_storage"] = {
+            "status": "unhealthy",
+            "message": f"Blob storage error: {str(e)}"
+        }
+    
+    # Check 3: Policies file
+    try:
+        if os.path.exists(POLICIES_FILE):
+            policies = load_policies()
+            policy_count = len(policies.get('policies', []))
+            health_status["checks"]["policies"] = {
+                "status": "healthy",
+                "message": f"Policies loaded: {policy_count} policies found"
+            }
+        else:
+            health_status["checks"]["policies"] = {
+                "status": "warning",
+                "message": "Policies file not found"
+            }
+    except Exception as e:
+        health_status["checks"]["policies"] = {
+            "status": "unhealthy",
+            "message": f"Policies error: {str(e)}"
+        }
+    
+    # Check 4: Environment variables
+    required_vars = ["AZURE_CLIENT_ID", "AZURE_TENANT_ID", "AZURE_SUBSCRIPTION_ID"]
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if not missing_vars:
+        health_status["checks"]["environment"] = {
+            "status": "healthy",
+            "message": "All required environment variables set"
+        }
+    else:
+        is_healthy = False
+        health_status["checks"]["environment"] = {
+            "status": "unhealthy",
+            "message": f"Missing environment variables: {', '.join(missing_vars)}"
+        }
+    
+    # Set overall status
+    if not is_healthy:
+        health_status["status"] = "unhealthy"
+        return jsonify(health_status), 503
+    
+    return jsonify(health_status), 200
+
+
 @app.route('/api/summary-metrics', methods=['GET'])
 def get_summary_metrics():
     try:
@@ -182,6 +434,9 @@ def get_summary_metrics():
 def get_execution_data():
     try:
         logger.info("Returning Execution Data")
+        # Support optional pagination via query params
+        if 'page' in request.args or 'per_page' in request.args:
+            return jsonify(paginate(execution_data_data, request, sort_key='Resource')), 200
         return jsonify(execution_data_data), 200
     except Exception as e:
         logger.error(f"Error fetching execution data: {e}")
@@ -189,9 +444,27 @@ def get_execution_data():
 
 @app.route('/api/impacted-resources', methods=['GET'])
 def get_impacted_resources():
+    global impacted_resources_data
     try:
         logger.info("Returning Impacted Resources Data")
-        return jsonify(impacted_resources_data), 200
+        
+        # If in-memory data is empty, try loading from file
+        resources = impacted_resources_data
+        if not resources:
+            impacted_resources_file = os.path.join(os.path.dirname(__file__), 'impacted_resources.json')
+            if os.path.exists(impacted_resources_file):
+                try:
+                    with open(impacted_resources_file, 'r') as f:
+                        resources = json.load(f)
+                    logger.info(f"Loaded {len(resources)} resources from impacted_resources.json")
+                except Exception as e:
+                    logger.warning(f"Failed to load impacted_resources.json: {e}")
+                    resources = []
+        
+        # Support optional pagination via query params
+        if 'page' in request.args or 'per_page' in request.args:
+            return jsonify(paginate(resources, request, sort_key='Resource')), 200
+        return jsonify(resources), 200
     except Exception as e:
         logger.error(f"Error fetching impacted resources: {e}")
         return jsonify({'error': 'Error fetching impacted resources'}), 500
@@ -277,8 +550,349 @@ def initialize_storage():
         logger.error(f"Initialization failed: {e}")
         return jsonify({"error": "Failed to initialize storage"}), 500
 
+
+### API Endpoint for Cost Savings Estimation ###
+@app.route('/api/estimate-savings', methods=['GET'])
+def estimate_savings():
+    """
+    Estimate potential cost savings based on identified waste resources.
+    
+    Uses the impacted_resources_data that has already been populated by the optimizer,
+    or falls back to execution_data.json if impacted_resources is empty.
+    """
+    global impacted_resources_data
+    
+    subscription_id = request.args.get('subscription_id')
+    
+    try:
+        # Use impacted_resources_data if available, otherwise load from execution_data.json
+        resources = impacted_resources_data
+        
+        if not resources:
+            # Try loading from impacted_resources.json as fallback (has full data including Cost, ResourceId, etc.)
+            impacted_resources_file = os.path.join(os.path.dirname(__file__), 'impacted_resources.json')
+            if os.path.exists(impacted_resources_file):
+                try:
+                    with open(impacted_resources_file, 'r') as f:
+                        resources = json.load(f)
+                    logger.info(f"Loaded {len(resources)} resources from impacted_resources.json")
+                except Exception as e:
+                    logger.warning(f"Failed to load impacted_resources.json: {e}")
+                    resources = []
+        
+        # Filter by subscription if provided
+        if subscription_id and subscription_id != 'All Subscriptions':
+            resources = [r for r in resources if r.get('SubscriptionId') == subscription_id]
+        
+        # Group resources by policy
+        policy_groups = {}
+        for resource in resources:
+            policy_name = resource.get('Policy', 'Unknown')
+            if policy_name not in policy_groups:
+                policy_groups[policy_name] = []
+            policy_groups[policy_name].append(resource)
+        
+        savings_estimate = {
+            "subscription_id": subscription_id or "All Subscriptions",
+            "estimated_monthly_savings": 0.0,
+            "currency": "USD",
+            "breakdown": [],
+            "resources_analyzed": len(resources),
+            "resources_impacted": len(resources)
+        }
+        
+        # Calculate savings for each policy group
+        for policy_name, policy_resources in policy_groups.items():
+            # Get resource type from the first resource, or infer from policy name
+            first_resource = policy_resources[0] if policy_resources else {}
+            resource_type = first_resource.get('ResourceType', _infer_resource_type(policy_name))
+            
+            policy_estimate = {
+                "policy_name": policy_name,
+                "resource_type": resource_type,
+                "matching_resources": len(policy_resources),
+                "estimated_savings": 0.0,
+                "resources": []
+            }
+            
+            for resource in policy_resources:
+                resource_name = resource.get('Resource', 'Unknown')
+                resource_id = resource.get('ResourceId', '')
+                actions = resource.get('Actions', resource.get('Action', ''))
+                actual_cost = resource.get('Cost', 0) or 0  # Actual cost from Azure Cost Management
+                resource_type_single = resource.get('ResourceType', '')
+                
+                # Use actual cost from Azure Cost Management if available, otherwise estimate
+                # NICs, Resource Groups don't have direct costs in Azure
+                has_actual_cost = actual_cost > 0
+                if has_actual_cost:
+                    estimated_monthly = float(actual_cost)
+                    is_estimate = False
+                else:
+                    estimated_monthly = _estimate_resource_savings(resource_name, actions, policy_name, actual_cost)
+                    is_estimate = True
+                
+                policy_estimate["estimated_savings"] += estimated_monthly
+                policy_estimate["resources"].append({
+                    "name": resource_name,
+                    "resource_id": resource_id,
+                    "resource_group": _extract_resource_group(resource_id) if resource_id else 'Unknown',
+                    "resource_type": resource_type_single,
+                    "action": actions,
+                    "status": resource.get('Status', 'Identified'),
+                    "subscription_id": resource.get('SubscriptionId', 'Unknown'),
+                    "estimated_monthly_cost": round(estimated_monthly, 2),
+                    "actual_cost": round(actual_cost, 2),
+                    "is_estimate": is_estimate
+                })
+            
+            if policy_estimate["matching_resources"] > 0:
+                savings_estimate["breakdown"].append(policy_estimate)
+                savings_estimate["estimated_monthly_savings"] += policy_estimate["estimated_savings"]
+        
+        # Round to 2 decimal places
+        savings_estimate["estimated_monthly_savings"] = round(savings_estimate["estimated_monthly_savings"], 2)
+        
+        return jsonify(savings_estimate), 200
+        
+    except Exception as e:
+        logger.error(f"Error estimating savings: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+def _infer_resource_type(policy_name: str) -> str:
+    """Infer resource type from policy name."""
+    policy_lower = policy_name.lower()
+    if 'vm' in policy_lower or 'virtual' in policy_lower:
+        return 'azure.vm'
+    elif 'disk' in policy_lower:
+        return 'azure.disk'
+    elif 'nic' in policy_lower or 'network interface' in policy_lower:
+        return 'azure.nic'
+    elif 'public' in policy_lower and 'ip' in policy_lower:
+        return 'azure.publicip'
+    elif 'storage' in policy_lower:
+        return 'azure.storage'
+    elif 'sql' in policy_lower or 'database' in policy_lower:
+        return 'azure.sql'
+    elif 'gateway' in policy_lower:
+        return 'azure.applicationgateway'
+    elif 'resource' in policy_lower and 'group' in policy_lower:
+        return 'azure.resourcegroup'
+    return 'azure.unknown'
+
+
+def _extract_resource_group(resource_id: str) -> str:
+    """Extract resource group from resource ID or name."""
+    if '/resourceGroups/' in resource_id:
+        parts = resource_id.split('/resourceGroups/')
+        if len(parts) > 1:
+            return parts[1].split('/')[0]
+    return 'Unknown'
+
+
+def _estimate_resource_savings(resource_name: str, action: str, policy_name: str, cost: float) -> float:
+    """
+    Estimate monthly savings for a resource based on its type and action.
+    
+    Uses the cost from the optimizer if available, otherwise estimates based on resource type.
+    """
+    # If cost was provided by the optimizer, use it
+    if cost and cost > 0:
+        return float(cost)
+    
+    policy_lower = policy_name.lower()
+    action_lower = action.lower() if action else ''
+    
+    # Estimate based on resource type inferred from policy
+    if 'nic' in policy_lower or 'network interface' in policy_lower:
+        # NICs themselves don't have direct cost, but indicate orphaned resources
+        # Estimate a small cost for tracking purposes
+        return 0.50
+    
+    elif 'disk' in policy_lower:
+        # Unattached disks - estimate based on typical disk sizes
+        # Average unattached disk ~128GB at ~$0.05/GB/month = ~$6.40/month
+        return 6.40
+    
+    elif 'public' in policy_lower and 'ip' in policy_lower:
+        # Static public IP ~$3.65/month
+        return 3.65
+    
+    elif 'vm' in policy_lower:
+        if 'stop' in action_lower:
+            # Average VM cost when stopped (no compute, just disk)
+            return 50.0
+        elif 'delete' in action_lower:
+            return 75.0
+    
+    elif 'storage' in policy_lower:
+        if 'downgrade' in action_lower or 'sku' in action_lower:
+            # Downgrading storage SKU - estimate 30% savings
+            return 15.0
+        return 10.0
+    
+    elif 'sql' in policy_lower or 'database' in policy_lower:
+        # SQL database scaling savings
+        return 50.0
+    
+    elif 'gateway' in policy_lower:
+        # Application Gateway - can be expensive
+        return 100.0
+    
+    elif 'resource' in policy_lower and 'group' in policy_lower:
+        # Resource group cleanup - aggregate of contained resources
+        return 25.0
+    
+    # Default estimate for unknown resources
+    return 5.0
+
+
 credential = DefaultAzureCredential()
 
+
+### API Endpoint for Policy Validation ###
+@app.route('/api/policies/validate', methods=['POST'])
+def validate_policy_endpoint():
+    """
+    Validate a policy without saving it.
+    
+    Accepts a policy JSON and validates it against the schema,
+    checking for valid resource types, filter types, and action types.
+    """
+    import json
+    import jsonschema
+    
+    try:
+        policy = request.json
+        
+        if not policy:
+            return jsonify({
+                "valid": False,
+                "errors": [{"field": "body", "message": "No policy data provided"}]
+            }), 400
+        
+        errors = []
+        
+        # Check required fields
+        required_fields = ['name', 'resource', 'actions']
+        for field in required_fields:
+            if field not in policy:
+                errors.append({
+                    "field": field,
+                    "message": f"Missing required field: {field}"
+                })
+        
+        if errors:
+            return jsonify({
+                "valid": False,
+                "errors": errors
+            }), 400
+        
+        # Validate resource type
+        valid_resources = [
+            "azure.vm", "azure.disk", "azure.resourcegroup", 
+            "azure.storage", "azure.sql", "azure.publicip", 
+            "azure.applicationgateway", "azure.nic"
+        ]
+        if policy.get('resource') not in valid_resources:
+            errors.append({
+                "field": "resource",
+                "message": f"Invalid resource type: {policy.get('resource')}. Valid types: {', '.join(valid_resources)}"
+            })
+        
+        # Validate action types
+        valid_actions = ["stop", "delete", "update_sku", "scale_dtu", "log", "downgrade_disks"]
+        for i, action in enumerate(policy.get('actions', [])):
+            if action.get('type') not in valid_actions:
+                errors.append({
+                    "field": f"actions[{i}].type",
+                    "message": f"Invalid action type: {action.get('type')}. Valid types: {', '.join(valid_actions)}"
+                })
+        
+        # Validate filter types
+        valid_filters = ["last_used", "unattached", "tag", "sku", "stopped"]
+        for i, filter_item in enumerate(policy.get('filters', [])):
+            if filter_item.get('type') not in valid_filters:
+                errors.append({
+                    "field": f"filters[{i}].type",
+                    "message": f"Invalid filter type: {filter_item.get('type')}. Valid types: {', '.join(valid_filters)}"
+                })
+            
+            # Validate filter-specific requirements
+            filter_type = filter_item.get('type')
+            if filter_type == 'last_used':
+                if 'days' not in filter_item:
+                    errors.append({
+                        "field": f"filters[{i}].days",
+                        "message": "last_used filter requires 'days' field"
+                    })
+            elif filter_type == 'tag':
+                if 'key' not in filter_item:
+                    errors.append({
+                        "field": f"filters[{i}].key",
+                        "message": "tag filter requires 'key' field"
+                    })
+            elif filter_type == 'sku':
+                if 'values' not in filter_item or not isinstance(filter_item.get('values'), list):
+                    errors.append({
+                        "field": f"filters[{i}].values",
+                        "message": "sku filter requires 'values' field (array of SKU names)"
+                    })
+        
+        # Validate action-specific requirements
+        for i, action in enumerate(policy.get('actions', [])):
+            action_type = action.get('type')
+            if action_type == 'update_sku':
+                if 'sku' not in action:
+                    errors.append({
+                        "field": f"actions[{i}].sku",
+                        "message": "update_sku action requires 'sku' field (target SKU name)"
+                    })
+            elif action_type == 'scale_dtu':
+                if 'tiers' not in action or not isinstance(action.get('tiers'), list):
+                    errors.append({
+                        "field": f"actions[{i}].tiers",
+                        "message": "scale_dtu action requires 'tiers' field (array of tier configurations)"
+                    })
+        
+        # Validate against JSON schema if available
+        schema_file = os.path.join('src', 'schema.json')
+        if os.path.exists(schema_file):
+            try:
+                with open(schema_file, 'r') as f:
+                    schema = json.load(f)
+                
+                # Wrap policy in policies array for schema validation
+                policy_wrapper = {"policies": [policy]}
+                jsonschema.validate(instance=policy_wrapper, schema=schema)
+            except jsonschema.ValidationError as e:
+                errors.append({
+                    "field": e.path[-1] if e.path else "unknown",
+                    "message": e.message
+                })
+        
+        if errors:
+            return jsonify({
+                "valid": False,
+                "errors": errors
+            }), 400
+        
+        return jsonify({
+            "valid": True,
+            "message": "Policy is valid",
+            "policy_name": policy.get('name'),
+            "resource_type": policy.get('resource'),
+            "filter_count": len(policy.get('filters', [])),
+            "action_count": len(policy.get('actions', []))
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error validating policy: {e}")
+        return jsonify({
+            "valid": False,
+            "errors": [{"field": "unknown", "message": str(e)}]
+        }), 500
 
 
 ### API Endpoints for Policy Editor ###
@@ -619,92 +1233,73 @@ def generate_advice_with_llm(recommendations):
     
     """
 
+    # Mapping of resource types or recommendation categories to specific prompt instructions
+    resource_instruction_map = {
+        'disk': "If the recommendation is about unattached disks, your advice must be ONLY about unattached disks (e.g., audit, delete, downgrade, or repurpose disks). Do not mention tagging, cost analysis, or general Azure governance unless it directly applies to unattached disks.",
+        'publicip': "If the recommendation is about unattached public IPs, your advice must be ONLY about unattached public IPs (e.g., audit, delete, or repurpose).",
+        'nic': "If the recommendation is about unattached network interfaces, your advice must be ONLY about unattached NICs (e.g., audit, delete, or repurpose).",
+        'sql': "If the recommendation is about SQL databases, your advice must be ONLY about SQL DBs (e.g., rightsize, scale, monitor, or optimize performance/cost).",
+        'applicationgateway': "If the recommendation is about idle Application Gateways, your advice must be ONLY about Application Gateways (e.g., audit, delete, or reconfigure).",
+        # Add more resource types and instructions as needed
+    }
+
     for rec in recommendations:
-        # Handling SQL DB Recommendations
-        # if rec.get('source') == 'SQL DB':
-        #     problem = rec.get('short_description', {}).get('problem', 'No description available')
-        #     solution = rec.get('action', 'No action available')
-        #     impact = rec.get('impact', 'Unknown')
-        #     subscription_id = rec.get('subscription_id', 'N/A')
-        #     instance_name = rec.get('Instance', 'N/A')
+        # Gather all available context fields
+        short_description = rec.get('short_description', {})
+        problem = short_description.get('problem') or rec.get('problem', 'No problem description available')
+        solution = short_description.get('solution') or rec.get('solution', 'No solution available')
+        impact = rec.get('impact', 'Unknown')
+        subscription_id = rec.get('extended_properties', {}).get('subId', rec.get('subscription_id', 'N/A'))
+        instance_name = rec.get('Instance', 'N/A')
+        savings_amount = rec.get('savingsAmount', 'N/A')
+        annual_savings = rec.get('annualSavingsAmount', 'N/A')
+        resource_id = rec.get('resource_id', 'N/A')
+        extended_properties = rec.get('extended_properties', {})
+        source = rec.get('source', 'Unknown')
 
-        #     # Create prompt for SQL DB recommendations
-        #     prompt = f"""
-        #     As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
-        #     {few_shot_examples}
-        #     Now, here is the recommendation:
+        # Try to infer resource type from recommendation fields
+        resource_type = (
+            rec.get('resource_type') or
+            rec.get('resource') or
+            (rec.get('short_description', {}).get('problem', '').split()[0].lower() if rec.get('short_description', {}).get('problem') else '')
+        )
+        resource_type = resource_type.lower() if resource_type else ''
 
-        #     - Instance: {instance_name}
-        #     - Problem: {problem}
-        #     - Solution: {solution}
-        #     - Impact: {impact}
-        #     - Subscription ID: {subscription_id}
-        #     - Instance Name: {instance_name}
-        #     - Additional Info: {rec.get('additional_info', 'N/A')}
+        # Get resource-specific instructions if available
+        resource_instructions = resource_instruction_map.get(resource_type, "Your advice must be ONLY about the specific resource/problem below. Do not give generic Azure cost management advice. If you cannot provide specific advice, say so directly.")
 
-        #     Provide a maximum of 3 bullet points for actions to optimize costs + Conclude with a decision based on the information provided.
-        #     """
-        
-        # Handling Azure API Recommendations
-        if rec.get('source') == 'Azure API':
-            short_description = rec.get('short_description', {})
-            problem = short_description.get('problem') or rec.get('problem', 'No problem description available')
-            solution = short_description.get('solution') or rec.get('solution', 'No solution available')
-            impact = rec.get('impact', 'Unknown')
-            subscription_id = rec.get('extended_properties', {}).get('subId', rec.get('subscription_id', 'N/A'))
+        # Build a context-rich, scalable prompt for the LLM
+        prompt = f"""
+        You are an expert Azure cost optimization consultant. Your task is to provide highly targeted, actionable advice for the following cost recommendation. The field 'Problem' below contains the main topic and scenario for this recommendation. **All advice and actions must be directly and specifically based on the Problem field.**
 
-            # Create prompt for Azure API recommendations
-            prompt = f"""
-            As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision and provide a link to the microsoft learn docs so the user can take immediate action. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
-            {few_shot_examples}
-            Now, here is the recommendation:
+        {resource_instructions}
 
-            - Problem: {problem}
-            - Solution: {solution}
-            - Impact: {impact}
-            - Subscription ID: {subscription_id}
-            - Extended Properties: {rec.get('extended_properties', 'N/A')}
+        Recommendation Context:
+        - Source: {source}
+        - PROBLEM (main topic): {problem}
+        - Solution: {solution}
+        - Impact: {impact}
+        - Subscription ID: {subscription_id}
+        - Instance Name: {instance_name}
+        - Savings Amount: {savings_amount}
+        - Annual Savings: {annual_savings}
+        - Resource ID: {resource_id}
+        - Extended Properties: {extended_properties}
 
-            Provide a maximum of 3 bullet points for actions to optimize costs and conclude with a decision based on the information provided. Also provide a wworking link to the documentation to learn more about the recommendation and how to take action.
-            Ensure the link works and is relevant  to the recommendation and provides actionable steps for the user to follow.
-            """
-        
-        # Handling Log Analytics Recommendations
-        elif rec.get('source') == 'Log Analytics':
-            problem = rec.get('problem', 'No problem description available')
-            solution = rec.get('solution', 'No solution available')
-            impact = rec.get('impact', 'Unknown')
-            subscription_id = rec.get('subscription_id', 'N/A')
-            instance_name = rec.get('Instance', 'N/A')
-            savings_amount = rec.get('savingsAmount', 'N/A')
-            annual_savings = rec.get('annualSavingsAmount', 'N/A')
-            resource_id = rec.get('resource_id', 'N/A')
+        Instructions:
+        1. The Problem field is the main topic. All advice and actions must be directly related to the Problem field and not generic.
+        2. Provide a maximum of 3 bullet points for actions, each tailored to the context above.
+        3. Conclude with a clear decision (take action or not), based on the specific details.
+        4. Provide a working link to the most relevant Microsoft Learn documentation for this recommendation, if possible.
+        5. Do not repeat generic advice—be as specific as possible. If you cannot provide specific advice, say so directly.
 
-            # Create prompt for Log Analytics recommendations
-            prompt = f"""
-            {few_shot_examples}
-            As my Expert assistant with over 10 years of Azure consultant experience, you are here to help me make the best decision related to Cost Recommendations, I want you to analyze the following recommendation from SQL DB and provide specific, actionable advice on how to address it, making use of the extended properties as well to prioritize actions. In the end, give me your decision and provide a link to the microsoft learn docs so the user can take immediate action. Focus on cost optimization only and provide a maximum of 3 bulletpoints for action and conclude with a clear decision to take action or not.
-            Now, here is the recommendation:
-            - Instance: {instance_name}
-            - Problem: {problem}
-            - Solution: {solution}
-            - Impact: {impact}
-            - Subscription ID: {subscription_id}
-            - Savings Amount: {savings_amount}
-            - Annual Savings: {annual_savings}
-            - Resource ID: {resource_id}
-
-            Provide a maximum of 3 bullet points for actions to optimize costs and conclude with a decision based on the information provided. Also provide a wworking link to the documentation to learn more about the recommendation and how to take action.
-            Ensure the link works and is relevant  to the recommendation and provides actionable steps for the user to follow.            """
-
-        # Fallback for any other unknown sources (if any are added later)
-        else:
-            prompt = f"Unknown source recommendation. Please analyze manually."
+        {few_shot_examples}
+        """
 
         try:
-            # Send prompt to OpenAI (GPT-4)
+            # Send prompt to Azure OpenAI (GPT-4)
             response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
+                engine=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4"),
                 messages=[
                     {"role": "system", "content": "You are a skilled Azure consultant who knows everything about FinOps and cost optimization."},
                     {"role": "user", "content": prompt}
@@ -724,6 +1319,147 @@ def generate_advice_with_llm(recommendations):
     return advice_list
 
 
+def generate_advice_with_function_calling(recommendations):
+    """
+    Generate cost optimization advice using Azure OpenAI with function calling.
+    Uses curated, verified Azure documentation links instead of hallucinated URLs.
+    """
+    advice_list = []
+    
+    system_prompt = """You are an expert Azure consultant with 10+ years of FinOps experience.
+Your role is to analyze Azure cost recommendations and provide actionable advice.
+
+IMPORTANT INSTRUCTIONS:
+1. Provide a maximum of 3 bullet points for actions
+2. Conclude with a clear decision (take action or not)
+3. ALWAYS use the get_azure_documentation or get_cost_optimization_action functions to get verified documentation links
+4. NEVER make up or guess documentation URLs - always use the provided functions
+5. Focus on cost optimization and immediate actionable steps
+
+When providing links:
+- Use get_azure_documentation for learning resources
+- Use get_cost_optimization_action for step-by-step action guidance
+- Use search_azure_docs only if the specific topic is not available in other functions"""
+
+    for rec in recommendations:
+        # Extract recommendation details
+        short_description = rec.get('short_description', {})
+        problem = short_description.get('problem') or rec.get('problem', 'No problem description available')
+        solution = short_description.get('solution') or rec.get('solution', 'No solution available')
+        impact = rec.get('impact', 'Unknown')
+        source = rec.get('source', 'Unknown')
+        subscription_id = rec.get('extended_properties', {}).get('subId', rec.get('subscription_id', 'N/A'))
+        extended_props = rec.get('extended_properties', {})
+        
+        # Determine the category for function calling context
+        category = categorize_recommendation(problem, solution)
+        
+        # Build the user prompt
+        user_prompt = f"""Analyze this Azure cost recommendation and provide actionable advice:
+
+**Source:** {source}
+**Impact:** {impact}
+**Problem:** {problem}
+**Solution:** {solution}
+**Subscription ID:** {subscription_id}
+**Extended Properties:** {json.dumps(extended_props, indent=2) if extended_props else 'N/A'}
+
+Please:
+1. Provide 3 actionable bullet points
+2. Give a clear decision (take action or not)
+3. Use the available functions to get verified documentation links for category: {category}
+4. Include at least one relevant Azure documentation link using the functions provided"""
+
+        try:
+            # First call with function definitions
+            response = openai.ChatCompletion.create(
+                engine=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4"),
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                functions=AVAILABLE_FUNCTIONS,
+                function_call="auto",
+                max_tokens=MAX_TOKENS
+            )
+
+            response_message = response['choices'][0]['message']
+            
+            # Check if the model wants to call a function
+            if response_message.get('function_call'):
+                function_name = response_message['function_call']['name']
+                function_args = json.loads(response_message['function_call']['arguments'])
+                
+                # Execute the function
+                function_response = execute_function(function_name, function_args)
+                
+                # Send the function result back to the model
+                second_response = openai.ChatCompletion.create(
+                    engine=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4"),
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                        response_message,
+                        {
+                            "role": "function",
+                            "name": function_name,
+                            "content": function_response
+                        }
+                    ],
+                    functions=AVAILABLE_FUNCTIONS,
+                    function_call="auto",
+                    max_tokens=MAX_TOKENS
+                )
+                
+                # Check for additional function calls (up to 3 iterations)
+                final_message = second_response['choices'][0]['message']
+                iterations = 0
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                    response_message,
+                    {"role": "function", "name": function_name, "content": function_response}
+                ]
+                
+                while final_message.get('function_call') and iterations < 3:
+                    func_name = final_message['function_call']['name']
+                    func_args = json.loads(final_message['function_call']['arguments'])
+                    func_response = execute_function(func_name, func_args)
+                    
+                    messages.append(final_message)
+                    messages.append({"role": "function", "name": func_name, "content": func_response})
+                    
+                    next_response = openai.ChatCompletion.create(
+                        engine=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4"),
+                        messages=messages,
+                        functions=AVAILABLE_FUNCTIONS,
+                        function_call="auto",
+                        max_tokens=MAX_TOKENS
+                    )
+                    final_message = next_response['choices'][0]['message']
+                    iterations += 1
+                
+                advice_text = final_message.get('content', '').strip()
+            else:
+                # No function call, use the direct response
+                advice_text = response_message.get('content', '').strip()
+            
+            if not advice_text:
+                advice_text = "No advice could be generated."
+            
+            advice_list.append(advice_text)
+
+        except openai.OpenAIError as e:
+            logger.error(f"OpenAI Error: {e}")
+            advice_list.append(f"An error occurred: {str(e)}")
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON Decode Error in function arguments: {e}")
+            advice_list.append("An error occurred while processing the recommendation.")
+        except Exception as e:
+            logger.error(f"Unexpected error in generate_advice_with_function_calling: {e}")
+            advice_list.append(f"An error occurred: {str(e)}")
+
+    return advice_list
 
 
 # azure_subscription_ids = ['e9b4640d-1f1f-45fe-a543-c0ea45ac34c1','34f635ef-9210-4e8f-b9a9-8c3327604b23','b26069e9-79e1-49d1-a47c-877dfdc1fb20','b640da53-da83-438f-8c1d-dbc3de526d65','6d03d786-1501-4575-8d34-643ceca8af07']
@@ -797,14 +1533,22 @@ def analyze_recommendations_route():
     if not recommendations:
         return jsonify({'error': 'No recommendations provided'}), 400
 
-    advice = generate_advice_with_llm(recommendations)
-
+    # Use the new Foundry agent with MCP tools for verified documentation links
     structured_data = []
-    for rec, adv in zip(recommendations, advice):
-        structured_data.append({
-            'recommendation': rec,
-            'advice': adv
-        })
+    for rec in recommendations:
+        try:
+            # Use the new agent-based approach
+            advice = generate_advice_with_agent(rec, use_mcp=True)
+            structured_data.append({
+                'recommendation': rec,
+                'advice': advice
+            })
+        except Exception as e:
+            logger.error(f"Error generating advice: {e}")
+            structured_data.append({
+                'recommendation': rec,
+                'advice': f"Error generating advice: {str(e)}"
+            })
 
     return jsonify(structured_data), 200
 

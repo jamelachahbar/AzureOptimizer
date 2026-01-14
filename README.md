@@ -7,6 +7,21 @@
 
 Azure Cost Optimizer is a Python-based tool used to optimize Azure resource costs by applying various policies to resources across multiple subscriptions. It identifies resources that meet specific criteria and applies actions such as scaling, stopping, or deleting them to reduce costs. The tool also provides detailed reports and logs the financial impact of the applied policies.
 
+## 🚀 New: AI-Powered Cost Optimization Agent
+
+Azure Cost Optimizer now includes an **intelligent AI agent** powered by:
+
+- **Azure AI Foundry** - Enterprise-grade agent hosting with persistent agents
+- **Microsoft Agent Framework v2** - Latest SDK for building agentic applications
+- **Microsoft Learn MCP Integration** - Live documentation search using Model Context Protocol
+- **Function Calling** - Curated Azure documentation links and actionable recommendations
+
+### Agent Features
+- 🤖 **Smart Recommendations** - AI-generated advice for each cost optimization recommendation
+- 📚 **Live Documentation** - Real-time search of Microsoft Learn for current, accurate links
+- 🔧 **Actionable Steps** - Clear bullet points and decisions for each recommendation
+- 🔄 **Graceful Fallback** - Azure OpenAI fallback if Foundry is unavailable
+
 ## Features
 - **Apply Policies**: Apply predefined policies to resources, such as stopping unused VMs, deleting unattached disks, scaling SQL databases, etc.
     - **Stop unused virtual machines** based on tags and usage.
@@ -123,29 +138,232 @@ Azure Cost Optimizer is a Python-based tool used to optimize Azure resource cost
 
 ### Prerequisites
 
-1. **Azure Subscription**: Ensure you have an active Azure subscription.
-2. **Azure CLI**: Install the Azure CLI for authentication and managing Azure resources.
-3. **Python 3.8+**: Ensure Python 3.8 or later is installed on your machine.
-4. **Azure SDK for Python**
-5. Configuration file (**config.yaml**)
+1. **Azure Subscription**: Ensure you have an active Azure subscription with appropriate permissions.
+2. **Azure CLI**: Install the Azure CLI (latest version) for authentication and managing Azure resources.
+3. **Node.js & npm**: Required for the React frontend (Node.js 18+ recommended).
+4. **Python 3.12+**: Required for the Flask backend.
+5. **Permissions**: You need permissions to:
+   - Create App Registrations
+   - Create Service Principals
+   - Assign RBAC roles at subscription/management group level
+   - Create Azure resources (OpenAI, Storage Account)
+   - Grant admin consent for API permissions
 
-### Installation
+### Quick Setup Options
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/jamelachahbar/CostOptTool.git
-    cd CostOptTool
-    ```
+#### Option 1: Complete Setup Script (Recommended)
 
-2. Install dependencies:
-    ```sh
-    pip install -r requirements.txt
-    ```
+The fastest way to set up everything with a single script:
 
-3. Configure your Azure credentials and subscription ID:
-    - Set the environment variables `AZURE_SUBSCRIPTION_ID`, `APPINSIGHTS_INSTRUMENTATIONKEY`, `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_CLIENT_SECRET` in your environment.
+```powershell
+# Clone the repository
+git clone https://github.com/jamelachahbar/AzureOptimizer.git
+cd AzureOptimizer/ui/backend
 
-4. Define your policies in `policies/policies.yaml`.
+# Run the complete setup script
+.\setup-complete.ps1
+```
+
+**Optional parameters:**
+```powershell
+# Customize settings
+.\setup-complete.ps1 `
+    -ResourceGroupName "MyOptimizer-RG" `
+    -Location "eastus" `
+    -UserEmail "your.email@example.com" `
+    -ServicePrincipalName "MyOptimizerSP"
+```
+
+This single script creates:
+- ✅ Resource Group
+- ✅ Azure OpenAI resource with GPT-4 model
+- ✅ Storage Account with blob container
+- ✅ Service Principal with all required RBAC roles
+- ✅ App Registration for frontend authentication
+- ✅ App Roles (Admin/User) and role assignments
+- ✅ API Permissions (Microsoft Graph, Azure Management API)
+- ✅ Environment files (.env) for backend and frontend
+
+#### Option 2: Azure Developer CLI (azd) - Recommended for Cloud Deployment
+
+For production deployments with Container Apps:
+
+```powershell
+# Clone the repository
+git clone https://github.com/jamelachahbar/AzureOptimizer.git
+cd AzureOptimizer
+
+# Login to Azure
+azd auth login
+
+# Deploy everything (infrastructure + containers)
+azd up
+```
+
+This deploys:
+- ✅ Azure Container Apps (frontend + backend)
+- ✅ Azure Container Registry
+- ✅ Azure AI Foundry (for AI agent)
+- ✅ Azure OpenAI with GPT-4o
+- ✅ Storage Account with blob container
+- ✅ Key Vault for secrets
+- ✅ Application Insights for monitoring
+- ✅ User Managed Identity with RBAC roles
+- ✅ App Registration for React frontend (via MS Graph)
+
+#### Option 3: Infrastructure as Code with Bicep
+
+For production deployments or infrastructure-as-code workflows:
+
+```powershell
+# Clone the repository
+git clone https://github.com/jamelachahbar/AzureOptimizer.git
+cd AzureOptimizer/infra
+
+# Deploy using Bicep
+.\deploy.ps1
+```
+
+The Bicep deployment uses Azure Verified Modules (AVM) for best practices and includes:
+- Parameterized Bicep templates
+- Idempotent deployments
+- What-if capability for preview
+- Comprehensive RBAC configuration
+- Detailed infrastructure documentation
+
+See [infra/README.md](infra/README.md) for detailed Bicep deployment instructions.
+
+#### Option 3: Manual Step-by-Step Setup
+
+If you prefer to run setup scripts individually:
+
+```powershell
+cd AzureOptimizer/ui/backend
+
+# 1. Create Azure resources (OpenAI, Storage, Service Principal)
+.\setup-azure-resources.ps1
+
+# 2. Configure App Registration with roles and permissions
+.\setup-frontend-roles.ps1
+
+# 3. Assign RBAC permissions
+.\setup-app-permissions.ps1
+```
+
+### What Gets Configured
+
+All setup methods configure:
+
+| Component | Details |
+|-----------|---------|
+| **Azure AI Foundry** | AI project with GPT-4o model deployment for agent hosting |
+| **Azure OpenAI** | Cognitive Services account with GPT-4 deployment (fallback) |
+| **Storage Account** | Blob storage with `costopttool` container for policies/schemas |
+| **Service Principal** | Backend authentication with client ID and secret |
+| **App Registration** | Frontend SPA authentication (supports work/school + personal accounts) |
+| **RBAC Roles (Subscription)** | Contributor, Reader, Cost Management Reader, Monitoring Reader/Contributor |
+| **RBAC Roles (AI Foundry)** | Azure AI User, Azure AI Owner for agent creation |
+| **RBAC Roles (Storage)** | Storage Blob Data Contributor |
+| **RBAC Roles (Management Group)** | Reader (root level - for listing all subscriptions) |
+| **App Roles** | Admin (full access) and User (read-only) |
+| **API Permissions** | Microsoft Graph (User.Read, Directory.Read.All), Azure Management API (user_impersonation) |
+| **Environment Files** | `.env` files for backend and frontend auto-generated |
+
+### Environment Configuration
+
+After running any setup option, you'll find these files:
+
+**Backend** (`ui/backend/.env`):
+```env
+# Azure Authentication
+AZURE_CLIENT_ID=<service-principal-client-id>
+AZURE_CLIENT_SECRET=<service-principal-secret>
+AZURE_TENANT_ID=<your-tenant-id>
+AZURE_SUBSCRIPTION_ID=<your-subscription-id>
+
+# Azure OpenAI (fallback)
+AZURE_OPENAI_ENDPOINT=<openai-endpoint>
+AZURE_OPENAI_API_KEY=<openai-key>
+AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4
+
+# Azure AI Foundry (Agent Framework)
+AZURE_AI_PROJECT_ENDPOINT=<foundry-project-endpoint>
+AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-4o
+
+# Storage
+STORAGE_ACCOUNT_URL=<storage-url>
+```
+
+**Frontend** (`ui/frontend/.env`):
+```env
+REACT_APP_AZURE_CLIENT_ID=<app-registration-id>
+REACT_APP_AZURE_TENANT_ID=<your-tenant-id>
+REACT_APP_REDIRECT_URI=http://localhost:3000
+```
+
+### Install Application Dependencies
+
+After Azure setup completes, install the application dependencies:
+
+**Backend:**
+```powershell
+cd ui/backend
+python -m venv venv
+venv\Scripts\activate  # Windows
+# or: source venv/bin/activate  # Linux/Mac
+pip install -r requirements.txt
+```
+
+**Frontend:**
+```powershell
+   cd ui/frontend
+   npm install
+   ```
+
+5. Start the application:
+   
+   Backend:
+   ```sh
+   cd ui/backend
+   python app.py
+   ```
+
+   Frontend (in a separate terminal):
+   ```sh
+   cd ui/frontend
+   npm start
+   ```
+
+6. Access the UI:
+   - Open http://localhost:3000
+   - Log in with your Microsoft account (work/school or personal)
+   - Admin users can use Apply mode; regular users have read-only access
+
+### What Gets Configured
+
+The automated setup configures:
+
+✅ **Authentication**: SPA with support for organizational and personal Microsoft accounts  
+✅ **Authorization**: Admin and User roles with proper permissions  
+✅ **API Access**: Azure Management API for subscription listing  
+✅ **Backend Access**: Service Principal with multi-subscription Reader role  
+✅ **Storage**: Blob storage for policies and configuration  
+✅ **AI Integration**: Azure OpenAI for intelligent recommendations  
+
+### Manual Configuration (if needed)
+
+If you prefer manual setup or need to reconfigure:
+
+1. **Create App Registration**:
+   - Portal → Azure Active Directory → App registrations → New registration
+   - Configure as SPA with redirect URI: http://localhost:3000
+   - Add API permissions: User.Read, Azure Management API
+
+2. **Create Service Principal**:
+   - `az ad sp create-for-rbac --name AzureOptimizerSP`
+   - Assign necessary RBAC roles
+
+3. **Define policies** in `policies/policies.yaml`
 
 ### Usage
 

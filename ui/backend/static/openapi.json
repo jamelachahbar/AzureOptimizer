@@ -1,0 +1,463 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Azure Cost Optimizer API",
+    "description": "API for optimizing Azure resource costs through policy-based automation",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Azure Cost Optimizer Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {"name": "Health", "description": "Health and status endpoints"},
+    {"name": "Optimizer", "description": "Optimizer control endpoints"},
+    {"name": "Policies", "description": "Policy management endpoints"},
+    {"name": "Data", "description": "Cost and metrics data endpoints"},
+    {"name": "Recommendations", "description": "Azure Advisor recommendations"}
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "description": "Check the health status of the API and its dependencies",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/HealthResponse"}
+              }
+            }
+          },
+          "503": {
+            "description": "API is unhealthy",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/HealthResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/status": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Optimizer status",
+        "description": "Get the current status of the optimizer",
+        "operationId": "getStatus",
+        "responses": {
+          "200": {
+            "description": "Current optimizer status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["Idle", "Running", "Completed", "Stopped", "Error"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/run": {
+      "post": {
+        "tags": ["Optimizer"],
+        "summary": "Run optimizer",
+        "description": "Start the cost optimizer with specified mode",
+        "operationId": "runOptimizer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tenantId"],
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": ["audit", "apply"],
+                    "description": "Execution mode"
+                  },
+                  "tenantId": {
+                    "type": "string",
+                    "description": "Azure tenant ID"
+                  },
+                  "all_subscriptions": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Process all subscriptions in tenant"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Optimizer started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameter"
+          }
+        }
+      }
+    },
+    "/api/stop": {
+      "post": {
+        "tags": ["Optimizer"],
+        "summary": "Stop optimizer",
+        "description": "Stop the currently running optimizer",
+        "operationId": "stopOptimizer",
+        "responses": {
+          "200": {
+            "description": "Optimizer stopping"
+          }
+        }
+      }
+    },
+    "/api/policies": {
+      "get": {
+        "tags": ["Policies"],
+        "summary": "List policies",
+        "description": "Get all configured policies",
+        "operationId": "getPolicies",
+        "responses": {
+          "200": {
+            "description": "List of policies",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/PoliciesResponse"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/policies/validate": {
+      "post": {
+        "tags": ["Policies"],
+        "summary": "Validate policy",
+        "description": "Validate a policy without saving it",
+        "operationId": "validatePolicy",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/Policy"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Policy is valid",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ValidationSuccess"}
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/ValidationError"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/policies/{policy_name}": {
+      "patch": {
+        "tags": ["Policies"],
+        "summary": "Update policy status",
+        "description": "Enable or disable a policy",
+        "operationId": "updatePolicyStatus",
+        "parameters": [
+          {
+            "name": "policy_name",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {"type": "boolean"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Policy updated"},
+          "404": {"description": "Policy not found"}
+        }
+      }
+    },
+    "/api/estimate-savings": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "Estimate savings",
+        "description": "Estimate potential cost savings based on enabled policies",
+        "operationId": "estimateSavings",
+        "parameters": [
+          {
+            "name": "subscription_id",
+            "in": "query",
+            "schema": {"type": "string"},
+            "description": "Azure subscription ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Savings estimate",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/SavingsEstimate"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/summary-metrics": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "Get summary metrics",
+        "description": "Get summary metrics from last optimizer run",
+        "operationId": "getSummaryMetrics",
+        "responses": {
+          "200": {
+            "description": "Summary metrics data"
+          }
+        }
+      }
+    },
+    "/api/execution-data": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "Get execution data",
+        "description": "Get execution log from last optimizer run",
+        "operationId": "getExecutionData",
+        "responses": {
+          "200": {
+            "description": "Execution data"
+          }
+        }
+      }
+    },
+    "/api/trend-data": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "Get trend data",
+        "description": "Get cost trend data",
+        "operationId": "getTrendData",
+        "responses": {
+          "200": {
+            "description": "Trend data"
+          }
+        }
+      }
+    },
+    "/api/anomalies": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "Get anomalies",
+        "description": "Get detected cost anomalies",
+        "operationId": "getAnomalies",
+        "responses": {
+          "200": {
+            "description": "Anomalies data"
+          }
+        }
+      }
+    },
+    "/api/recommendations": {
+      "get": {
+        "tags": ["Recommendations"],
+        "summary": "Get recommendations",
+        "description": "Get Azure Advisor cost recommendations",
+        "operationId": "getRecommendations",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "query",
+            "required": true,
+            "schema": {"type": "string"}
+          },
+          {
+            "name": "subscription_ids",
+            "in": "query",
+            "schema": {"type": "string"},
+            "description": "Comma-separated subscription IDs"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recommendations list"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["healthy", "unhealthy"]
+          },
+          "version": {"type": "string"},
+          "timestamp": {"type": "string", "format": "date-time"},
+          "checks": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "status": {"type": "string"},
+                "message": {"type": "string"}
+              }
+            }
+          }
+        }
+      },
+      "Policy": {
+        "type": "object",
+        "required": ["name", "resource", "actions"],
+        "properties": {
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "resource": {
+            "type": "string",
+            "enum": ["azure.vm", "azure.disk", "azure.resourcegroup", "azure.storage", "azure.sql", "azure.publicip", "azure.applicationgateway", "azure.nic"]
+          },
+          "enabled": {"type": "boolean", "default": true},
+          "filters": {
+            "type": "array",
+            "items": {"$ref": "#/components/schemas/Filter"}
+          },
+          "actions": {
+            "type": "array",
+            "items": {"$ref": "#/components/schemas/Action"}
+          }
+        }
+      },
+      "Filter": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["last_used", "unattached", "tag", "sku", "stopped"]
+          },
+          "days": {"type": "integer"},
+          "threshold": {"type": "number"},
+          "key": {"type": "string"},
+          "value": {"type": "string"}
+        }
+      },
+      "Action": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["stop", "delete", "update_sku", "scale_dtu", "log", "downgrade_disks"]
+          },
+          "sku": {"type": "string"},
+          "immediate": {"type": "boolean"}
+        }
+      },
+      "PoliciesResponse": {
+        "type": "object",
+        "properties": {
+          "policies": {
+            "type": "array",
+            "items": {"$ref": "#/components/schemas/Policy"}
+          }
+        }
+      },
+      "ValidationSuccess": {
+        "type": "object",
+        "properties": {
+          "valid": {"type": "boolean", "enum": [true]},
+          "message": {"type": "string"},
+          "policy_name": {"type": "string"},
+          "resource_type": {"type": "string"},
+          "filter_count": {"type": "integer"},
+          "action_count": {"type": "integer"}
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "valid": {"type": "boolean", "enum": [false]},
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {"type": "string"},
+                "message": {"type": "string"}
+              }
+            }
+          }
+        }
+      },
+      "SavingsEstimate": {
+        "type": "object",
+        "properties": {
+          "subscription_id": {"type": "string"},
+          "estimated_monthly_savings": {"type": "number"},
+          "currency": {"type": "string"},
+          "resources_analyzed": {"type": "integer"},
+          "resources_impacted": {"type": "integer"},
+          "breakdown": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "policy_name": {"type": "string"},
+                "resource_type": {"type": "string"},
+                "matching_resources": {"type": "integer"},
+                "estimated_savings": {"type": "number"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

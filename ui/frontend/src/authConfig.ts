@@ -1,11 +1,28 @@
 import { Configuration, LogLevel } from "@azure/msal-browser";
 
+// Read from environment variables with fallback
+const clientId = process.env.REACT_APP_AZURE_CLIENT_ID || "02fb84dd-8908-47de-bcec-daff54959a76";
+const tenantId = process.env.REACT_APP_AZURE_TENANT_ID || "b98651dc-4756-44cb-ad4b-24f462ce02e0";
+const redirectUri = process.env.REACT_APP_REDIRECT_URI || "http://localhost:3000";
+
+// Debug logging
+console.log("Auth Config Debug:");
+console.log("- Client ID from env:", process.env.REACT_APP_AZURE_CLIENT_ID);
+console.log("- Client ID used:", clientId);
+console.log("- Tenant ID:", tenantId);
+console.log("- Redirect URI:", redirectUri);
+
+// Validate client ID
+if (!clientId || clientId === "") {
+    console.error("CRITICAL: REACT_APP_AZURE_CLIENT_ID is not set!");
+}
+
 export const msalConfig: Configuration = {
     auth: {
-        clientId: "32cd1b4b-9eaa-44b7-9403-3736fdc0ecac", // Replace with your Azure AD client ID
-        // authority: "https://login.microsoftonline.com/dc06fa00-1806-48fc-864d-c47c49f0138c", // Replace with your Azure AD tenant ID
-        authority: "https://login.microsoftonline.com/organizations", // App is multi-tenant capable for applications processing accounts in any organizational directory (any Microsoft Entra directory)
-        redirectUri: "http://localhost:3000", // Replace with your redirect URI
+        clientId: clientId,
+        // Use specific tenant ID to ensure login to your tenant only
+        authority: `https://login.microsoftonline.com/${tenantId}`,
+        redirectUri: redirectUri,
         postLogoutRedirectUri: '/'
 
     },
@@ -21,26 +38,34 @@ export const msalConfig: Configuration = {
                 }
                 switch (level) {
                     case LogLevel.Error:
-                        console.error(message);
+                        console.error("MSAL Error:", message);
                         return;
                     case LogLevel.Info:
-                        console.info(message);
+                        console.info("MSAL Info:", message);
                         return;
                     case LogLevel.Verbose:
-                        console.debug(message);
+                        console.debug("MSAL Verbose:", message);
                         return;
                     case LogLevel.Warning:
-                        console.warn(message);
+                        console.warn("MSAL Warning:", message);
                         return;
                 }
             },
-            logLevel: LogLevel.Info, // Adjust the log level as needed
+            logLevel: LogLevel.Verbose, // Increased to Verbose for more debugging
             piiLoggingEnabled: false,
         }
     }
 };
 
-export const loginRequest = {
-    scopes: ["User.Read","openid", "Directory.Read.All", "Subscription.Read","profile", "api://32cd1b4b-9eaa-44b7-9403-3736fdc0ecac/.default","api://32cd1b4b-9eaa-44b7-9403-3736fdc0ecac/Admin","api://32cd1b4b-9eaa-44b7-9403-3736fdc0ecac/User"],
+// Log the complete MSAL config at module load time
+console.log("=== MSAL Config at Module Load ===");
+console.log("Full msalConfig:", JSON.stringify(msalConfig, null, 2));
 
+export const loginRequest = {
+    scopes: [
+        "User.Read",
+        "openid",
+        "profile",
+        "https://management.azure.com/user_impersonation"
+    ],
 };

@@ -52,9 +52,33 @@ with open(config_file, "r") as file:
 
 # Initialize Application Insights Telemetry Client
 instrumentation_key = os.getenv("APPINSIGHTS_INSTRUMENTATIONKEY")
-if not instrumentation_key:
-    raise Exception("Instrumentation key was required but not provided")
-tc = TelemetryClient(instrumentation_key)
+if instrumentation_key and instrumentation_key != "00000000-0000-0000-0000-000000000000":
+    tc = TelemetryClient(instrumentation_key)
+else:
+    tc = None  # Application Insights is optional for development
+    print("Warning: Application Insights is not configured. Telemetry will be skipped.")
+
+# Helper class to safely handle telemetry calls
+class SafeTelemetryClient:
+    def __init__(self, client):
+        self.client = client
+    
+    def track_event(self, name, properties=None, measurements=None):
+        if self.client:
+            self.client.track_event(name, properties, measurements)
+    
+    def track_metric(self, name, value, properties=None):
+        if self.client:
+            self.client.track_metric(name, value, properties)
+    
+    def flush(self):
+        if self.client:
+            self.client.flush()
+
+tc = SafeTelemetryClient(tc)
+
+# Cost Management settings
+COST_LOOKBACK_DAYS = config.get("cost_management", {}).get("lookback_days", 30)
 
 # Authentication
 credential = DefaultAzureCredential()
@@ -175,6 +199,140 @@ def get_cost_data(scope):
     except Exception as e:
         logger.error(f"Failed to retrieve cost data for scope {scope}: {e}")
         return None
+
+
+def get_resource_cost(resource_id: str, subscription_id: str, days: int = 30) -> float:
+    """
+    Get the cost of a specific resource using Azure Cost Management API.
+    
+    Args:
+        resource_id: The full Azure resource ID
+        subscription_id: The subscription ID
+        days: Number of days to look back for cost data (default: 30)
+        
+    Returns:
+        Cost in USD for the specified period, or 0.0 if unable to retrieve
+    """
+    from azure.mgmt.costmanagement import CostManagementClient
+    
+    try:
+        # Create a local client to ensure we're using the correct credential
+        local_cost_client = CostManagementClient(credential)
+        
+        cet = pytz.timezone("CET")
+        now_cet = datetime.now(cet)
+        
+        # Query cost data for the specified number of days
+        start_date = (now_cet - timedelta(days=days)).strftime("%Y-%m-%dT00:00:00Z")
+        end_date = now_cet.strftime("%Y-%m-%dT23:59:59Z")
+        
+        scope = f"/subscriptions/{subscription_id}"
+        
+        # Query cost grouped by resource
+        query_result = local_cost_client.query.usage(
+            scope,
+            {
+                "type": "Usage",
+                "timeframe": "Custom",
+                "timePeriod": {"from": start_date, "to": end_date},
+                "dataset": {
+                    "granularity": "None",  # Total, not daily
+                    "aggregation": {
+                        "totalCost": {"name": "PreTaxCost", "function": "Sum"}
+                    },
+                    "grouping": [
+                        {"type": "Dimension", "name": "ResourceId"}
+                    ],
+                    "filter": {
+                        "dimensions": {
+                            "name": "ResourceId",
+                            "operator": "In",
+                            "values": [resource_id]
+                        }
+                    }
+                },
+            },
+        )
+        
+        if query_result and query_result.rows:
+            # Sum up all costs for this resource
+            total_cost = sum(row[0] for row in query_result.rows if row[0])
+            return round(total_cost, 2)
+        
+        return 0.0
+    except Exception as e:
+        logger.warning(f"Failed to retrieve cost for resource {resource_id}: {e}")
+        return 0.0
+
+
+def get_resource_cost_batch(resource_ids: list, subscription_id: str, days: int = 30) -> dict:
+    """
+    Get the cost of multiple resources in a single API call.
+    
+    Args:
+        resource_ids: List of full Azure resource IDs
+        subscription_id: The subscription ID
+        days: Number of days to look back for cost data (default: 30)
+        
+    Returns:
+        Dictionary mapping resource_id to cost in USD for the specified period
+    """""
+    from azure.mgmt.costmanagement import CostManagementClient
+    
+    costs = {rid: 0.0 for rid in resource_ids}
+    
+    if not resource_ids:
+        return costs
+        
+    try:
+        # Create a local client to ensure we're using the correct credential
+        local_cost_client = CostManagementClient(credential)
+        
+        cet = pytz.timezone("CET")
+        now_cet = datetime.now(cet)
+        
+        start_date = (now_cet - timedelta(days=days)).strftime("%Y-%m-%dT00:00:00Z")
+        end_date = now_cet.strftime("%Y-%m-%dT23:59:59Z")
+        
+        scope = f"/subscriptions/{subscription_id}"
+        
+        query_result = local_cost_client.query.usage(
+            scope,
+            {
+                "type": "Usage",
+                "timeframe": "Custom",
+                "timePeriod": {"from": start_date, "to": end_date},
+                "dataset": {
+                    "granularity": "None",
+                    "aggregation": {
+                        "totalCost": {"name": "PreTaxCost", "function": "Sum"}
+                    },
+                    "grouping": [
+                        {"type": "Dimension", "name": "ResourceId"}
+                    ],
+                    "filter": {
+                        "dimensions": {
+                            "name": "ResourceId",
+                            "operator": "In",
+                            "values": resource_ids[:100]  # API limit
+                        }
+                    }
+                },
+            },
+        )
+        
+        if query_result and query_result.rows:
+            for row in query_result.rows:
+                if len(row) >= 2:
+                    cost = row[0] or 0.0
+                    resource_id = row[1]
+                    if resource_id in costs:
+                        costs[resource_id] = round(cost, 2)
+        
+        return costs
+    except Exception as e:
+        logger.warning(f"Failed to retrieve batch costs: {e}")
+        return costs
 
 
 def analyze_cost_data(cost_data, subscription_id, summary_reports):
@@ -1361,21 +1519,29 @@ def apply_policies(
         resources_impacted = False
 
         if resource_type == "azure.vm":
-            vms = compute_client.virtual_machines.list_all()
+            vms = list(compute_client.virtual_machines.list_all())
+            # Get costs for all VMs in batch
+            vm_ids = [vm.id for vm in vms]
+            vm_costs = get_resource_cost_batch(vm_ids, subscription_id, COST_LOOKBACK_DAYS) if vm_ids else {}
+            
             for vm in vms:
                 logger.info(f"Evaluating VM {vm.name}")
                 if not evaluate_exclusions(vm, exclusions) and evaluate_filters(
                     vm, filters
                 ):
                     apply_actions(vm, actions, status_log, dry_run, subscription_id)
+                    resource_cost = vm_costs.get(vm.id, 0.0)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": vm.name,
+                            "ResourceId": vm.id,
+                            "ResourceType": "VM",
                             "Actions": ", ".join(
                                 [action["type"] for action in actions]
                             ),
+                            "Cost": resource_cost,
                         }
                     )
                     resources_impacted = True
@@ -1389,7 +1555,11 @@ def apply_policies(
                 )
 
         elif resource_type == "azure.disk":
-            disks = compute_client.disks.list()
+            disks = list(compute_client.disks.list())
+            # Get costs for all disks in batch
+            disk_ids = [disk.id for disk in disks]
+            disk_costs = get_resource_cost_batch(disk_ids, subscription_id, COST_LOOKBACK_DAYS) if disk_ids else {}
+            
             for disk in disks:
                 logger.info(f"Evaluating disk {disk.name}")
                 if evaluate_exclusions(disk, exclusions):
@@ -1402,12 +1572,16 @@ def apply_policies(
                     continue
 
                 apply_actions(disk, actions, status_log, dry_run, subscription_id)
+                resource_cost = disk_costs.get(disk.id, 0.0)
                 impacted_resources.append(
                     {
                         "SubscriptionId": subscription_id,
                         "Policy": policy["name"],
                         "Resource": disk.name,
+                        "ResourceId": disk.id,
+                        "ResourceType": "Disk",
                         "Actions": ", ".join([action["type"] for action in actions]),
+                        "Cost": resource_cost,
                     }
                 )
                 resources_impacted = True
@@ -1422,7 +1596,7 @@ def apply_policies(
                 )
 
         elif resource_type == "azure.resourcegroup":
-            resource_groups = resource_client.resource_groups.list()
+            resource_groups = list(resource_client.resource_groups.list())
             for resource_group in resource_groups:
                 if not evaluate_exclusions(
                     resource_group, exclusions
@@ -1430,14 +1604,18 @@ def apply_policies(
                     apply_actions(
                         resource_group, actions, status_log, dry_run, subscription_id
                     )
+                    # Resource groups don't have direct costs - their contained resources do
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": resource_group.name,
+                            "ResourceId": resource_group.id,
+                            "ResourceType": "Resource Group",
                             "Actions": ", ".join(
                                 [action["type"] for action in actions]
                             ),
+                            "Cost": 0.0,  # RG cost is sum of contained resources
                         }
                     )
                     resources_impacted = True
@@ -1451,7 +1629,11 @@ def apply_policies(
                 )
 
         elif resource_type == "azure.storage":
-            storage_accounts = storage_client.storage_accounts.list()
+            storage_accounts = list(storage_client.storage_accounts.list())
+            # Get costs for all storage accounts in batch
+            storage_ids = [sa.id for sa in storage_accounts]
+            storage_costs = get_resource_cost_batch(storage_ids, subscription_id, COST_LOOKBACK_DAYS) if storage_ids else {}
+            
             for storage_account in storage_accounts:
                 if not evaluate_exclusions(
                     storage_account, exclusions
@@ -1459,14 +1641,18 @@ def apply_policies(
                     apply_actions(
                         storage_account, actions, status_log, dry_run, subscription_id
                     )
+                    resource_cost = storage_costs.get(storage_account.id, 0.0)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": storage_account.name,
+                            "ResourceId": storage_account.id,
+                            "ResourceType": "Storage Account",
                             "Actions": ", ".join(
                                 [action["type"] for action in actions]
                             ),
+                            "Cost": resource_cost,
                         }
                     )
                     resources_impacted = True
@@ -1480,7 +1666,11 @@ def apply_policies(
                 )
 
         elif resource_type == "azure.publicip":
-            public_ips = network_client.public_ip_addresses.list_all()
+            public_ips = list(network_client.public_ip_addresses.list_all())
+            # Get costs for all public IPs in batch
+            pip_ids = [pip.id for pip in public_ips]
+            pip_costs = get_resource_cost_batch(pip_ids, subscription_id, COST_LOOKBACK_DAYS) if pip_ids else {}
+            
             for public_ip in public_ips:
                 if not evaluate_exclusions(public_ip, exclusions) and evaluate_filters(
                     public_ip, filters
@@ -1488,14 +1678,18 @@ def apply_policies(
                     apply_actions(
                         public_ip, actions, status_log, dry_run, subscription_id
                     )
+                    resource_cost = pip_costs.get(public_ip.id, 0.0)
                     impacted_resources.append(
                         {
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": public_ip.name,
+                            "ResourceId": public_ip.id,
+                            "ResourceType": "Public IP",
                             "Actions": ", ".join(
                                 [action["type"] for action in actions]
                             ),
+                            "Cost": resource_cost,
                         }
                     )
                     resources_impacted = True
@@ -1510,12 +1704,16 @@ def apply_policies(
                 )
 
         elif resource_type == "azure.sql":
-            servers = sql_client.servers.list()
+            servers = list(sql_client.servers.list())
             for server in servers:
                 resource_group_name = server.id.split("/")[4]
-                databases = sql_client.databases.list_by_server(
+                databases = list(sql_client.databases.list_by_server(
                     resource_group_name, server.name
-                )
+                ))
+                # Get costs for all databases in batch
+                db_ids = [db.id for db in databases]
+                db_costs = get_resource_cost_batch(db_ids, subscription_id, COST_LOOKBACK_DAYS) if db_ids else {}
+                
                 for db in databases:
                     logger.info(f"Database: {db.name}, Current DTU: {db.sku.capacity}")
                     status, message = scale_sql_database(
@@ -1526,14 +1724,18 @@ def apply_policies(
                         subscription_id,
                     )
                     if status != "No Change":
+                        resource_cost = db_costs.get(db.id, 0.0)
                         impacted_resources.append(
                             {
                                 "SubscriptionId": subscription_id,
                                 "Policy": policy["name"],
                                 "Resource": db.name,
+                                "ResourceId": db.id,
+                                "ResourceType": "SQL Database",
                                 "Actions": "scale",
                                 "Status": status,
                                 "Message": message,
+                                "Cost": resource_cost,
                             }
                         )
                         resources_impacted = True
@@ -1550,9 +1752,12 @@ def apply_policies(
             policy_results = review_application_gateways(
                 [policy], status_log, dry_run=dry_run
             )
-            impacted_resources.extend(
-                [{"SubscriptionId": subscription_id, **res} for res in policy_results]
-            )
+            # Get costs for application gateways
+            for res in policy_results:
+                res["SubscriptionId"] = subscription_id
+                res["ResourceType"] = "Application Gateway"
+                res["Cost"] = 0.0  # Would need to query cost separately
+            impacted_resources.extend(policy_results)
             if policy_results:
                 resources_impacted = True
             else:
@@ -1565,7 +1770,8 @@ def apply_policies(
                 )
 
         elif resource_type == "azure.nic":
-            nics = network_client.network_interfaces.list_all()
+            nics = list(network_client.network_interfaces.list_all())
+            # NICs don't have direct costs, but we can estimate based on attached resources
             for nic in nics:
                 if not evaluate_exclusions(nic, exclusions) and evaluate_filters(
                     nic, filters
@@ -1576,9 +1782,12 @@ def apply_policies(
                             "SubscriptionId": subscription_id,
                             "Policy": policy["name"],
                             "Resource": nic.name,
+                            "ResourceId": nic.id,
+                            "ResourceType": "Network Interface",
                             "Actions": ", ".join(
                                 [action["type"] for action in actions]
                             ),
+                            "Cost": 0.0,  # NICs don't have direct costs
                         }
                     )
                     resources_impacted = True
@@ -1686,6 +1895,7 @@ def main(mode="dry-run", tenant_id=None, all_subscriptions=True, stop_event=None
     anomalies_all_reports = "anomalies_all.json"
     summary_reports_file = "summary_reports.json"
     execution_data_file = "execution_data.json"
+    impacted_resources_file = "impacted_resources.json"
 
     try:
         start_time = time.time()
@@ -1747,6 +1957,9 @@ def main(mode="dry-run", tenant_id=None, all_subscriptions=True, stop_event=None
 
         with open(anomalies_all_reports, "w") as file:
             json.dump(anomalies_all, file, indent=4, default=str)
+
+        with open(impacted_resources_file, "w") as file:
+            json.dump(impacted_resources, file, indent=4, default=str)
 
         logger.info(f"Optimizer execution completed in {execution_time:.2f} seconds.")
         print("Summary Reports:", json.dumps(summary_reports, indent=4, default=str))

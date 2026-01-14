@@ -58,6 +58,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (activeAccount?.idTokenClaims) {
       parseTokenClaims(activeAccount.idTokenClaims as CustomIdTokenClaims);
       setAccount(activeAccount);
+      
+      // Acquire token for already logged-in user
+      msalInstance.acquireTokenSilent({
+        account: activeAccount,
+        scopes: ["https://management.azure.com/.default"],
+      }).then(tokenResponse => {
+        setToken(tokenResponse.accessToken);
+      }).catch(error => {
+        console.error("Error acquiring token on mount:", error);
+      });
     }
 
     // Listen for login events
