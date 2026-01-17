@@ -3,7 +3,9 @@ import { Configuration, LogLevel } from "@azure/msal-browser";
 // Read from environment variables with fallback
 const clientId = process.env.REACT_APP_AZURE_CLIENT_ID || "02fb84dd-8908-47de-bcec-daff54959a76";
 const tenantId = process.env.REACT_APP_AZURE_TENANT_ID || "b98651dc-4756-44cb-ad4b-24f462ce02e0";
-const redirectUri = process.env.REACT_APP_REDIRECT_URI || "http://localhost:3000";
+
+// Use window.location.origin for dynamic redirect URI (works in both localhost and deployed environments)
+const redirectUri = typeof window !== 'undefined' ? window.location.origin : "http://localhost:3000";
 
 // Debug logging
 console.log("Auth Config Debug:");
