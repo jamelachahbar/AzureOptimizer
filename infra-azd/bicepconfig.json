@@ -7,6 +7,14 @@
   "extensions": {
     "microsoftGraphV1_0": "br:mcr.microsoft.com/bicep/extensions/microsoftgraph/v1.0:1.0.0"
   },
+  "moduleAliases": {
+    "br": {
+      "public": {
+        "registry": "mcr.microsoft.com",
+        "modulePath": "bicep"
+      }
+    }
+  },
   "analyzers": {
     "core": {
       "enabled": true,

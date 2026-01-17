@@ -15,4 +15,23 @@ export interface CostData {
     action: string;
     status: string;
   }
-  
+
+export interface OptimizationScore {
+  score: number;
+  trend: number;
+  issues: {
+    wasteResources: number;
+    disabledPolicies: number;
+    potentialSavings: number;
+  };
+}
+
+export interface AdvisorRecommendation {
+  uuid: string;
+  problem: string;
+  solution: string;
+  impact: 'High' | 'Medium' | 'Low';
+  annualSavings: number;
+  subscriptionId: string;
+  resourceId: string;
+}

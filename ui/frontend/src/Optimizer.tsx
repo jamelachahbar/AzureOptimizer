@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import React, { useState, useEffect, useCallback, createContext, useContext, useMemo } from 'react';
 import {
   Container, Grid, CircularProgress, Typography, FormControl, InputLabel,
-  Select, MenuItem, Box, SelectChangeEvent, Button,
+  Select, MenuItem, Box, SelectChangeEvent, Button, IconButton, Tooltip,
 } from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings';
 import axios from 'axios';
 import { useTheme } from '@mui/material/styles';
 import { useIsAuthenticated } from '@azure/msal-react';
@@ -14,16 +15,16 @@ import SummaryMetricsCard from './components/SummaryMetricsCard';
 import CostTrendChart from './components/CostTrendChart';
 import ExecutionTable from './components/ExecutionTable';
 import ImpactedResourcesTable from './components/ImpactedResourcesTable';
-import PolicyTable from './components/PolicyTable';
-import PolicyPieChart from './components/PolicyPieChart';
 import OptimizerLogs from './components/OptimizerLogs';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import PolicyEditor from './components/PolicyEditor';
+import PolicySettingsModal from './components/PolicySettingsModal';
 import { LandingScreen } from './components/LandingScreen';
 import LoginButton from './components/LoginButton';
 import LogoutButton from './components/LogoutButton';
 import AnomaliesDisplay from "./components/AnomaliesDisplay";
 import SavingsEstimateCard from './components/SavingsEstimateCard';
+import OptimizationScoreCard from './components/OptimizationScoreCard';
+import TopWasteResourcesCard from './components/TopWasteResourcesCard';
+import ResourceTypeDistributionCard from './components/ResourceTypeDistributionCard';
 import { useKeyboardShortcuts, KeyboardShortcut } from './utils/useKeyboardShortcuts';
 
 export const ColorModeContext = createContext({ toggleColorMode: () => { } });
@@ -182,6 +183,8 @@ const Optimizer: React.FC = () => {
   const theme = useTheme();
   const { isAdmin, tenantId } = useAuth();
   const [subscriptions, setSubscriptions] = useState<Array<{id: string, name: string}>>([]);
+  const [estimatedSavings, setEstimatedSavings] = useState<number>(0);
+  const [resourceTypeFilter, setResourceTypeFilter] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPolicies = async () => {
@@ -266,9 +269,8 @@ const Optimizer: React.FC = () => {
     }
   };
 
-  // State for policies panel visibility (for keyboard shortcut)
-  const [showPoliciesPanel, setShowPoliciesPanel] = useState(true);
-  const [showPolicyEditor, setShowPolicyEditor] = useState(false);
+  // State for policies modal visibility
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [isPoliciesLoading, setIsPoliciesLoading] = useState(false);
 
   // Keyboard shortcuts for power users
@@ -296,8 +298,8 @@ const Optimizer: React.FC = () => {
     },
     {
       key: 'ctrl+p',
-      handler: () => setShowPoliciesPanel(prev => !prev),
-      description: 'Toggle policies panel',
+      handler: () => setShowPolicyModal(prev => !prev),
+      description: 'Toggle policy settings',
       preventDefault: true, // Prevent browser print dialog
     },
     {
@@ -311,15 +313,10 @@ const Optimizer: React.FC = () => {
       description: 'Refresh dashboard data',
     },
     {
-      key: 'ctrl+e',
-      handler: () => setShowPolicyEditor(prev => !prev),
-      description: 'Toggle policy editor',
-    },
-    {
       key: 'escape',
-      handler: () => setShowPolicyEditor(false),
-      description: 'Close policy editor',
-      enabled: showPolicyEditor,
+      handler: () => setShowPolicyModal(false),
+      description: 'Close policy settings',
+      enabled: showPolicyModal,
     },
   ];
 
@@ -380,6 +377,13 @@ const fetchData = useCallback(async () => {
     setTrendData([]); // Reset to an empty state
   }
 
+  try {
+    const params = selectedSubscription !== 'All Subscriptions' ? { subscription_id: selectedSubscription } : {};
+    const { data: savingsData } = await axios.get('http://127.0.0.1:5000/api/estimate-savings', { params });
+    setEstimatedSavings(savingsData.estimated_monthly_savings || 0);
+  } catch (error) {
+    console.error('Error fetching estimated savings:', error);
+  }
 
 }, [selectedSubscription]);
 
@@ -415,6 +419,37 @@ const fetchData = useCallback(async () => {
       console.error('Error updating policy:', error);
     }
   };
+
+  const handleResourceTypeFilter = (resourceType: string) => {
+    setResourceTypeFilter(prev => prev === resourceType ? null : resourceType);
+  };
+
+  const filteredImpactedResources = useMemo(() => {
+    if (!resourceTypeFilter) return impactedResources;
+    return impactedResources.filter(r => {
+      const lowerPolicy = r.Policy.toLowerCase();
+      const lowerFilter = resourceTypeFilter.toLowerCase();
+      if (lowerFilter.includes('virtual machine') || lowerFilter.includes('vm')) {
+        return lowerPolicy.includes('vm') || lowerPolicy.includes('virtual');
+      }
+      if (lowerFilter.includes('disk')) {
+        return lowerPolicy.includes('disk');
+      }
+      if (lowerFilter.includes('public ip') || lowerFilter.includes('ip')) {
+        return lowerPolicy.includes('ip');
+      }
+      if (lowerFilter.includes('network interface') || lowerFilter.includes('nic')) {
+        return lowerPolicy.includes('nic');
+      }
+      if (lowerFilter.includes('storage')) {
+        return lowerPolicy.includes('storage');
+      }
+      if (lowerFilter.includes('sql') || lowerFilter.includes('database')) {
+        return lowerPolicy.includes('sql') || lowerPolicy.includes('database');
+      }
+      return true;
+    });
+  }, [impactedResources, resourceTypeFilter]);
 
   const filteredSummaryMetrics = selectedSubscription === 'All Subscriptions' ? summaryMetrics : summaryMetrics.filter((metric) => metric.SubscriptionId === selectedSubscription);
 
@@ -460,63 +495,65 @@ const fetchData = useCallback(async () => {
               <Button variant="contained" color="secondary" onClick={stopOptimizer} disabled={!isOptimizerRunning}>Stop Optimizer</Button>
             </Grid>
             <Grid item>
+              <Tooltip title="Policy Settings (Ctrl+P)">
+                <IconButton
+                  onClick={() => setShowPolicyModal(true)}
+                  sx={{
+                    backgroundColor: theme.palette.action.hover,
+                    '&:hover': { backgroundColor: theme.palette.action.selected },
+                  }}
+                >
+                  <SettingsIcon />
+                </IconButton>
+              </Tooltip>
+            </Grid>
+            <Grid item>
               <LogoutButton />
             </Grid>
           </Grid>
 
           {errorMessage && <Box mt={4}><Typography variant="h6" color="error">{errorMessage}</Typography></Box>}
 
-          {/* Policies and Pie Chart Row */}
-          <Grid container spacing={2} rowSpacing={2} alignItems="flex-start">
-            {/* Policies Section */}
-            <Grid item xs={12} md={showPolicyEditor ? 12 : 6} lg={showPolicyEditor ? 8 : 6}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6">Policies</Typography>
-                <Button 
-                  variant="outlined" 
-                  size="small" 
-                  onClick={() => setShowPolicyEditor(prev => !prev)}
-                  sx={{ ml: 2 }}
-                >
-                  {showPolicyEditor ? 'Hide Editor' : 'Edit Policies (Ctrl+E)'}
-                </Button>
-              </Box>
-              <Box sx={{ 
-                minHeight: showPolicyEditor ? 'auto' : 300,
-                maxHeight: showPolicyEditor ? 600 : 400,
-                overflowY: 'auto'
-              }}>
-                {showPolicyEditor ? (
-                  <PolicyEditor 
-                    policies={policies} 
-                    setPolicies={setPolicies} 
-                    isLoading={isPoliciesLoading} 
-                  />
-                ) : (
-                  <PolicyTable policies={policies} handleToggle={handleTogglePolicy} />
-                )}
-              </Box>
+          {/* Dashboard Enhancement Cards - Row 1 */}
+          <Grid container spacing={2} sx={{ mt: 2 }}>
+            <Grid item xs={12} md={4}>
+              <OptimizationScoreCard
+                policies={policies}
+                impactedResources={impactedResources}
+                anomalyCount={anomalyData.length}
+                estimatedSavings={estimatedSavings}
+              />
             </Grid>
-            {/* Pie Chart - always visible, adjusts width based on PolicyEditor state */}
-            <Grid item xs={12} md={showPolicyEditor ? 12 : 6} lg={4}>
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                minHeight: 300,
-                width: '100%',
-                height: 300
-              }}>
-                {impactedResources.length > 0 ? (
-                  <PolicyPieChart impactedResources={impactedResources} />
-                ) : (
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'text.secondary' }}>
-                    <Typography variant="body2">Run optimizer to see policy distribution</Typography>
-                  </Box>
-                )}
-              </Box>
+            <Grid item xs={12} md={8}>
+              <TopWasteResourcesCard impactedResources={impactedResources} />
             </Grid>
           </Grid>
+
+          {/* Dashboard Enhancement Cards - Row 2 */}
+          <Grid container spacing={2} sx={{ mt: 2 }}>
+            <Grid item xs={12} md={6}>
+              <ResourceTypeDistributionCard
+                impactedResources={impactedResources}
+                onSliceClick={handleResourceTypeFilter}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <SavingsEstimateCard
+                subscriptionId={selectedSubscription === 'All Subscriptions' ? undefined : selectedSubscription}
+              />
+            </Grid>
+          </Grid>
+
+          {resourceTypeFilter && (
+            <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Filtered by: {resourceTypeFilter}
+              </Typography>
+              <Button size="small" onClick={() => setResourceTypeFilter(null)}>
+                Clear Filter
+              </Button>
+            </Box>
+          )}
 
           {/* Summary Metrics Section */}
           <Box sx={{ mt: 3 }}>
@@ -530,14 +567,6 @@ const fetchData = useCallback(async () => {
             </Grid>
           </Box>
 
-          {/* Savings Estimate Section */}
-          <Box sx={{ mt: 3, px: 2 }}>
-            <Typography variant="h6" mb={2}>Potential Savings from Waste Resources</Typography>
-            <SavingsEstimateCard 
-              subscriptionId={selectedSubscription === 'All Subscriptions' ? undefined : selectedSubscription} 
-            />
-          </Box>
-
           <Grid container spacing={2} sx={{ mt: 3 }}>
             <Grid item xs={12} padding={2}>
               <Typography variant="h6" mb={2}>Cost Trend</Typography>
@@ -545,8 +574,11 @@ const fetchData = useCallback(async () => {
             </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="h6" mb={2}>Impacted Resources</Typography>
-              <ImpactedResourcesTable impactedResources={impactedResources} selectedSubscription={selectedSubscription} />
+              <Typography variant="h6" mb={2}>
+                Impacted Resources
+                {resourceTypeFilter && ` (Filtered: ${resourceTypeFilter})`}
+              </Typography>
+              <ImpactedResourcesTable impactedResources={filteredImpactedResources} selectedSubscription={selectedSubscription} />
             </Grid>
 
             <Grid item xs={12}>
@@ -555,7 +587,7 @@ const fetchData = useCallback(async () => {
             </Grid>
 
             {/* Anomalies Section */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <Typography variant="h6" mb={2}>Detected Anomalies</Typography>
               <AnomaliesDisplay
                 anomalies={anomalyData}
@@ -572,22 +604,17 @@ const fetchData = useCallback(async () => {
         </TracingBeamContainer>
       </Container>
       <TypewriterEffectSmooth words={[{ text: "Brought" }, { text: "to" }, { text: "you" }, { text: "by" }, { text: "Jamel Achahbar" }]} variant="h6" speed={100} />
+
+      {/* Policy Settings Modal */}
+      <PolicySettingsModal
+        open={showPolicyModal}
+        onClose={() => setShowPolicyModal(false)}
+        policies={policies}
+        setPolicies={setPolicies}
+        handleTogglePolicy={handleTogglePolicy}
+        isLoading={isPoliciesLoading}
+      />
     </Box>
   );
 };
 export default Optimizer;
-
-
-
-function setError(arg0: string) {
-  throw new Error('Function not implemented.');
-}
-
-function fetchData(): void {
-  throw new Error('Function not implemented.');
-}
-
-function setPolicies(arg0: any) {
-  throw new Error('Function not implemented.');
-}
-

@@ -10,19 +10,6 @@ infra:
   provider: bicep
   path: infra-azd
   module: main
-  outputs:
-    containerRegistryLoginServer: containerRegistryLoginServer
-    containerRegistryName: containerRegistryName
-    containerAppFQDN: containerAppFQDN
-    AZURE_CONTAINER_REGISTRY_ENDPOINT: containerRegistryLoginServer
-    AZURE_APPLICATION_INSIGHTS_CONNECTION_STRING: applicationInsightsConnectionString
-    AZURE_CLIENT_ID: userManagedIdentityClientId
-    AZURE_RESOURCE_GROUP_NAME: resourceGroupName
-    AZURE_SUBSCRIPTION_ID: AZURE_SUBSCRIPTION_ID
-    AZURE_AI_PROJECT_ENDPOINT: aiProjectEndpoint
-    AZURE_OPENAI_ENDPOINT: openAiEndpoint
-    AZURE_APP_CLIENT_ID: AZURE_APP_CLIENT_ID
-    AZURE_AI_SERVICES_NAME: AZURE_AI_SERVICES_NAME
 
 # Services configuration
 services:
@@ -35,7 +22,6 @@ services:
       path: Dockerfile
       remoteBuild: true
       context: .
-      registry: ${AZURE_CONTAINER_REGISTRY_ENDPOINT}
 
   # React Frontend
   frontend:
@@ -46,7 +32,6 @@ services:
       path: Dockerfile
       remoteBuild: true
       context: .
-      registry: ${AZURE_CONTAINER_REGISTRY_ENDPOINT}
 
 # Hooks for deployment lifecycle
 hooks:
@@ -64,7 +49,8 @@ hooks:
       shell: pwsh
       run: |
         Write-Host "Infrastructure provisioned successfully!"
-        Write-Host "Setting up role assignments..."
+        Write-Host "Resource Group: $env:AZURE_RESOURCE_GROUP"
+        Write-Host "Container Registry: $env:AZURE_CONTAINER_REGISTRY_ENDPOINT"
 
   # Run before deployment
   predeploy:
@@ -85,6 +71,7 @@ hooks:
         Write-Host "Deployment completed!"
         Write-Host "Frontend URL: $env:SERVICE_FRONTEND_URI"
         Write-Host "Backend URL: $env:SERVICE_BACKEND_URI"
+        Write-Host "AI Project: $env:AZURE_AI_PROJECT_ENDPOINT"
 
 # Pipeline configuration for CI/CD
 pipeline:

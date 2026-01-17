@@ -176,14 +176,12 @@ const SavingsEstimateCard: React.FC<SavingsEstimateCardProps> = ({ subscriptionI
 
   if (loading) {
     return (
-      <Card sx={{ width: '100%', boxShadow: 3, borderRadius: 3 }}>
-        <CardContent>
-          <Box display="flex" alignItems="center" justifyContent="center" py={4}>
-            <CircularProgress size={40} />
-            <Typography variant="body1" sx={{ ml: 2 }}>
-              Analyzing resources for potential savings...
-            </Typography>
-          </Box>
+      <Card sx={{ width: '100%', height: '100%', boxShadow: 3, borderRadius: 3, display: 'flex', flexDirection: 'column' }}>
+        <CardContent sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <CircularProgress size={40} />
+          <Typography variant="body1" sx={{ ml: 2 }}>
+            Analyzing resources...
+          </Typography>
         </CardContent>
       </Card>
     );
@@ -191,8 +189,8 @@ const SavingsEstimateCard: React.FC<SavingsEstimateCardProps> = ({ subscriptionI
 
   if (error) {
     return (
-      <Card sx={{ width: '100%', boxShadow: 3, borderRadius: 3 }}>
-        <CardContent>
+      <Card sx={{ width: '100%', height: '100%', boxShadow: 3, borderRadius: 3, display: 'flex', flexDirection: 'column' }}>
+        <CardContent sx={{ flex: 1 }}>
           <Alert severity="error" action={
             <IconButton size="small" onClick={fetchEstimate}>
               <RefreshIcon />
@@ -215,33 +213,36 @@ const SavingsEstimateCard: React.FC<SavingsEstimateCardProps> = ({ subscriptionI
     <Card
       sx={{
         width: '100%',
+        height: '100%',
         boxShadow: 3,
         borderRadius: 3,
         border: hasSavings ? '2px solid #4caf50' : undefined,
+        display: 'flex',
+        flexDirection: 'column',
         '&:hover': {
           boxShadow: 4,
           transition: 'box-shadow 0.3s',
         },
       }}
     >
-      <CardContent>
+      <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-          <Box display="flex" alignItems="center">
+          <Box display="flex" alignItems="center" sx={{ minWidth: 0 }}>
             <FontAwesomeIcon
               icon={faPiggyBank}
-              style={{ marginRight: 12, color: hasSavings ? '#4caf50' : '#9e9e9e', fontSize: 28 }}
+              style={{ marginRight: 12, color: hasSavings ? '#4caf50' : '#9e9e9e', fontSize: 24, flexShrink: 0 }}
             />
-            <Box>
-              <Typography variant="h6" component="div">
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="h6" component="div" noWrap>
                 Estimated Monthly Savings
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Based on {estimate.resources_analyzed} waste resources • Costs from Azure Cost Management (30 days)
+              <Typography variant="body2" color="text.secondary" noWrap>
+                {estimate.resources_analyzed} resources analyzed
               </Typography>
             </Box>
           </Box>
-          <Box display="flex" alignItems="center" gap={1}>
+          <Box display="flex" alignItems="center" gap={0.5} flexShrink={0}>
             <Tooltip title="Refresh estimate">
               <IconButton onClick={fetchEstimate} size="small">
                 <RefreshIcon />
@@ -344,89 +345,68 @@ const SavingsEstimateCard: React.FC<SavingsEstimateCardProps> = ({ subscriptionI
 
                     <Collapse in={expandedPolicies.has(policy.policy_name)}>
                       {policy.resources.length > 0 && (
-                        <TableContainer component={Paper} sx={{ mt: 2 }}>
-                          <Table size="small">
-                            <TableHead>
-                              <TableRow>
-                                <TableCell>Resource</TableCell>
-                                <TableCell>Action</TableCell>
-                                <TableCell>Status</TableCell>
-                                <TableCell align="right">Monthly Savings</TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {policy.resources.map((resource, idx) => (
-                                <TableRow key={idx}>
-                                  <TableCell>
-                                    <Typography variant="body2" fontWeight="medium">
-                                      {resource.name}
-                                    </Typography>
-                                    {resource.resource_group && resource.resource_group !== 'Unknown' && (
-                                      <Typography variant="caption" color="text.secondary">
-                                        {resource.resource_group}
-                                      </Typography>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    {resource.action && (
-                                      <Chip 
-                                        label={resource.action} 
-                                        size="small" 
-                                        color={resource.action.toLowerCase().includes('delete') ? 'error' : 'primary'}
-                                        variant="outlined"
-                                      />
-                                    )}
-                                    {resource.size && <Chip label={resource.size} size="small" sx={{ ml: 0.5 }} />}
-                                    {resource.size_gb && <Chip label={`${resource.size_gb} GB`} size="small" sx={{ ml: 0.5 }} />}
-                                    {resource.sku && <Chip label={resource.sku} size="small" sx={{ ml: 0.5 }} />}
-                                  </TableCell>
-                                  <TableCell>
-                                    {resource.status && (
-                                      <Chip 
-                                        label={resource.status} 
-                                        size="small" 
-                                        color={resource.status === 'Success' ? 'success' : resource.status === 'Pending' ? 'warning' : 'default'}
-                                        variant="filled"
-                                      />
-                                    )}
-                                  </TableCell>
-                                  <TableCell align="right">
-                                    <Tooltip 
-                                      title={
-                                        resource.is_estimate 
-                                          ? getEstimateTooltip(resource)
-                                          : `Actual cost from Azure Cost Management (last 30 days): $${resource.actual_cost?.toFixed(2)}`
-                                      }
-                                      arrow
-                                      placement="left"
-                                    >
-                                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                          <Typography variant="body2" color="success.main" fontWeight="bold">
-                                            ${resource.estimated_monthly_cost.toFixed(2)}
-                                          </Typography>
-                                          {resource.is_estimate && (
-                                            <InfoOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary', cursor: 'help' }} />
-                                          )}
-                                        </Box>
-                                        <Typography variant="caption" color="text.secondary">
-                                          {resource.is_estimate 
-                                            ? `(estimated)`
-                                            : '(actual)'}
-                                        </Typography>
-                                        {resource.is_estimate && resource.actual_cost === 0 && (
-                                          <Typography variant="caption" display="block" color="warning.main" sx={{ fontSize: '0.65rem' }}>
-                                            Azure cost: $0.00
-                                          </Typography>
-                                        )}
-                                      </Box>
-                                    </Tooltip>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </TableContainer>
+                        <Box sx={{ mt: 2 }}>
+                          {policy.resources.map((resource, idx) => (
+                            <Box
+                              key={idx}
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                py: 1,
+                                px: 1.5,
+                                borderBottom: '1px solid',
+                                borderColor: 'divider',
+                                '&:last-child': { borderBottom: 'none' },
+                              }}
+                            >
+                              <Box sx={{ minWidth: 0, flex: 1 }}>
+                                <Typography variant="body2" fontWeight="medium" noWrap title={resource.name}>
+                                  {resource.name}
+                                </Typography>
+                                <Box display="flex" gap={0.5} flexWrap="wrap">
+                                  {resource.action && (
+                                    <Chip
+                                      label={resource.action}
+                                      size="small"
+                                      color={resource.action.toLowerCase().includes('delete') ? 'error' : 'primary'}
+                                      variant="outlined"
+                                      sx={{ height: 20, fontSize: '0.7rem' }}
+                                    />
+                                  )}
+                                  {resource.status && (
+                                    <Chip
+                                      label={resource.status}
+                                      size="small"
+                                      color={resource.status === 'Success' ? 'success' : resource.status === 'Pending' ? 'warning' : 'default'}
+                                      sx={{ height: 20, fontSize: '0.7rem' }}
+                                    />
+                                  )}
+                                </Box>
+                              </Box>
+                              <Tooltip
+                                title={
+                                  resource.is_estimate
+                                    ? getEstimateTooltip(resource)
+                                    : `Actual: $${resource.actual_cost?.toFixed(2)}`
+                                }
+                                arrow
+                              >
+                                <Typography
+                                  variant="body2"
+                                  color="success.main"
+                                  fontWeight="bold"
+                                  sx={{ ml: 2, flexShrink: 0 }}
+                                >
+                                  ${resource.estimated_monthly_cost.toFixed(2)}
+                                  {resource.is_estimate && (
+                                    <InfoOutlinedIcon sx={{ fontSize: 12, ml: 0.5, verticalAlign: 'middle' }} />
+                                  )}
+                                </Typography>
+                              </Tooltip>
+                            </Box>
+                          ))}
+                        </Box>
                       )}
                     </Collapse>
                   </CardContent>
