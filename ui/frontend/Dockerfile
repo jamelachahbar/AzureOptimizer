@@ -17,6 +17,9 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
+# Set environment variable for OpenSSL compatibility with older webpack
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
 # Build the application
 RUN npm run build
 
