@@ -31,8 +31,8 @@ FROM nginx:alpine
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy built assets from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy built assets from builder (React uses 'build' folder, not 'dist')
+COPY --from=builder /app/build /usr/share/nginx/html
 
 # Copy environment config script
 COPY env-config.sh /docker-entrypoint.d/40-env-config.sh
