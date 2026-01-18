@@ -71,6 +71,10 @@ var rgName = !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesR
 // Role Definition IDs
 var storageBlobDataContributorRoleId = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+var readerRoleId = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
+
+// Computed Container App name for frontend FQDN (to avoid circular dependencies)
+var frontendContainerAppName = '${abbrs.appContainerApps}frontend-${resourceToken}'
 
 // ============================================================================
 // Resource Group
@@ -321,6 +325,40 @@ module containerAppsEnv 'br/public:avm/res/app/managed-environment:0.8.0' = {
 }
 
 // ============================================================================
+// Custom: Microsoft Graph - App Registration for React Frontend
+// NOTE: Placed before container apps to avoid circular dependencies
+// ============================================================================
+
+// Computed frontend FQDN for redirect URI (avoids circular dependency with frontend module)
+var computedFrontendFqdn = '${frontendContainerAppName}.${containerAppsEnv.outputs.defaultDomain}'
+
+module appRegistration './modules/app-registration.bicep' = {
+  name: 'app-registration-${resourceToken}'
+  scope: rg
+  params: {
+    applicationDisplayName: 'AzureOptimizer-${environmentName}'
+    redirectUris: union(frontendRedirectUris, [
+      'https://${computedFrontendFqdn}'
+    ])
+    userObjectId: userObjectId
+  }
+}
+
+// ============================================================================
+// Subscription-level Reader Role Assignment for Managed Identity
+// Required for backend to access Azure resources (Cost Management, Advisor, etc.)
+// ============================================================================
+
+resource subscriptionReaderRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(subscription().id, resourceToken, 'reader-role')
+  properties: {
+    principalId: managedIdentity.outputs.principalId
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', readerRoleId)
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// ============================================================================
 // AVM: Backend Container App
 // ============================================================================
 
@@ -350,6 +388,10 @@ module backend 'br/public:avm/res/app/container-app:0.11.0' = {
           {
             name: 'AZURE_CLIENT_ID'
             value: managedIdentity.outputs.clientId
+          }
+          {
+            name: 'AZURE_TENANT_ID'
+            value: subscription().tenantId
           }
           {
             name: 'AZURE_SUBSCRIPTION_ID'
@@ -476,6 +518,14 @@ module frontend 'br/public:avm/res/app/container-app:0.11.0' = {
             value: managedIdentity.outputs.clientId
           }
           {
+            name: 'REACT_APP_AZURE_CLIENT_ID'
+            value: appRegistration.outputs.applicationClientId
+          }
+          {
+            name: 'REACT_APP_AZURE_TENANT_ID'
+            value: subscription().tenantId
+          }
+          {
             name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
             value: applicationInsights.outputs.connectionString
           }
@@ -515,22 +565,6 @@ module frontend 'br/public:avm/res/app/container-app:0.11.0' = {
         }
       }
     ]
-  }
-}
-
-// ============================================================================
-// Custom: Microsoft Graph - App Registration for React Frontend
-// ============================================================================
-
-module appRegistration './modules/app-registration.bicep' = {
-  name: 'app-registration-${resourceToken}'
-  scope: rg
-  params: {
-    applicationDisplayName: 'AzureOptimizer-${environmentName}'
-    redirectUris: union(frontendRedirectUris, [
-      'https://${frontend.outputs.fqdn}'
-    ])
-    userObjectId: userObjectId
   }
 }
 

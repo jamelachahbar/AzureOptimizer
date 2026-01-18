@@ -343,7 +343,7 @@ def health_check():
     
     is_healthy = True
     
-    # Check 1: Azure Credentials
+    # Check 1: Azure Credentials (non-blocking - degraded mode is acceptable)
     try:
         # Test credential by getting token
         credential.get_token("https://management.azure.com/.default")
@@ -352,13 +352,15 @@ def health_check():
             "message": "Azure credentials valid"
         }
     except Exception as e:
-        is_healthy = False
+        # Don't fail health check for credential issues - app can still serve some endpoints
+        # This prevents container restart loops during credential propagation delays
         health_status["checks"]["azure_credentials"] = {
-            "status": "unhealthy",
-            "message": f"Azure credential error: {str(e)}"
+            "status": "degraded",
+            "message": f"Azure credential not ready: {str(e)}"
         }
-    
-    # Check 2: Blob Storage
+        logger.warning(f"Health check: Azure credentials not ready - {str(e)}")
+
+    # Check 2: Blob Storage (non-blocking - storage is optional for basic functionality)
     try:
         # Test blob storage connectivity
         if container_client:
@@ -369,15 +371,16 @@ def health_check():
             }
         else:
             health_status["checks"]["blob_storage"] = {
-                "status": "unknown",
-                "message": "Blob storage client not initialized"
+                "status": "degraded",
+                "message": "Blob storage client not initialized - some features unavailable"
             }
     except Exception as e:
-        is_healthy = False
+        # Don't fail health check for storage issues
         health_status["checks"]["blob_storage"] = {
-            "status": "unhealthy",
+            "status": "degraded",
             "message": f"Blob storage error: {str(e)}"
         }
+        logger.warning(f"Health check: Blob storage not accessible - {str(e)}")
     
     # Check 3: Policies file
     try:
@@ -995,15 +998,26 @@ def get_user_subscriptions():
 
 ### Function to get recommendations from Azure API ###
 
-from azure.identity import ClientSecretCredential
+from azure.identity import ClientSecretCredential, ManagedIdentityCredential
 
 def get_credentials(tenant_id):
-    """Return credentials for the given tenant ID."""
+    """Return credentials for the given tenant ID.
+    Uses ClientSecretCredential if AZURE_CLIENT_SECRET is set,
+    otherwise falls back to ManagedIdentityCredential for Azure deployments.
+    """
     client_id = os.getenv("AZURE_CLIENT_ID")
     client_secret = os.getenv("AZURE_CLIENT_SECRET")
-    if not (client_id and client_secret):
-        raise ValueError("Azure credentials are not set.")
-    return ClientSecretCredential(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
+    
+    if client_id and client_secret:
+        return ClientSecretCredential(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
+    elif client_id:
+        # Use Managed Identity with the specified client ID
+        logger.info(f"Using Managed Identity with client_id: {client_id}")
+        return ManagedIdentityCredential(client_id=client_id)
+    else:
+        # Fall back to DefaultAzureCredential
+        logger.info("Using DefaultAzureCredential")
+        return DefaultAzureCredential()
 
 def get_cost_recommendations(tenant_id, subscription_ids):
     """Fetch cost recommendations from Azure Advisor."""
