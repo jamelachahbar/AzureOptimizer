@@ -83,15 +83,26 @@ COST_LOOKBACK_DAYS = config.get("cost_management", {}).get("lookback_days", 30)
 # Authentication
 credential = DefaultAzureCredential()
 
-from azure.identity import ClientSecretCredential
+from azure.identity import ClientSecretCredential, ManagedIdentityCredential
 
 def get_client_credentials(tenant_id: str):
-    """Return credentials for the given tenant ID."""
+    """Return credentials for the given tenant ID.
+    Uses ClientSecretCredential if AZURE_CLIENT_SECRET is set,
+    otherwise falls back to ManagedIdentityCredential for Azure deployments.
+    """
     client_id = os.getenv("AZURE_CLIENT_ID")
     client_secret = os.getenv("AZURE_CLIENT_SECRET")
-    if not (client_id and client_secret):
-        raise ValueError("Azure client credentials are not set.")
-    return ClientSecretCredential(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
+    
+    if client_id and client_secret:
+        return ClientSecretCredential(tenant_id=tenant_id, client_id=client_id, client_secret=client_secret)
+    elif client_id:
+        # Use Managed Identity with the specified client ID
+        logger.info(f"Using Managed Identity with client_id: {client_id}")
+        return ManagedIdentityCredential(client_id=client_id)
+    else:
+        # Fall back to DefaultAzureCredential
+        logger.info("Using DefaultAzureCredential")
+        return DefaultAzureCredential()
 
 def get_subscription_client(tenant_id: str):
     """Return a SubscriptionClient for the given tenant."""
@@ -105,11 +116,14 @@ monitor_client = MonitorManagementClient(
 )
 
 # Verify that the necessary environment variables are set and log their values
+# Note: AZURE_CLIENT_SECRET is optional when using Managed Identity
 required_env_vars = [
     "AZURE_CLIENT_ID",
     "AZURE_TENANT_ID",
-    "AZURE_CLIENT_SECRET",
     "AZURE_SUBSCRIPTION_ID",
+]
+optional_env_vars = [
+    "AZURE_CLIENT_SECRET",  # Only required for service principal auth, not for Managed Identity
 ]
 for var in required_env_vars:
     value = os.getenv(var)
@@ -117,6 +131,13 @@ for var in required_env_vars:
         logger.error(f"Environment variable {var} is not set.")
         sys.exit(1)
     logger.info(f"{var}: {value}")
+
+for var in optional_env_vars:
+    value = os.getenv(var)
+    if value:
+        logger.info(f"{var}: [SET]")
+    else:
+        logger.info(f"{var}: [NOT SET - using Managed Identity]")
 
 
 def retry(max_retries=3, delay=5, backoff=2, jitter=True, exceptions=(Exception,)):
@@ -1948,7 +1969,7 @@ def main(mode="dry-run", tenant_id=None, all_subscriptions=True, stop_event=None
 
         tc.track_event("OptimizerExecutionCompleted", {"ExecutionTime": execution_time})
 
-        # Write results to JSON files
+        # Write results to JSON files (local)
         with open(summary_reports_file, "w") as file:
             json.dump(summary_reports, file, indent=4, default=str)
 

@@ -5,6 +5,7 @@ import {
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
+import { API_BASE_URL } from '../utils/apiConfig';
 import { AnimatedTooltip } from './AnimatedTooltip';
 
 interface ShortDescription {
@@ -45,7 +46,7 @@ const LLMInteraction: React.FC = () => {
 
       for (const subscription_id of subscriptionIds) {
         const res = await axios.post<{ advice: Recommendation[] }>(
-          'http://localhost:5000/api/analyze-recommendations',
+          `${API_BASE_URL}/api/analyze-recommendations`,
           { subscription_id },
           {
             headers: {

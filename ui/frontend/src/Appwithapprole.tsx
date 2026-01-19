@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 // import Button from '@mui/material/Button';
 import axios from 'axios';
+import { API_BASE_URL } from './utils/apiConfig';
 import { createTheme, ThemeProvider, useTheme } from '@mui/material/styles';
 import { customLightTheme } from './theme/customLightTheme';  // Import your themes
 import { customDarkTheme } from './theme/customDarkTheme';   // Import your custom dark theme
@@ -273,7 +274,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const fetchPolicies = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/policies');
+        const response = await axios.get(`${API_BASE_URL}/api/policies`);
         setPolicies(response.data.policies);
       } catch (error) {
         console.error('Error fetching policies:', error);
@@ -286,7 +287,7 @@ const App: React.FC = () => {
   }, []);
 
   const fetchLogStream = useCallback(() => {
-    const eventSource = new EventSource('http://127.0.0.1:5000/api/log-stream');
+    const eventSource = new EventSource(`${API_BASE_URL}/api/log-stream`);
     eventSource.onmessage = (event) => {
       setLogs((prevLogs) => [...prevLogs, event.data]);
     };
@@ -301,7 +302,7 @@ const App: React.FC = () => {
     setLogs([]);
     fetchLogStream();
     try {
-      const response = await axios.post('http://127.0.0.1:5000/api/run', { mode: mode, all_subscriptions: true });
+      const response = await axios.post(`${API_BASE_URL}/api/run`, { mode: mode, all_subscriptions: true });
       const data = response.data;
       console.log('Run Optimizer Response:', data);
       setLogs((prevLogs) => [...prevLogs, `Optimizer started in ${mode} mode.`]);
@@ -315,7 +316,7 @@ const App: React.FC = () => {
 
   const stopOptimizer = async () => {
     try {
-      await axios.post('http://127.0.0.1:5000/api/stop');
+      await axios.post(`${API_BASE_URL}/api/stop`);
       setIsOptimizerRunning(false);
       setLogs((prevLogs) => [...prevLogs, 'Optimizer stopped.']);
     } catch (error) {
@@ -326,7 +327,7 @@ const App: React.FC = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const summaryResponse = await axios.get('http://127.0.0.1:5000/api/summary-metrics');
+      const summaryResponse = await axios.get(`${API_BASE_URL}/api/summary-metrics`);
       const summaryData = summaryResponse.data;
       if (summaryData.length > 0) {
         setSummaryMetrics(summaryData);
@@ -341,7 +342,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const executionResponse = await axios.get('http://127.0.0.1:5000/api/execution-data');
+      const executionResponse = await axios.get(`${API_BASE_URL}/api/execution-data`);
       const executionData = executionResponse.data;
       setExecutionData(executionData);
     } catch (error) {
@@ -349,7 +350,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const impactedResourcesResponse = await axios.get('http://127.0.0.1:5000/api/impacted-resources');
+      const impactedResourcesResponse = await axios.get(`${API_BASE_URL}/api/impacted-resources`);
       const impactedResourcesData = impactedResourcesResponse.data;
       setImpactedResources(impactedResourcesData);
     } catch (error) {
@@ -357,7 +358,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const anomaliesResponse = await axios.get('http://127.0.0.1:5000/api/anomalies');
+      const anomaliesResponse = await axios.get(`${API_BASE_URL}/api/anomalies`);
       const anomaliesData = anomaliesResponse.data;
       setAnomalyData(anomaliesData);
     } catch (error) {
@@ -365,7 +366,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const trendDataResponse = await axios.get('http://127.0.0.1:5000/api/trend-data');
+      const trendDataResponse = await axios.get(`${API_BASE_URL}/api/trend-data`);
       const trendData = trendDataResponse.data;
       if (trendData && Array.isArray(trendData)) {
         setTrendData(trendData);
@@ -396,7 +397,7 @@ const App: React.FC = () => {
 
   const handleTogglePolicy = async (policyName: string, enabled: boolean) => {
     try {
-      await axios.post('http://localhost:5000/api/toggle-policy', {
+      await axios.post(`${API_BASE_URL}/api/toggle-policy`, {
         policy_name: policyName,
         enabled: !enabled,
       });

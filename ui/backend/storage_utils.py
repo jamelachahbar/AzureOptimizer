@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from azure.storage.blob import BlobServiceClient
 from azure.identity import DefaultAzureCredential
@@ -14,6 +15,14 @@ POLICIES_FILE = 'policies.yaml'
 SCHEMA_FILE = 'schema.json'
 LOCAL_POLICIES_PATH = os.path.join('policies', POLICIES_FILE)
 LOCAL_SCHEMA_PATH = os.path.join('src', SCHEMA_FILE)
+
+# Result files that need to be persisted to blob storage
+RESULT_FILES = [
+    'impacted_resources.json',
+    'execution_data.json',
+    'summary_reports.json',
+    'anomalies_all.json',
+]
 
 # Use DefaultAzureCredential for authentication
 credential = DefaultAzureCredential()
@@ -88,3 +97,80 @@ def update_policies_file():
     except Exception as e:
         logger.error(f"Error updating policies file: {e}")
         raise
+
+
+def upload_result_file(filename: str, data: dict) -> bool:
+    """Upload a result file (JSON) to blob storage for persistence across container restarts."""
+    if not container_client:
+        logger.debug(f"Storage not configured. Skipping upload of {filename}")
+        return False
+    
+    try:
+        blob_client = container_client.get_blob_client(filename)
+        json_data = json.dumps(data, indent=4, default=str)
+        blob_client.upload_blob(json_data, overwrite=True)
+        logger.info(f"Uploaded {filename} to blob storage ({len(data)} items)")
+        return True
+    except Exception as e:
+        logger.error(f"Error uploading {filename} to blob storage: {e}")
+        return False
+
+
+def download_result_file(filename: str) -> dict | list | None:
+    """Download a result file (JSON) from blob storage."""
+    if not container_client:
+        logger.debug(f"Storage not configured. Cannot download {filename}")
+        return None
+    
+    try:
+        blob_client = container_client.get_blob_client(filename)
+        download_stream = blob_client.download_blob()
+        content = download_stream.readall().decode('utf-8')
+        data = json.loads(content)
+        logger.info(f"Downloaded {filename} from blob storage ({len(data) if isinstance(data, list) else 'dict'} items)")
+        return data
+    except Exception as e:
+        if "BlobNotFound" in str(e):
+            logger.debug(f"Blob {filename} not found in storage")
+        else:
+            logger.warning(f"Error downloading {filename} from blob storage: {e}")
+        return None
+
+
+def upload_all_result_files(base_dir: str = ".") -> dict:
+    """Upload all result files to blob storage."""
+    results = {}
+    for filename in RESULT_FILES:
+        filepath = os.path.join(base_dir, filename)
+        if os.path.exists(filepath):
+            try:
+                with open(filepath, 'r') as f:
+                    data = json.load(f)
+                results[filename] = upload_result_file(filename, data)
+            except Exception as e:
+                logger.error(f"Error reading {filepath}: {e}")
+                results[filename] = False
+        else:
+            logger.debug(f"Result file {filepath} does not exist, skipping")
+            results[filename] = False
+    return results
+
+
+def download_all_result_files(base_dir: str = ".") -> dict:
+    """Download all result files from blob storage to local disk."""
+    results = {}
+    for filename in RESULT_FILES:
+        data = download_result_file(filename)
+        if data is not None:
+            filepath = os.path.join(base_dir, filename)
+            try:
+                with open(filepath, 'w') as f:
+                    json.dump(data, f, indent=4, default=str)
+                results[filename] = True
+                logger.info(f"Saved {filename} to {filepath}")
+            except Exception as e:
+                logger.error(f"Error saving {filepath}: {e}")
+                results[filename] = False
+        else:
+            results[filename] = False
+    return results

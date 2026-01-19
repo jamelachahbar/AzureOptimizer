@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import axios from 'axios';
+import { API_BASE_URL } from './utils/apiConfig';
 import { useTheme } from '@mui/material/styles';
 import { useIsAuthenticated } from '@azure/msal-react';
 import { AuthProvider, useAuth } from './providers/AuthProvider';
@@ -189,7 +190,7 @@ const Optimizer: React.FC = () => {
   useEffect(() => {
     const fetchPolicies = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/policies');
+        const { data } = await axios.get(`${API_BASE_URL}/api/policies`);
         setPolicies(data.policies);
       } catch (error) {
         console.error('Error fetching policies:', error);
@@ -205,7 +206,7 @@ const Optimizer: React.FC = () => {
       if (!tenantId) return;
       
       try {
-        const { data } = await axios.post('http://localhost:5000/api/get-subscriptions', {
+        const { data } = await axios.post(`${API_BASE_URL}/api/get-subscriptions`, {
           tenantId: tenantId
         });
         setSubscriptions(data);
@@ -217,7 +218,7 @@ const Optimizer: React.FC = () => {
   }, [tenantId]);
 
   const fetchLogStream = useCallback(() => {
-    const eventSource = new EventSource('http://127.0.0.1:5000/api/log-stream');
+    const eventSource = new EventSource(`${API_BASE_URL}/api/log-stream`);
     eventSource.onmessage = (event) => {
       setLogs((prevLogs) => [...prevLogs, event.data]);
     };
@@ -243,7 +244,7 @@ const Optimizer: React.FC = () => {
     setAnomaliesError(null);
     setLoadingAnomalies(true);
     try {
-      const { data } = await axios.post('http://127.0.0.1:5000/api/run', {
+      const { data } = await axios.post(`${API_BASE_URL}/api/run`, {
         mode: mode,
         all_subscriptions: true,
         tenantId: tenantId,
@@ -260,7 +261,7 @@ const Optimizer: React.FC = () => {
 
   const stopOptimizer = async () => {
     try {
-      await axios.post('http://127.0.0.1:5000/api/stop');
+      await axios.post(`${API_BASE_URL}/api/stop`);
       setIsOptimizerRunning(false);
       setLogs((prevLogs) => [...prevLogs, 'Optimizer stopped.']);
     } catch (error) {
@@ -324,7 +325,7 @@ const Optimizer: React.FC = () => {
 
 const fetchData = useCallback(async () => {
   try {
-    const { data: summaryData } = await axios.get('http://127.0.0.1:5000/api/summary-metrics');
+    const { data: summaryData } = await axios.get(`${API_BASE_URL}/api/summary-metrics`);
     setSummaryMetrics(summaryData);
   } catch (error) {
     console.error('Error fetching summary metrics:', error);
@@ -332,21 +333,21 @@ const fetchData = useCallback(async () => {
   }
 
   try {
-    const { data: executionData } = await axios.get('http://127.0.0.1:5000/api/execution-data');
+    const { data: executionData } = await axios.get(`${API_BASE_URL}/api/execution-data`);
     setExecutionData(executionData);
   } catch (error) {
     console.error('Error fetching execution data:', error);
   }
 
   try {
-    const { data: impactedResourcesData } = await axios.get('http://127.0.0.1:5000/api/impacted-resources');
+    const { data: impactedResourcesData } = await axios.get(`${API_BASE_URL}/api/impacted-resources`);
     setImpactedResources(impactedResourcesData);
   } catch (error) {
     console.error('Error fetching impacted resources:', error);
   }
 
   try {
-    const { data: anomalies } = await axios.get("http://127.0.0.1:5000/api/anomalies");
+    const { data: anomalies } = await axios.get(`${API_BASE_URL}/api/anomalies`);
     console.log("Raw Anomalies:", anomalies);
 
     // Map anomalies to match the expected structure
@@ -365,7 +366,7 @@ const fetchData = useCallback(async () => {
     setLoadingAnomalies(false);
   }
   try {
-    const { data: trendData } = await axios.get('http://127.0.0.1:5000/api/trend-data');
+    const { data: trendData } = await axios.get(`${API_BASE_URL}/api/trend-data`);
     if (Array.isArray(trendData)) {
       setTrendData(trendData);
     } else {
@@ -379,7 +380,7 @@ const fetchData = useCallback(async () => {
 
   try {
     const params = selectedSubscription !== 'All Subscriptions' ? { subscription_id: selectedSubscription } : {};
-    const { data: savingsData } = await axios.get('http://127.0.0.1:5000/api/estimate-savings', { params });
+    const { data: savingsData } = await axios.get(`${API_BASE_URL}/api/estimate-savings`, { params });
     setEstimatedSavings(savingsData.estimated_monthly_savings || 0);
   } catch (error) {
     console.error('Error fetching estimated savings:', error);
@@ -391,7 +392,7 @@ const fetchData = useCallback(async () => {
     let interval: NodeJS.Timeout | undefined;
     const checkCompletion = async () => {
       try {
-        const { data } = await axios.get('http://127.0.0.1:5000/api/status');
+        const { data } = await axios.get(`${API_BASE_URL}/api/status`);
         if (data.status === 'Completed') {
           setIsOptimizerRunning(false); // Stop polling
           clearInterval(interval); // Clear the interval
@@ -413,7 +414,7 @@ const fetchData = useCallback(async () => {
 
   const handleTogglePolicy = async (policyName: string, enabled: boolean) => {
     try {
-      await axios.post('http://localhost:5000/api/toggle-policy', { policy_name: policyName, enabled: !enabled });
+      await axios.post(`${API_BASE_URL}/api/toggle-policy`, { policy_name: policyName, enabled: !enabled });
       setPolicies(policies.map(policy => policy.name === policyName ? { ...policy, enabled: !enabled } : policy));
     } catch (error) {
       console.error('Error updating policy:', error);

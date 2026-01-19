@@ -20,3 +20,34 @@ WasteReport.xlsx
 autogenvenv
 autogenvenvwsl/
 OAI_CONFIG_LIST.json
+
+
+# .gitignore for Ralph Copilot
+
+# Active Ralph files (not examples)
+scripts/ralph/prd.json
+scripts/ralph/progress.txt
+scripts/ralph/.last-branch
+RalphCopilot/
+# Archives
+scripts/ralph/archive/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies
+node_modules/

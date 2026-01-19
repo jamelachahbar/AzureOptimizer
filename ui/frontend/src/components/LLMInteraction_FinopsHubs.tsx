@@ -22,6 +22,7 @@ import {
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
+import { API_BASE_URL } from '../utils/apiConfig';
 import { useAuth } from '../providers/AuthProvider';
 import LoginButton from './LoginButton';
 import LogoutButton from './LogoutButton';
@@ -132,7 +133,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
 
     try {
       const res = await axios.post(
-        'http://localhost:5000/api/review-recommendations',
+        `${API_BASE_URL}/api/review-recommendations`,
         { tenantId, subscriptionIds },
         { headers: { 'Content-Type': 'application/json' } },
       );
@@ -185,7 +186,7 @@ const LLMInteraction_FinopsHubs: React.FC = () => {
         }));
 
       const res = await axios.post(
-        'http://localhost:5000/api/analyze-recommendations',
+        `${API_BASE_URL}/api/analyze-recommendations`,
         { tenantId, recommendations: selectedRecs },
         { headers: { 'Content-Type': 'application/json' } },
       );

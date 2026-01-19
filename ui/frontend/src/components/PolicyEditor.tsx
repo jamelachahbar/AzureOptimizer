@@ -32,9 +32,7 @@ import {
 import { Delete, Edit, Add, Refresh, CheckCircle, Error as ErrorIcon } from '@mui/icons-material';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-
-// API Base URL - must match backend
-const API_BASE_URL = 'http://localhost:5000';
+import { API_BASE_URL } from '../utils/apiConfig';
 
 // Schema definitions with resource-specific options
 // Each resource type has specific valid actions and filters

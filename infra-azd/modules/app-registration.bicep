@@ -47,7 +47,12 @@ var userImpersonationPermissionId = '41094075-9dad-400e-a0bd-54e686782033' // us
 resource application 'Microsoft.Graph/applications@v1.0' = {
   uniqueName: applicationDisplayName
   displayName: applicationDisplayName
-  signInAudience: 'AzureADandPersonalMicrosoftAccount'
+  // Single-tenant: Only users from your organization can sign in
+  // This is required for Azure Management API scopes (user_impersonation)
+  signInAudience: 'AzureADMyOrg'
+  // Multi-tenant options (uncomment one if needed):
+  // signInAudience: 'AzureADMultipleOrgs'           // Any Azure AD tenant
+  // signInAudience: 'AzureADandPersonalMicrosoftAccount'  // Azure AD + personal Microsoft accounts (NOT compatible with Azure Management API)
   
   // SPA Configuration for React
   spa: {

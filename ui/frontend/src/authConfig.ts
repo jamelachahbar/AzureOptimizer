@@ -1,8 +1,26 @@
 import { Configuration, LogLevel } from "@azure/msal-browser";
 
-// Read from environment variables with fallback
-const clientId = process.env.REACT_APP_AZURE_CLIENT_ID || "02fb84dd-8908-47de-bcec-daff54959a76";
-const tenantId = process.env.REACT_APP_AZURE_TENANT_ID || "b98651dc-4756-44cb-ad4b-24f462ce02e0";
+// Extend Window interface to include _env_
+declare global {
+    interface Window {
+        _env_?: {
+            REACT_APP_AZURE_CLIENT_ID?: string;
+            REACT_APP_AZURE_TENANT_ID?: string;
+            BACKEND_URL?: string;
+            VITE_API_URL?: string;
+            VITE_APP_TITLE?: string;
+            VITE_ENABLE_ANALYTICS?: string;
+        };
+    }
+}
+
+// Read from runtime environment (window._env_), then process.env - NO hardcoded fallbacks
+const clientId = (typeof window !== 'undefined' && window._env_?.REACT_APP_AZURE_CLIENT_ID) 
+    || process.env.REACT_APP_AZURE_CLIENT_ID 
+    || "";
+const tenantId = (typeof window !== 'undefined' && window._env_?.REACT_APP_AZURE_TENANT_ID) 
+    || process.env.REACT_APP_AZURE_TENANT_ID 
+    || "";
 
 // Use window.location.origin for dynamic redirect URI (works in both localhost and deployed environments)
 const redirectUri = typeof window !== 'undefined' ? window.location.origin : "http://localhost:3000";
@@ -25,12 +43,12 @@ export const msalConfig: Configuration = {
         // Use specific tenant ID to ensure login to your tenant only
         authority: `https://login.microsoftonline.com/${tenantId}`,
         redirectUri: redirectUri,
-        postLogoutRedirectUri: '/'
-
+        postLogoutRedirectUri: '/',
+        navigateToLoginRequestUrl: true,
     },
     cache: {
-        cacheLocation: "sessionStorage",
-        storeAuthStateInCookie: true,
+        cacheLocation: "localStorage",  // Changed from sessionStorage - more reliable for redirects
+        storeAuthStateInCookie: true,   // Helps with IE11/Edge issues
     },
     system: {
         loggerOptions: {

@@ -25,6 +25,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import axios from 'axios';
+import { API_BASE_URL } from '../utils/apiConfig';
 
 interface ResourceEstimate {
   name: string;
@@ -148,7 +149,7 @@ const SavingsEstimateCard: React.FC<SavingsEstimateCardProps> = ({ subscriptionI
     setError(null);
     try {
       const params = subscriptionId ? { subscription_id: subscriptionId } : {};
-      const { data } = await axios.get<SavingsEstimate>('http://localhost:5000/api/estimate-savings', { params });
+      const { data } = await axios.get<SavingsEstimate>(`${API_BASE_URL}/api/estimate-savings`, { params });
       setEstimate(data);
     } catch (err: any) {
       console.error('Error fetching savings estimate:', err);

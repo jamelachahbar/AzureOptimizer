@@ -40,6 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [account, setAccount] = useState<AccountInfo | null>(null);
   const [tenantId, setTenantId] = useState<string>("");
   const [token, setToken] = useState<string | null>(null);
+  
   // Helper function to parse roles and tenantId from ID token claims
   const parseTokenClaims = (idTokenClaims: CustomIdTokenClaims | undefined) => {
     if (!idTokenClaims) {
@@ -53,38 +54,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
-    // Handle active account on load
-    const activeAccount = msalInstance.getActiveAccount();
-    if (activeAccount?.idTokenClaims) {
-      parseTokenClaims(activeAccount.idTokenClaims as CustomIdTokenClaims);
-      setAccount(activeAccount);
-      
-      // Acquire token for already logged-in user
-      msalInstance.acquireTokenSilent({
-        account: activeAccount,
-        scopes: ["https://management.azure.com/.default"],
-      }).then(tokenResponse => {
-        setToken(tokenResponse.accessToken);
-      }).catch(error => {
-        console.error("Error acquiring token on mount:", error);
-      });
-    }
-
-    // Listen for login events
+    // Listen for MSAL events - MsalProvider handles redirect promise internally
     const callbackId = msalInstance.addEventCallback(async (event) => {
+      // Handle successful login (both redirect and popup)
       if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
         const authResult = event.payload as AuthenticationResult;
         const loggedInAccount = authResult.account;
 
+        console.log("Login successful:", loggedInAccount?.username);
         msalInstance.setActiveAccount(loggedInAccount);
         setAccount(loggedInAccount);
-
-        // Parse claims from the ID token
         parseTokenClaims(authResult.idTokenClaims as CustomIdTokenClaims);
-
         
-        // Fetch access token
-
+        // Acquire access token for Azure Management API
         if (loggedInAccount) {
           try {
             const tokenResponse = await msalInstance.acquireTokenSilent({
@@ -93,30 +75,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             });
             setToken(tokenResponse.accessToken);
           } catch (error) {
-            if (error instanceof InteractionRequiredAuthError) {
-              console.warn("Interaction required. Initiating popup consent flow.");
-              try {
-                const tokenResponse = await msalInstance.acquireTokenPopup({
-                  scopes: ["https://management.azure.com/.default"],
-                });
-                setToken(tokenResponse.accessToken);
-              } catch (popupError) {
-                console.error("Error during interactive token acquisition:", popupError);
-              }
-            } else {
-              console.error("Error acquiring token silently:", error);
+            console.error("Error acquiring token after login:", error);
+          }
+        }
+      }
+      
+      // Handle redirect end - check for existing accounts
+      if (event.eventType === EventType.HANDLE_REDIRECT_END) {
+        const activeAccount = msalInstance.getActiveAccount();
+        if (activeAccount) {
+          setAccount(activeAccount);
+          parseTokenClaims(activeAccount.idTokenClaims as CustomIdTokenClaims);
+          
+          // Try to acquire token silently
+          try {
+            const tokenResponse = await msalInstance.acquireTokenSilent({
+              account: activeAccount,
+              scopes: ["https://management.azure.com/.default"],
+            });
+            setToken(tokenResponse.accessToken);
+          } catch (error) {
+            if (!(error instanceof InteractionRequiredAuthError)) {
+              console.error("Error acquiring token:", error);
             }
           }
-        } else {
-          console.error("No logged in account found. Cannot acquire token.");
         }
-        
       }
     });
+    
     return () => {
       if (callbackId) msalInstance.removeEventCallback(callbackId);
     };
   }, []);
+
   // Check for admin role
   const isAdmin = roles.includes("Admin");
 

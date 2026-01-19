@@ -326,6 +326,12 @@ def get_status():
     return jsonify({'status': optimizer_status}), 200
 
 
+@app.route('/health', methods=['GET'])
+def health_probe():
+    """Simple health probe endpoint for Container App liveness/readiness checks."""
+    return jsonify({'status': 'ok'}), 200
+
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """
@@ -435,12 +441,27 @@ def get_summary_metrics():
 
 @app.route('/api/execution-data', methods=['GET'])
 def get_execution_data():
+    global execution_data_data
     try:
         logger.info("Returning Execution Data")
+        
+        # If in-memory data is empty, try loading from file
+        data = execution_data_data
+        if not data:
+            execution_data_file = os.path.join(os.path.dirname(__file__), 'execution_data.json')
+            if os.path.exists(execution_data_file):
+                try:
+                    with open(execution_data_file, 'r') as f:
+                        data = json.load(f)
+                    logger.info(f"Loaded {len(data)} records from execution_data.json")
+                except Exception as e:
+                    logger.warning(f"Failed to load execution_data.json: {e}")
+                    data = []
+        
         # Support optional pagination via query params
         if 'page' in request.args or 'per_page' in request.args:
-            return jsonify(paginate(execution_data_data, request, sort_key='Resource')), 200
-        return jsonify(execution_data_data), 200
+            return jsonify(paginate(data, request, sort_key='Resource')), 200
+        return jsonify(data), 200
     except Exception as e:
         logger.error(f"Error fetching execution data: {e}")
         return jsonify({'error': 'Error fetching execution data'}), 500
@@ -1523,10 +1544,10 @@ def review_recommendations_route():
         # Combine all recommendations
         all_recommendations.extend(azure_recommendations)
 
-        # If no recommendations are found, return a message
+        # If no recommendations are found, return empty array (frontend expects an array)
         if not all_recommendations:
             logger.info(f"No recommendations found for tenant {tenant_id} and subscriptions {subscription_ids}")
-            return jsonify({"message": "No recommendations available"}), 200
+            return jsonify([]), 200
 
         # Return the combined recommendations
         return jsonify(all_recommendations), 200

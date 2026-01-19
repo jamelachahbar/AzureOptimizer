@@ -20,6 +20,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import axios from 'axios';
+import { API_BASE_URL } from '../utils/apiConfig';
 
 interface AdvisorRecommendation {
   uuid: string;
@@ -67,7 +68,7 @@ const AdvisorRecommendationsCard: React.FC<AdvisorRecommendationsCardProps> = ({
     setError(null);
     try {
       const params = subscriptionId ? { subscription_id: subscriptionId } : {};
-      const { data } = await axios.get('http://localhost:5000/api/review-recommendations', { params });
+      const { data } = await axios.get(`${API_BASE_URL}/api/review-recommendations`, { params });
 
       // Handle different response formats
       const recs = Array.isArray(data) ? data : data.recommendations || [];
@@ -87,7 +88,7 @@ const AdvisorRecommendationsCard: React.FC<AdvisorRecommendationsCardProps> = ({
   const analyzeRecommendation = async (recommendation: AdvisorRecommendation) => {
     setAnalyzingId(recommendation.uuid);
     try {
-      const { data } = await axios.post('http://localhost:5000/api/analyze-recommendations', {
+      const { data } = await axios.post(`${API_BASE_URL}/api/analyze-recommendations`, {
         recommendation_id: recommendation.uuid,
         problem: recommendation.problem,
         solution: recommendation.solution,
